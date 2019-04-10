@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Configuration status="info" monitorInterval="30">
+  <Properties>
+    <Property name="logdir">d:/w/git-local/authws/deployment/ws/logs</Property>
+    <Property name="layout">%d{dd MMM yyyy HH:mm:ss,SSS}%5p (%c:%M:%L) - %m%n</Property>
+  </Properties>
+  <Appenders>
+    <Console name="CONSOLE" target="SYSTEM_OUT">
+      <PatternLayout pattern="${layout}"/>
+    </Console>
+    <RollingFile name="CATALINA"
+        fileName="${logdir}/catalina.log"
+        filePattern="${logdir}/catalina.%d{yyyy-MM-dd}-%i.log">
+      <PatternLayout pattern="${layout}"/>
+      <Policies>
+        <TimeBasedTriggeringPolicy />
+        <SizeBasedTriggeringPolicy size="100 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="10"/>
+    </RollingFile>
+    <RollingFile name="AUTHWS"
+        fileName="${logdir}/authws.log"
+        filePattern="${logdir}/authws.%d{yyyy-MM-dd}-%i.log">
+      <PatternLayout pattern="${layout}"/>
+      <Policies>
+        <TimeBasedTriggeringPolicy />
+        <SizeBasedTriggeringPolicy size="100 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="10"/>
+    </RollingFile>
+  </Appenders>
+  <Loggers>
+    <Root level="warn">
+      <AppenderRef ref="CATALINA"/>
+    </Root>
+    <Logger name="com.bsi.authsvc"
+        level="info" additivity="false">
+      <AppenderRef ref="CONSOLE"/>
+    </Logger>
+    <Logger name="org.springframework.web.servlet"
+        level="trace" additivity="false">
+      <AppenderRef ref="CONSOLE"/>
+    </Logger>
+    <Logger name="org.apache.cxf"
+        level="trace" additivity="false">
+      <AppenderRef ref="CONSOLE"/>
+    </Logger>
+  </Loggers>
+</Configuration>
