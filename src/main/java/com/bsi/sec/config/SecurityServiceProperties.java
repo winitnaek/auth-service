@@ -36,6 +36,9 @@ public class SecurityServiceProperties {
 
     @Valid
     private DataSource dataSource = new DataSource();
+    
+    @Valid
+    private TpfDataSource tpfDataSource = new TpfDataSource();
 
     @Valid
     private IntUser user = new IntUser();
@@ -121,6 +124,14 @@ public class SecurityServiceProperties {
         this.dataSource = dataSource;
     }
 
+    public TpfDataSource getTpfDataSource() {
+        return tpfDataSource;
+    }
+
+    public void setTpfDataSource(TpfDataSource tpfDataSource) {
+        this.tpfDataSource = tpfDataSource;
+    }
+    
     /**
      * JPA properties
      */
@@ -498,6 +509,217 @@ public class SecurityServiceProperties {
             return "DataSource{" + "driverClassName=" + driverClassName + ", url=" + url + '}';
         }
 
+    }
+    
+     public static class TpfDataSource {
+        @NotEmpty
+        private String username;
+        @NotEmpty
+        private String password;
+        @NotEmpty
+        private String driverClassName;
+        @NotEmpty
+        private String url;
+        @Min(1)
+        private int maxWait;
+        @Min(1)
+        private int maxActive;
+        @Min(1)
+        private int maxIdle;
+
+        @NotNull
+        private boolean removeAbandoned;
+
+        @NotNull
+        private boolean logAbandoned;
+        @Min(1)
+        private int removeAbandonedTimeout;
+        @NotEmpty
+        private String validationQuery;
+        @Min(1)
+        private int validationQueryTimeout;
+
+        /**
+         * @return the username
+         */
+        public String getUsername() {
+            return username;
+        }
+
+        /**
+         * @param username the username to set
+         */
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        /**
+         * @return the password
+         */
+        public String getPassword() {
+            return password;
+        }
+
+        /**
+         * @param password the password to set
+         */
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        /**
+         * @return the driverClassName
+         */
+        public String getDriverClassName() {
+            return driverClassName;
+        }
+
+        /**
+         * @param driverClassName the driverClassName to set
+         */
+        public void setDriverClassName(String driverClassName) {
+            this.driverClassName = driverClassName;
+        }
+
+        /**
+         * @return the url
+         */
+        public String getUrl() {
+            return url;
+        }
+
+        /**
+         * @param url the url to set
+         */
+        public void setUrl(String url) {
+            this.url = url;
+        }
+
+        /**
+         * @return the maxWait
+         */
+        public int getMaxWait() {
+            return maxWait;
+        }
+
+        /**
+         * @param maxWait the maxWait to set
+         */
+        public void setMaxWait(int maxWait) {
+            this.maxWait = maxWait;
+        }
+
+        /**
+         * @return the maxActive
+         */
+        public int getMaxActive() {
+            return maxActive;
+        }
+
+        /**
+         * @param maxActive the maxActive to set
+         */
+        public void setMaxActive(int maxActive) {
+            this.maxActive = maxActive;
+        }
+
+        /**
+         * @return the maxIdle
+         */
+        public int getMaxIdle() {
+            return maxIdle;
+        }
+
+        /**
+         * @param maxIdle the maxIdle to set
+         */
+        public void setMaxIdle(int maxIdle) {
+            this.maxIdle = maxIdle;
+        }
+
+        /**
+         * @return the removeAbandoned
+         */
+        public boolean isRemoveAbandoned() {
+            return removeAbandoned;
+        }
+
+        /**
+         * @param removeAbandoned the removeAbandoned to set
+         */
+        public void setRemoveAbandoned(boolean removeAbandoned) {
+            this.removeAbandoned = removeAbandoned;
+        }
+
+        /**
+         * @return the logAbandoned
+         */
+        public boolean isLogAbandoned() {
+            return logAbandoned;
+        }
+
+        /**
+         * @param logAbandoned the logAbandoned to set
+         */
+        public void setLogAbandoned(boolean logAbandoned) {
+            this.logAbandoned = logAbandoned;
+        }
+
+        /**
+         * @return the removeAbandonedTimeout
+         */
+        public int getRemoveAbandonedTimeout() {
+            return removeAbandonedTimeout;
+        }
+
+        /**
+         * @param removeAbandonedTimeout the removeAbandonedTimeout to set
+         */
+        public void setRemoveAbandonedTimeout(int removeAbandonedTimeout) {
+            this.removeAbandonedTimeout = removeAbandonedTimeout;
+        }
+
+        /**
+         * @return the validationQuery
+         */
+        public String getValidationQuery() {
+            return validationQuery;
+        }
+
+        /**
+         * @param validationQuery the validationQuery to set
+         */
+        public void setValidationQuery(String validationQuery) {
+            this.validationQuery = validationQuery;
+        }
+
+        /**
+         * @return the validationQueryTimeout
+         */
+        public int getValidationQueryTimeout() {
+            return validationQueryTimeout;
+        }
+
+        /**
+         * @param validationQueryTimeout the validationQueryTimeout to set
+         */
+        public void setValidationQueryTimeout(int validationQueryTimeout) {
+            this.validationQueryTimeout = validationQueryTimeout;
+        }
+
+        /*
+        * (non-Javadoc)
+        *
+        * @see java.lang.Object#toString()
+         */
+        @Override
+        public String toString() {
+            return "TpfDataSource [username=" + username + ", password=" + password + ", driverClassName="
+                    + driverClassName + ", url=" + url + ", maxWait=" + maxWait + ", maxActive=" + maxActive
+                    + ", maxIdle=" + maxIdle + ", removeAbandoned=" + removeAbandoned + ", logAbandoned=" + logAbandoned
+                    + ", removeAbandonedTimeout=" + removeAbandonedTimeout + ", validationQuery=" + validationQuery
+                    + ", validationQueryTimeout=" + validationQueryTimeout + "]";
+        }
     }
 
     @Override
