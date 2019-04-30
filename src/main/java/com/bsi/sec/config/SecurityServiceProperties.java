@@ -33,6 +33,9 @@ public class SecurityServiceProperties {
 
     @Valid
     private Jpa jpa = new Jpa();
+    
+    @Valid
+    private TpfJpa tpfjpa = new TpfJpa();
 
     @Valid
     private DataSource dataSource = new DataSource();
@@ -116,6 +119,14 @@ public class SecurityServiceProperties {
         this.jpa = jpa;
     }
 
+    public TpfJpa getTpfjpa() {
+        return tpfjpa;
+    }
+
+    public void setTpfjpa(TpfJpa tpfjpa) {
+        this.tpfjpa = tpfjpa;
+    }
+    
     public DataSource getDataSource() {
         return dataSource;
     }
@@ -153,6 +164,52 @@ public class SecurityServiceProperties {
             return "Jpa{" + "dialect=" + dialect + '}';
         }
 
+    }
+    
+    public static class TpfJpa {
+
+        @NotEmpty
+        private String dialect;
+        @NotEmpty
+        private String defaultSchema;
+
+        /**
+         * @return the dialect
+         */
+        public String getDialect() {
+            return dialect;
+        }
+
+        /**
+         * @param dialect the dialect to set
+         */
+        public void setDialect(String dialect) {
+            this.dialect = dialect;
+        }
+
+        /*
+        * (non-Javadoc)
+        *
+        * @see java.lang.Object#toString()
+         */
+        @Override
+        public String toString() {
+            return "TpfJpa [dialect=" + dialect + ", dfltSchema=" + defaultSchema + "]";
+        }
+
+        /**
+         * @return the defaultSchema
+         */
+        public String getDefaultSchema() {
+            return defaultSchema;
+        }
+
+        /**
+         * @param defaultSchema the defaultSchema to set
+         */
+        public void setDefaultSchema(String defaultSchema) {
+            this.defaultSchema = defaultSchema;
+        }
     }
 
     /**
