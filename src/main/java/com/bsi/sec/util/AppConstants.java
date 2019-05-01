@@ -20,4 +20,13 @@ public final class AppConstants {
     // General
     public final static int FAILURE = 0;
     public final static int SUCCESS = 1;
+    
+     // Configuration
+    public static final String BEAN_TPF_ENTITY_MANAGER_FACTORY = "tpfEntityManagerFactory";
+    public static final String BEAN_TPF_TRANSACTION_MANAGER_FACTORY = "tpfJpaTransactionManager";
+    public static final String BEAN_TPF_DS_TRANSACTION_MGR_FACTORY = "tpfDsTransactionManager";
+    
+    public static final String BEAN_TPF_JOB_RUNNER_EXEC = "tpfJobRunnerExecutor";
+    public static final String BEAN_TPF_DATA_SOURCE = "tpfDataSource";
+    
 }
