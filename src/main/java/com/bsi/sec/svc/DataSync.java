@@ -9,16 +9,16 @@ package com.bsi.sec.svc;
  *
  * @author igorV
  */
-public interface DataPuller {
+public interface DataSync {
 
     /**
-     * Steps to initialize the puller go in here.
+     * Steps to runInitialSync the puller go in here.
      *
      * @throws Exception
      */
-    public void initialize() throws Exception;
+    public void runInitialSync() throws Exception;
 
-    public void initialPull() throws Exception;
+    public void runPeriodicSync() throws Exception;
 
-    public void periodicPull() throws Exception;
+    public void initializeSync() throws Exception;
 }

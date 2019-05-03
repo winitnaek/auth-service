@@ -17,23 +17,23 @@ import org.springframework.stereotype.Service;
  * @author igorV
  */
 @Service
-public class TPFDataPuller implements DataPuller {
+public class TPFDataPuller implements DataSync {
     
     @Autowired
     private BtoCompRepository btoCompRepository;
 
     @Override
-    public void initialize() throws Exception {
+    public void runInitialSync() throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void initialPull() throws Exception {
+    public void runPeriodicSync() throws Exception {
         btoCompRepository.getAllComps();
     }
 
     @Override
-    public void periodicPull() throws Exception {
+    public void initializeSync() throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

@@ -43,7 +43,7 @@ public class TPFDataPullerResource {
         if (log.isDebugEnabled()) {
             log.debug("REST request to run initial pull for TPF.");
         }
-        tpfDataPuller.initialPull();
+        tpfDataPuller.runPeriodicSync();
         return new ResponseEntity<>(null, HttpStatus.OK);
     }
     

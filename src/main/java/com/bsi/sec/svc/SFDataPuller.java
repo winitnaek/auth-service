@@ -15,20 +15,20 @@ import org.springframework.stereotype.Service;
  * @author igorV
  */
 @Service
-public class SFDataPuller implements DataPuller {
+public class SFDataPuller implements DataSync {
 
     @Override
-    public void initialize() throws Exception {
+    public void runInitialSync() throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void initialPull() throws Exception {
+    public void runPeriodicSync() throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void periodicPull() throws Exception {
+    public void initializeSync() throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
