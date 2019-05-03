@@ -5,6 +5,10 @@
  */
 package com.bsi.sec.svc;
 
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.List;
+
 /**
  *
  * @author igorV
@@ -16,9 +20,9 @@ public interface DataSync {
      *
      * @throws Exception
      */
-    public void runInitialSync() throws Exception;
+    public DataSyncResponse runInitialSync(LocalDateTime fromDateTime) throws Exception;
 
-    public void runPeriodicSync() throws Exception;
+    public DataSyncResponse runPeriodicSync(LocalDateTime fromDateTime) throws Exception;
 
     public void initializeSync() throws Exception;
 }

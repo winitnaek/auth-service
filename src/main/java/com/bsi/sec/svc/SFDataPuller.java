@@ -5,6 +5,9 @@
  */
 package com.bsi.sec.svc;
 
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.List;
 import org.springframework.stereotype.Service;
 
 /**
@@ -18,12 +21,12 @@ import org.springframework.stereotype.Service;
 public class SFDataPuller implements DataSync {
 
     @Override
-    public void runInitialSync() throws Exception {
+    public DataSyncResponse runInitialSync(LocalDateTime fromDateTime) throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void runPeriodicSync() throws Exception {
+    public DataSyncResponse runPeriodicSync(LocalDateTime fromDateTime) throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

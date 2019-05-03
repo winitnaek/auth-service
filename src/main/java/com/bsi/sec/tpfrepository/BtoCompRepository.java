@@ -6,6 +6,7 @@
 package com.bsi.sec.tpfrepository;
 import static com.bsi.sec.util.AppConstants.BEAN_TPF_TRANSACTION_MANAGER_FACTORY;
 import static com.bsi.sec.util.JpaQueries.GET_CCOMPS;
+import static com.bsi.sec.util.JpaQueries.GET_COMPANY_DATA_FOR_SYNC;
 import com.bsi.sec.tpfdomain.Btocomp;
 import com.bsi.sec.tpfdomain.BtocompPK;
 import java.util.List;
@@ -24,4 +25,7 @@ public interface BtoCompRepository extends JpaRepository<Btocomp, BtocompPK> {
 
     @Query(GET_CCOMPS)
     public List<Btocomp> getAllComps();
+    
+    @Query(GET_COMPANY_DATA_FOR_SYNC)
+    public List<Btocomp> getCompanyDataForSync();
 }
