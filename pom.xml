@@ -289,7 +289,8 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.7.9</version>
                 <configuration>                
-                    <includes>                    
+                    <includes>
+                         <include>com/bsi/sec/tpfdao/*</include>                    
                         <include>com/bsi/sec/util/*</include>
                         <include>com/bsi/sec/svc/*</include>
                         <include>com/bsi/sec/ws/**</include>

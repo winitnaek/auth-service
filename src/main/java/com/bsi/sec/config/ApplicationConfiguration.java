@@ -33,7 +33,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 @PropertySource("classpath:/sws.properties")
 @ComponentScan(basePackages = {
-    "com.bsi.sec.exception", "com.bsi.sec.config", "com.bsi.sec.dao"
+    "com.bsi.sec.exception", "com.bsi.sec.config"
 }
 )
 public class ApplicationConfiguration {

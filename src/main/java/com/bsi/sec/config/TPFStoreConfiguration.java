@@ -57,7 +57,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 }
 )
 @EnableJpaRepositories(
-        basePackages = {"com.bsi.tpf.dao"},
+        basePackages = {"com.bsi.sec.tpfdao"},
         entityManagerFactoryRef = BEAN_TPF_ENTITY_MANAGER_FACTORY,
         transactionManagerRef = BEAN_TPF_TRANSACTION_MANAGER_FACTORY
 )
@@ -68,7 +68,7 @@ public class TPFStoreConfiguration {
     private final static Logger log = LoggerFactory.getLogger(TPFStoreConfiguration.class);
     private static final String[] JPA_ENTITIES_PACKAGES = new String[]{
         "com.bsi.sec.tpfdomain"};
-    private static final String JPA_PU_NAME = "tpfws";
+    private static final String JPA_PU_NAME = "sws";
 
     @Autowired
     private Environment env;

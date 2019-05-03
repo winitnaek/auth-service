@@ -5,7 +5,6 @@
  */
 package com.bsi.sec.web.rest;
 import com.bsi.sec.dto.CompanyDTO;
-import com.bsi.sec.dto.DatasetProductDTO;
 import com.bsi.sec.svc.TPFDataPuller;
 import static com.bsi.sec.util.WSConstants.SECURITY_SERVICE;
 import java.util.Set;
