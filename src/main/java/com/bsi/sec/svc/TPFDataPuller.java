@@ -5,6 +5,8 @@
  */
 package com.bsi.sec.svc;
 
+import com.bsi.sec.tpfrepository.BtoCompRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -16,6 +18,9 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class TPFDataPuller implements DataPuller {
+    
+    @Autowired
+    private BtoCompRepository btoCompRepository;
 
     @Override
     public void initialize() throws Exception {
@@ -24,7 +29,7 @@ public class TPFDataPuller implements DataPuller {
 
     @Override
     public void initialPull() throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        btoCompRepository.getAllComps();
     }
 
     @Override

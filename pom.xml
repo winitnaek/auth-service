@@ -205,6 +205,11 @@
             <version>${ignite.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.ignite</groupId>
             <artifactId>ignite-spring-data</artifactId>
             <version>${ignite.version}</version>
@@ -290,7 +295,7 @@
                 <version>0.7.9</version>
                 <configuration>                
                     <includes>
-                         <include>com/bsi/sec/tpfdao/*</include>                    
+                         <include>com/bsi/sec/tpfrepository/*</include>                    
                         <include>com/bsi/sec/util/*</include>
                         <include>com/bsi/sec/svc/*</include>
                         <include>com/bsi/sec/ws/**</include>
