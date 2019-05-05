@@ -37,6 +37,8 @@ import org.springframework.boot.web.server.MimeMappings;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.core.env.Environment;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.context.WebApplicationContext;
@@ -51,6 +53,8 @@ import org.springframework.web.context.WebApplicationContext;
     MultipartAutoConfiguration.class, DispatcherServletAutoConfiguration.class},
         scanBasePackages = {"com.bsi.sec.config", "com.bsi.sec.svc", "com.bsi.sec.web.rest", "com.bsi.sec.helper"})
 @EnableConfigurationProperties({SecurityServiceProperties.class})
+@EnableJpaRepositories({"com.bsi.sec.repository"})
+@EnableTransactionManagement
 public class ApplicationInitializer implements WebServerFactoryCustomizer<TomcatServletWebServerFactory>, ServletContextInitializer {
 
     private static final Logger log = LoggerFactory.getLogger(ApplicationInitializer.class);

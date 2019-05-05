@@ -4,26 +4,20 @@
  * and open the template in the editor.
  */
 package com.bsi.sec.config;
-
-import com.bsi.sec.exception.ConfigurationException;
-import com.bsi.sec.util.AppConstants;
+import com.bsi.sec.config.SecurityServiceProperties;
 import static com.bsi.sec.util.AppConstants.BEAN_TPF_DATA_SOURCE;
-import static com.bsi.sec.util.AppConstants.BEAN_TPF_DS_TRANSACTION_MGR_FACTORY;
 import static com.bsi.sec.util.AppConstants.BEAN_TPF_ENTITY_MANAGER_FACTORY;
 import static com.bsi.sec.util.AppConstants.BEAN_TPF_TRANSACTION_MANAGER_FACTORY;
 import static com.bsi.sec.util.AppConstants.SPRING_PROFILE_DEV;
 import com.bsi.sec.util.CryptUtils;
-import com.bsi.sec.util.FileUtils;
-import com.bsi.sec.util.LogUtils;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Optional;
+import java.sql.SQLException;
 import java.util.Properties;
 import javax.persistence.EntityManagerFactory;
+import javax.sql.DataSource;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.ignite.springdata.repository.config.EnableIgniteRepositories;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +29,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.orm.jpa.JpaDialect;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
@@ -44,41 +37,39 @@ import org.springframework.orm.jpa.vendor.HibernateJpaDialect;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  *
- * @author igorV
+ * @author Vinit
  */
 @Configuration
 @PropertySource("classpath:/sws.properties")
 @ComponentScan(basePackages = {
-    "com.bsi.sec.tpfdao",
+    "com.bsi.sec.tpfrepository",
     "com.bsi.sec.exception", "com.bsi.sec.config"
 }
 )
 @EnableJpaRepositories(
-        basePackages = {"com.bsi.sec.tpfdao"},
+        basePackages = {"com.bsi.sec.tpfrepository"},
         entityManagerFactoryRef = BEAN_TPF_ENTITY_MANAGER_FACTORY,
         transactionManagerRef = BEAN_TPF_TRANSACTION_MANAGER_FACTORY
 )
-
-@EnableTransactionManagement
-public class TPFStoreConfiguration {
+public class TPFStoreConfiguration implements WebMvcConfigurer {
 
     private final static Logger log = LoggerFactory.getLogger(TPFStoreConfiguration.class);
-    private static final String[] JPA_ENTITIES_PACKAGES = new String[]{
-        "com.bsi.sec.tpfdomain"};
     private static final String JPA_PU_NAME = "sws";
-
-    @Autowired
-    private Environment env;
+    private static final String[] JPA_ENTITIES_PACKAGES = new String[]{"com.bsi.sec.tpfdomain"};
 
     @Autowired
     private SecurityServiceProperties props;
+    
+    @Autowired
+    private Environment env;
 
     @Bean(name = BEAN_TPF_ENTITY_MANAGER_FACTORY)
     @Primary
-    public EntityManagerFactory entityManagerFactory() {
+    public EntityManagerFactory entityManagerFactory() throws SQLException {
         LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
         factory.setPersistenceUnitName(JPA_PU_NAME);
         factory.setPackagesToScan(JPA_ENTITIES_PACKAGES);
@@ -99,28 +90,27 @@ public class TPFStoreConfiguration {
         return factory.getObject();
     }
 
-    @Primary
-    @Bean(name = BEAN_TPF_DS_TRANSACTION_MGR_FACTORY)
-    public PlatformTransactionManager transactionManagerDs() {
-        DataSourceTransactionManager dsManager = new DataSourceTransactionManager(dataSource());
-        return dsManager;
-    }
-
-    @Bean(name = BEAN_TPF_DATA_SOURCE, destroyMethod = "close")
-    @Primary
-    public BasicDataSource dataSource() {
-        return createDataSource();
-    }
-
     @Bean(name = BEAN_TPF_TRANSACTION_MANAGER_FACTORY)
-    public PlatformTransactionManager rransactionManagerEm() {
+    @Primary
+    public PlatformTransactionManager transactionManager() throws SQLException {
         JpaTransactionManager txManager = new JpaTransactionManager();
         txManager.setEntityManagerFactory(entityManagerFactory());
         return txManager;
     }
 
-    private BasicDataSource createDataSource() {
-        BasicDataSource bds = new BasicDataSource();
+    @Bean(name = BEAN_TPF_DATA_SOURCE, destroyMethod = "close")
+    @Primary
+    public DataSource dataSource() throws SQLException {
+        return createDataSource();
+    }
+    
+    /**
+     * createDataSource
+     * @return
+     * @throws SQLException 
+     */
+    private DataSource createDataSource() throws SQLException {
+                BasicDataSource bds = new BasicDataSource();
         bds.setDriverClassName(props.getTpfDataSource().getDriverClassName());
         bds.setUrl(props.getTpfDataSource().getUrl());
 
@@ -153,7 +143,10 @@ public class TPFStoreConfiguration {
         logDataSourceProperties(bds);
         return bds;
     }
-
+    /**
+     * logDataSourceProperties
+     * @param bds 
+     */
     private void logDataSourceProperties(BasicDataSource bds) {
         if (log.isInfoEnabled()) {
             log.info("############################ TPF Data Source Props ################################");

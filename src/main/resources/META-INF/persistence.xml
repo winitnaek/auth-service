@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- TODO: persistence.xml is not needed as Spring Repo style CRUDs must 
+be used for uniformity! -->
+<persistence version="2.1" xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
+  <persistence-unit name="sws" transaction-type="RESOURCE_LOCAL">
+    <!--    <provider>org.hibernate.ejb.HibernatePersistence</provider>-->
+    <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+    <class>com.bsi.sec.tpfdomain.Btocomp</class>
+    <class>com.bsi.sec.tpfdomain.BtocompPK</class>
+    <class>com.bsi.sec.tpfdomain.Btoconfig</class>
+    <class>com.bsi.sec.tpfdomain.BtoconfigPK</class>
+    <class>com.bsi.sec.tpfdomain.Btocust</class>
+    <class>com.bsi.sec.tpfdomain.Btodset</class>
+    <properties>
+      <property name="hibernate.default_schema" value="obx"/>
+      <property name="hibernate.show_sql" value="false"/>
+      <property name="javax.persistence.jdbc.url" value="jdbc:sqlserver://ssdev01:1433;DatabaseName=ef_datasets;sendStringParametersAsUnicode=false"/>
+      <property name="javax.persistence.jdbc.user" value="obx"/>
+      <property name="javax.persistence.jdbc.driver" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/>
+      <property name="javax.persistence.jdbc.password" value="bsi"/>
+    </properties>
+  </persistence-unit>
+</persistence>

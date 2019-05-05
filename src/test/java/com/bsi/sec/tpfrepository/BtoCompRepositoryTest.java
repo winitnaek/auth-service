@@ -1,11 +1,12 @@
-package com.bsi.sec.tpfdao;
+package com.bsi.sec.tpfrepository;
 
-import static org.junit.Assert.assertTrue;
 
 import com.bsi.sec.base.BaseTest;
 import com.bsi.sec.config.TPFStoreConfiguration;
-import com.bsi.sec.config.TestApplicationContext;
-
+import com.bsi.sec.startup.ApplicationInitializer;
+import com.bsi.sec.tpfdomain.Btocomp;
+import static com.bsi.sec.util.AppConstants.BEAN_TPF_TRANSACTION_MANAGER_FACTORY;
+import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -18,16 +19,18 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {TestApplicationContext.class})
+@SpringBootTest(classes = {ApplicationInitializer.class})
 @ContextConfiguration(classes = {TPFStoreConfiguration.class})
 @TestPropertySource("classpath:test.properties")
-public class ConfigDaoTest extends BaseTest {
+@Transactional(transactionManager=BEAN_TPF_TRANSACTION_MANAGER_FACTORY)
+public class BtoCompRepositoryTest extends BaseTest {
 
     @Autowired
-    private BtoConfigDao configDao;
+    private BtoCompRepository btoCompRepository;
     
     @Rule
     public ExpectedException thrown = ExpectedException.none();
@@ -43,7 +46,7 @@ public class ConfigDaoTest extends BaseTest {
     @Test
     @Ignore
     public void getValueSuccessTest() throws Exception {
-        String itemval = configDao.getValue(443, 1451, "ERPSYSTEM");
-        assertTrue("Lawson".equals(itemval));
+        List<Btocomp> btocomps = btoCompRepository.getAllComps();
+        System.out.println(btocomps.get(0).getSamlcid());
     }
 }

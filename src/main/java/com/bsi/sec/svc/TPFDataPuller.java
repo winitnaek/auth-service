@@ -5,8 +5,10 @@
  */
 package com.bsi.sec.svc;
 
+import com.bsi.sec.tpfrepository.BtoCompRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import java.time.LocalDateTime;
 /**
  *
  * Component is responsible for providing functionality to pull data from the
@@ -15,20 +17,24 @@ import org.springframework.stereotype.Service;
  * @author igorV
  */
 @Service
-public class TPFDataPuller implements DataPuller {
+public class TPFDataPuller implements DataSync {
+    
+    @Autowired
+    private BtoCompRepository btoCompRepository;
 
     @Override
-    public void initialize() throws Exception {
+    public DataSyncResponse runInitialSync(LocalDateTime fromDateTime) throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void initialPull() throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public DataSyncResponse runPeriodicSync(LocalDateTime fromDateTime) throws Exception {
+        //btoCompRepository.getAllComps();
+        return null;
     }
 
     @Override
-    public void periodicPull() throws Exception {
+    public void initializeSync() throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
