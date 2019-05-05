@@ -21,6 +21,8 @@
         <!-- Tests -->
         <version.template.file>src/test/java/com/bsi/sec/base/BaseTest.java.template</version.template.file>
         <version.file>src/test/java/com/bsi/sec/base/BaseTest.java</version.file>
+        
+        <test.id>1L</test.id>
         <test.datasetname>TEST_DSET1</test.datasetname>
         <test.acctname>BSI</test.acctname>
         <test.prodname>TPF</test.prodname>
@@ -187,6 +189,11 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context-support</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
             <version>${spring.version}</version>
         </dependency>
         <dependency>
@@ -359,6 +366,10 @@
                     <file>${version.template.file}</file>
                     <outputFile>${version.file}</outputFile>
                     <replacements>
+                        <replacement>
+                            <token>@id@</token>
+                            <value>${test.id}</value>
+                        </replacement>
                         <replacement>
                             <token>@datasetname@</token>
                             <value>${test.datasetname}</value>

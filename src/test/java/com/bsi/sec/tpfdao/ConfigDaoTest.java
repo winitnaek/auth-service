@@ -8,6 +8,7 @@ import com.bsi.sec.config.TestApplicationContext;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -40,6 +41,7 @@ public class ConfigDaoTest extends BaseTest {
     }
 
     @Test
+    @Ignore
     public void getValueSuccessTest() throws Exception {
         String itemval = configDao.getValue(443, 1451, "ERPSYSTEM");
         assertTrue("Lawson".equals(itemval));

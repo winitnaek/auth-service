@@ -54,6 +54,7 @@ public class StoreConfiguration implements WebMvcConfigurer {
 
 //    @Bean
 //    @Primary
+    @SuppressWarnings("rawtypes")
     public Ignite igniteInstance() {
         IgniteConfiguration cfg = new IgniteConfiguration();
         // Setting some custom name for the node.
@@ -63,9 +64,9 @@ public class StoreConfiguration implements WebMvcConfigurer {
 
         // Defining and creating a new cache to be used by Ignite Spring Data
         // repository.
-        CacheConfiguration ccfgTenant = new CacheConfiguration("TenantCache");
-        CacheConfiguration ccfgSSOConf = new CacheConfiguration("SSOConfCache");
-        CacheConfiguration ccfgTenantSSOConf = new CacheConfiguration("TenantSSOConfCache");
+        CacheConfiguration<Long, Tenant> ccfgTenant = new CacheConfiguration<>("TenantCache");
+        CacheConfiguration<Long, SSOConfiguration> ccfgSSOConf = new CacheConfiguration<>("SSOConfCache");
+        CacheConfiguration<Long, TenantSSOConf> ccfgTenantSSOConf = new CacheConfiguration<>("TenantSSOConfCache");
         // Setting SQL schema for the cache.
         ccfgSSOConf.setIndexedTypes(Long.class, SSOConfiguration.class);
         ccfgTenant.setIndexedTypes(Long.class, Tenant.class);
@@ -93,10 +94,7 @@ public class StoreConfiguration implements WebMvcConfigurer {
         //        
         JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         factory.setJpaVendorAdapter(vendorAdapter);
-        BasicDataSource ds = new BasicDataSource();
-        ds.setUrl(props.getDataSource().getUrl());
-        ds.setDriverClassName(props.getDataSource().getDriverClassName());
-        factory.setDataSource(ds);
+        factory.setDataSource(dataSource());
         factory.afterPropertiesSet();
         return factory.getObject();
     }
@@ -118,6 +116,7 @@ public class StoreConfiguration implements WebMvcConfigurer {
     private DataSource createDataSource() throws SQLException {
         BasicDataSource ds = new BasicDataSource();
         ds.setUrl(props.getDataSource().getUrl());
+        ds.setDriverClassName(props.getDataSource().getDriverClassName());
         return ds;
     }
 
