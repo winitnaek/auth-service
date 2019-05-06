@@ -5,14 +5,17 @@
  */
 package com.bsi.sec.dto;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 /**
+ * //TODO: Stub!!! Implement DTO!!!
  *
  * @author igorV
  */
-public final class DatasetProductDTO {
+public final class ProductDTO {
 
+    @Min(1L)
     private Long id;
 
     @NotNull
@@ -24,10 +27,10 @@ public final class DatasetProductDTO {
     @NotNull
     private String dataset;
 
-    public DatasetProductDTO() {
+    public ProductDTO() {
     }
 
-    public DatasetProductDTO(Long id, String acctName, String prodName, String dataset) {
+    public ProductDTO(Long id, String acctName, String prodName, String dataset) {
         this.id = id;
         this.acctName = acctName;
         this.prodName = prodName;
@@ -64,6 +67,11 @@ public final class DatasetProductDTO {
 
     public void setDataset(String dataset) {
         this.dataset = dataset;
+    }
+
+    @Override
+    public String toString() {
+        return "ProductDTO{" + "id=" + id + ", acctName=" + acctName + ", prodName=" + prodName + ", dataset=" + dataset + '}';
     }
 
 }

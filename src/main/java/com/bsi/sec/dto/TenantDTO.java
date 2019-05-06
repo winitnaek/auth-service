@@ -6,13 +6,16 @@
 package com.bsi.sec.dto;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Min;
 
 /**
+ * TODO: Add JSR-303 validation, comments.
  *
  * @author igorV
  */
-public final class DatasetProductDTO {
+public final class TenantDTO {
 
+    @Min(1L)
     private Long id;
 
     @NotNull
@@ -24,10 +27,10 @@ public final class DatasetProductDTO {
     @NotNull
     private String dataset;
 
-    public DatasetProductDTO() {
+    public TenantDTO() {
     }
 
-    public DatasetProductDTO(Long id, String acctName, String prodName, String dataset) {
+    public TenantDTO(Long id, String acctName, String prodName, String dataset) {
         this.id = id;
         this.acctName = acctName;
         this.prodName = prodName;
@@ -64,6 +67,11 @@ public final class DatasetProductDTO {
 
     public void setDataset(String dataset) {
         this.dataset = dataset;
+    }
+
+    @Override
+    public String toString() {
+        return "TenantDTO{" + "id=" + id + ", acctName=" + acctName + ", prodName=" + prodName + ", dataset=" + dataset + '}';
     }
 
 }

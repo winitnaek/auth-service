@@ -15,7 +15,8 @@ public class BaseTest {
 
     public BaseTest() {
     }
-    public static final String datasetname = "datasetname@";
+    public static final Long id = 1L;
+    public static final String datasetname = "TEST_DSET1";
     public static final String acctname = "BSI";
     public static final String prodname = "TPF";
 }

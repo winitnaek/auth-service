@@ -5,6 +5,7 @@
  */
 package com.bsi.sec.dto;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -13,6 +14,7 @@ import javax.validation.constraints.NotNull;
  */
 public final class DatasetProductDTO {
 
+    @Min(1L)
     private Long id;
 
     @NotNull
@@ -64,6 +66,11 @@ public final class DatasetProductDTO {
 
     public void setDataset(String dataset) {
         this.dataset = dataset;
+    }
+
+    @Override
+    public String toString() {
+        return "DatasetProductDTO{" + "id=" + id + ", acctName=" + acctName + ", prodName=" + prodName + ", dataset=" + dataset + '}';
     }
 
 }
