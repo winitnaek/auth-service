@@ -11,5 +11,5 @@ package com.bsi.sec.util;
  */
 public class JpaQueries {
     public static final String GET_CCOMPS = "from Btocomp c";
-    public static final String GET_COMPANY_DATA_FOR_SYNC = "from Btocomp c";
+    public static final String GET_COMPANY_DATA_FOR_SYNC = "from Btocomp c where c.enabled = 1 and c.createdat > :fromDateTime";
 }
