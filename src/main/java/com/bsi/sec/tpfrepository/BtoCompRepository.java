@@ -9,9 +9,11 @@ import static com.bsi.sec.util.JpaQueries.GET_CCOMPS;
 import static com.bsi.sec.util.JpaQueries.GET_COMPANY_DATA_FOR_SYNC;
 import com.bsi.sec.tpfdomain.Btocomp;
 import com.bsi.sec.tpfdomain.BtocompPK;
+import java.util.Date;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,5 +29,5 @@ public interface BtoCompRepository extends JpaRepository<Btocomp, BtocompPK> {
     public List<Btocomp> getAllComps();
     
     @Query(GET_COMPANY_DATA_FOR_SYNC)
-    public List<Btocomp> getCompanyDataForSync();
+    public List<Btocomp> getCompanyDataForSync( @Param("fromDateTime") Date fromDateTime);
 }
