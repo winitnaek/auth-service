@@ -54,7 +54,14 @@ public class TPFDataPuller implements DataSync {
      */
     @Override
     public DataSyncResponse runPeriodicSync(LocalDateTime fromDateTime) throws Exception {
-        btoCompRepository.getAllComps();
+        List<Btocomp> companies =  btoCompRepository.getAllComps();
+        System.out.println("companies "+companies);
+        if(companies !=null){
+            System.out.println("companies "+companies.size());
+            for (Btocomp company : companies) {
+            System.out.println(company.toString());
+            }
+        }
         return null;
     }
     
@@ -83,8 +90,11 @@ public class TPFDataPuller implements DataSync {
             log.debug("Current -10 Yrs : " + now.get(Calendar.YEAR) + "-" + (now.get(Calendar.MONTH) + 1) + "-" + now.get(Calendar.DATE) + " " + now.get(Calendar.HOUR_OF_DAY) + ":" + now.get(Calendar.MINUTE) + ":" + now.get(Calendar.SECOND));
             Date fromDate = now.getTime();
             compnatList = btoCompRepository.getCompanyDataForSync(fromDate);
-            System.out.println(compnatList.size());
-            System.out.println(compnatList.get(0).getSamlcid());
+             System.out.println(compnatList.size());
+            for (Btocomp btocomp : compnatList) {
+                System.out.println(btocomp.getSamlcid());
+                System.out.println(btocomp.toString());
+            }
         } else {
             Date fromDate = Date.from( fromDateTime.atZone( ZoneId.systemDefault()).toInstant());
             compnatList = btoCompRepository.getCompanyDataForSync(fromDate);

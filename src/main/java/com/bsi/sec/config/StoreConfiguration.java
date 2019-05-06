@@ -50,8 +50,8 @@ public class StoreConfiguration implements WebMvcConfigurer {
     @Autowired
     private SecurityServiceProperties props;
 
-//    @Bean
-//    @Primary
+    @Bean
+    @Primary
     @SuppressWarnings("rawtypes")
     public Ignite igniteInstance() {
         IgniteConfiguration cfg = new IgniteConfiguration();
@@ -76,7 +76,7 @@ public class StoreConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-//    @Primary
+    @Primary
     public EntityManagerFactory entityManagerFactory() throws SQLException {
         LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
         factory.setPackagesToScan(JPA_ENTITIES_PACKAGES);
@@ -98,7 +98,7 @@ public class StoreConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-//    @Primary
+    @Primary
     public PlatformTransactionManager transactionManager() throws SQLException {
         JpaTransactionManager txManager = new JpaTransactionManager();
         txManager.setEntityManagerFactory(entityManagerFactory());
@@ -106,7 +106,7 @@ public class StoreConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-//    @Primary
+    @Primary
     public DataSource dataSource() throws SQLException {
         return createDataSource();
     }

@@ -57,6 +57,8 @@ public class BtoCompRepositoryTest extends BaseTest {
         Date fromDateTime = now.getTime();
         List<Btocomp> btocomps = btoCompRepository.getCompanyDataForSync(fromDateTime);
         System.out.println(btocomps.size());
-        System.out.println(btocomps.get(0).getSamlcid());
+        for (Btocomp btocomp : btocomps) {
+             System.out.println(btocomp.getSamlcid());
+        }
     }
 }
