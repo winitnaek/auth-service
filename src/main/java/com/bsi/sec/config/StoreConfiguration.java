@@ -8,6 +8,7 @@ package com.bsi.sec.config;
 import com.bsi.sec.domain.SSOConfiguration;
 import com.bsi.sec.domain.Tenant;
 import com.bsi.sec.domain.TenantSSOConf;
+import com.bsi.sec.domain.Company;
 import java.sql.SQLException;
 import java.util.Properties;
 import javax.persistence.EntityManagerFactory;
@@ -65,12 +66,14 @@ public class StoreConfiguration implements WebMvcConfigurer {
         CacheConfiguration<Long, Tenant> ccfgTenant = new CacheConfiguration<>("TenantCache");
         CacheConfiguration<Long, SSOConfiguration> ccfgSSOConf = new CacheConfiguration<>("SSOConfCache");
         CacheConfiguration<Long, TenantSSOConf> ccfgTenantSSOConf = new CacheConfiguration<>("TenantSSOConfCache");
+        CacheConfiguration<Long, Company> ccfgCompnany = new CacheConfiguration<>("CompanyCache");
         // Setting SQL schema for the cache.
         ccfgSSOConf.setIndexedTypes(Long.class, SSOConfiguration.class);
         ccfgTenant.setIndexedTypes(Long.class, Tenant.class);
         ccfgTenantSSOConf.setIndexedTypes(Long.class, TenantSSOConf.class);
-
-        cfg.setCacheConfiguration(new CacheConfiguration[]{ccfgTenantSSOConf, ccfgTenant, ccfgSSOConf});
+        ccfgCompnany.setIndexedTypes(Long.class, Company.class);
+        
+        cfg.setCacheConfiguration(new CacheConfiguration[]{ccfgTenantSSOConf, ccfgTenant, ccfgSSOConf, ccfgCompnany});
 
         return Ignition.start(cfg);
     }
