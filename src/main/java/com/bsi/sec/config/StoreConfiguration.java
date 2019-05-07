@@ -39,7 +39,7 @@ import static com.bsi.sec.util.CacheConstants.SEC_SVC_DATA_NODE;
  * @author igorV
  */
 @Configuration
-@EnableIgniteRepositories
+@EnableIgniteRepositories(basePackages = {"com.bsi.sec.repository"})
 public class StoreConfiguration implements WebMvcConfigurer {
 
     private final static Logger log = LoggerFactory.getLogger(StoreConfiguration.class);
