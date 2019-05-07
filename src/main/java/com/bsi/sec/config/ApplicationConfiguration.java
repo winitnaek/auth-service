@@ -30,10 +30,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Configuration
 @EnableAsync
 @EnableScheduling
-@ComponentScan(basePackages = {
-    "com.bsi.sec.exception",
-    "com.bsi.sec.repository", "com.bsi.sec.tpfrepository"
-}
+@ComponentScan(basePackages = {"com.bsi.sec.exception"}
 )
 public class ApplicationConfiguration {
 

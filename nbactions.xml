@@ -13,4 +13,14 @@
                 <skipTests>true</skipTests>
             </properties>
         </action>
+        <action>
+            <actionName>CUSTOM-Run-No-Tests</actionName>
+            <displayName>Run-No-Tests</displayName>
+            <goals>
+                <goal>org.springframework.boot:spring-boot-maven-plugin:2.1.3.RELEASE:run</goal>
+            </goals>
+            <properties>
+                <skipTests>true</skipTests>
+            </properties>
+        </action>
     </actions>
