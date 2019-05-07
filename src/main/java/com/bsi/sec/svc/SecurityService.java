@@ -69,7 +69,7 @@ public class SecurityService {
      * @param fromDateTime
      * @return
      */
-    public boolean runSFSync(LocalDateTime fromDateTime) throws Exception {
+    public boolean runPeriodicDataSync(LocalDateTime fromDateTime) throws Exception {
         if (log.isDebugEnabled()) {
             log.debug("SERVICE invoked to run Periodic Salesforce sync with args: fromDateTime -> {}",
                     fromDateTime.toInstant(ZoneOffset.UTC).toString());
@@ -81,47 +81,17 @@ public class SecurityService {
 
     /**
      *
-     * @param fromDateTime
-     * @return
-     */
-    public boolean runTPFSync(LocalDateTime fromDateTime) throws Exception {
-        if (log.isDebugEnabled()) {
-            log.debug("SERVICE invoked to run Periodic TPF sync with args: fromDateTime -> {}",
-                    fromDateTime.toInstant(ZoneOffset.UTC).toString());
-        }
-
-        boolean isPerTPFSyncSuccess = true;
-        return isPerTPFSyncSuccess;
-    }
-
-    /**
-     *
      * @param enabled
      * @return
      */
-    public boolean enableSFSync(boolean enabled) throws Exception {
+    public boolean enablePeriodicDataSync(boolean enabled) throws Exception {
         if (log.isDebugEnabled()) {
-            log.debug("SERVICE invoked to enable/disable SF sync with args: enabled -> {}",
+            log.debug("SERVICE invoked to enable/disable Periodic Data Sync with args: enabled -> {}",
                     Boolean.valueOf(enabled).toString());
         }
 
         boolean isSFSyncEnabled = true;
         return isSFSyncEnabled;
-    }
-
-    /**
-     *
-     * @param enabled
-     * @return
-     */
-    public boolean enableTPFSync(boolean enabled) throws Exception {
-        if (log.isDebugEnabled()) {
-            log.debug("SERVICE invoked to enable/disable TPF sync with args: enabled -> {}",
-                    Boolean.valueOf(enabled).toString());
-        }
-
-        boolean isTPFSyncEnabled = true;
-        return isTPFSyncEnabled;
     }
 
     /**
@@ -159,20 +129,6 @@ public class SecurityService {
     }
 
     /**
-     * TODO: Test-only stub! Add implementation!
-     *
-     * @param productsToRet
-     */
-    private Set<DatasetProductDTO> getTestProducts() throws Exception {
-        String[][] dsetsProds = new String[][]{
-            {"DSET1", "TPF", "ACCT1"},
-            {"DSET2", "TF", "ACCT2"},
-            {"DSET3", "CF", "ACCT3"}};
-        return Arrays.asList(dsetsProds).stream().map(dp
-                -> new DatasetProductDTO(1L, dp[2], dp[1], dp[0])).collect(Collectors.toSet());
-    }
-
-    /**
      *
      * @param ssoConfig
      * @return
@@ -197,4 +153,46 @@ public class SecurityService {
         config.setEnabled(true);
         return config;
     }
+
+    /**
+     *
+     * @param id
+     * @return
+     */
+    public boolean deleteSSOConfig(long id) {
+        //TODO: Add implementation!
+        return true;
+    }
+
+    /**
+     *
+     * @param accountName
+     * @param ssoConfigId
+     * @param toUnlink
+     * @return
+     */
+    public boolean linkSSOConfigToTenant(String accountName, long ssoConfigId, boolean toUnlink) {
+        //TODO: Add implementation!
+        return true;
+    }
+
+    public boolean testSSOConfiguration(String accountName, long ssoConfigId) {
+        //TODO: Add implementation!
+        return true;
+    }
+
+    /**
+     * TODO: Test-only stub! Add implementation!
+     *
+     * @param productsToRet
+     */
+    private Set<DatasetProductDTO> getTestProducts() throws Exception {
+        String[][] dsetsProds = new String[][]{
+            {"DSET1", "TPF", "ACCT1"},
+            {"DSET2", "TF", "ACCT2"},
+            {"DSET3", "CF", "ACCT3"}};
+        return Arrays.asList(dsetsProds).stream().map(dp
+                -> new DatasetProductDTO(1L, dp[2], dp[1], dp[0])).collect(Collectors.toSet());
+    }
+
 }

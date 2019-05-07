@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -56,8 +57,8 @@ public class SecurityServiceResource {
      *
      * @return @throws Exception
      */
-    @PostMapping("/runFullSFSync")
-    public ResponseEntity<Boolean> runFullSFSync() throws Exception {
+    @PostMapping("/runInitialDataSync")
+    public ResponseEntity<Boolean> runInitialDataSync() throws Exception {
         if (log.isDebugEnabled()) {
             log.debug("REST request to run Full Salesforce sync.");
         }
@@ -72,31 +73,14 @@ public class SecurityServiceResource {
      * @return
      * @throws Exception
      */
-    @PostMapping("/runSFSync")
-    public ResponseEntity<Boolean> runSFSync(@Valid @NotNull @RequestParam(required = true)
+    @PostMapping("/runPeriodicDataSync")
+    public ResponseEntity<Boolean> runPeriodicDataSync(@Valid @NotNull @RequestParam(required = true)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDateTime) throws Exception {
         if (log.isDebugEnabled()) {
             log.debug("REST request to run Periodic Salesforce sync.");
         }
 
-        boolean status = securityService.runSFSync(fromDateTime);
-        return new ResponseEntity<>(status, HttpStatus.OK);
-    }
-
-    /**
-     *
-     * @param fromDateTime
-     * @return
-     * @throws Exception
-     */
-    @PostMapping("/runTPFSync")
-    public ResponseEntity<Boolean> runTPFSync(@Valid @NotNull @RequestParam(required = true)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDateTime) throws Exception {
-        if (log.isDebugEnabled()) {
-            log.debug("REST request to run Periodic TPF sync.");
-        }
-
-        boolean status = securityService.runTPFSync(fromDateTime);
+        boolean status = securityService.runPeriodicDataSync(fromDateTime);
         return new ResponseEntity<>(status, HttpStatus.OK);
     }
 
@@ -106,33 +90,14 @@ public class SecurityServiceResource {
      * @return
      * @throws Exception
      */
-    @PostMapping("/enableSFSync")
-    public ResponseEntity<Boolean> enableSFSync(
-            @Valid @NotNull
-            @RequestParam(required = true) boolean enabled) throws Exception {
+    @PostMapping("/enablePeriodicDataSync")
+    public ResponseEntity<Boolean> enablePeriodicDataSync(
+            @RequestParam boolean enabled) throws Exception {
         if (log.isDebugEnabled()) {
-            log.debug("REST request to enable/disable SF sync.");
+            log.debug("REST request to enable/disable Periodic Data Sync.");
         }
 
-        boolean status = securityService.enableSFSync(enabled);
-        return new ResponseEntity<>(status, HttpStatus.OK);
-    }
-
-    /**
-     *
-     * @param enabled
-     * @return
-     * @throws Exception
-     */
-    @PostMapping("/enableTPFSync")
-    public ResponseEntity<Boolean> enableTPFSync(
-            @Valid @NotNull
-            @RequestParam(required = true) boolean enabled) throws Exception {
-        if (log.isDebugEnabled()) {
-            log.debug("REST request to enable/disable TPF sync.");
-        }
-
-        boolean status = securityService.enableTPFSync(enabled);
+        boolean status = securityService.enablePeriodicDataSync(enabled);
         return new ResponseEntity<>(status, HttpStatus.OK);
     }
 
@@ -168,7 +133,7 @@ public class SecurityServiceResource {
      */
     @PostMapping("/deleteTenant")
     public ResponseEntity<Boolean> deleteTenant(
-            @Valid @NotNull @RequestParam(required = true) Long id) throws Exception {
+            @Valid @Min(1L) @RequestParam(required = true) Long id) throws Exception {
         if (log.isDebugEnabled()) {
             log.debug("REST request to delete Tenant with ID = {}", id);
         }
@@ -188,16 +153,60 @@ public class SecurityServiceResource {
         SSOConfigDTO config = securityService.createSSOConfig(ssoConfig);
         return new ResponseEntity<>(config, HttpStatus.OK);
     }
-    
+
     @PostMapping("/updateSSOConfig")
     public ResponseEntity<SSOConfigDTO> updateSSOConfig(
             @Valid @NotNull @RequestBody(required = true) SSOConfigDTO ssoConfig) throws Exception {
         if (log.isDebugEnabled()) {
-            log.debug("REST request to add new SSO Configuration = {}",
+            log.debug("REST request to update existing SSO Configuration = {}",
                     ssoConfig.toString());
         }
 
         SSOConfigDTO config = securityService.updateSSOConfig(ssoConfig);
         return new ResponseEntity<>(config, HttpStatus.OK);
+    }
+
+    @PostMapping("/deleteSSOConfig")
+    public ResponseEntity<Boolean> deleteSSOConfig(
+            @Valid @Min(1L) @RequestParam(required = true) long id) throws Exception {
+        if (log.isDebugEnabled()) {
+            log.debug("REST request to delete existing SSO Configuration "
+                    + "with ID = {}", id);
+        }
+
+        boolean isDeleted = securityService.deleteSSOConfig(id);
+        return new ResponseEntity<>(isDeleted, HttpStatus.OK);
+    }
+
+    @PostMapping("/linkSSOConfigToTenant")
+    public ResponseEntity<Boolean> linkSSOConfigToTenant(
+            @Valid @NotNull @RequestParam(required = true) String accountName,
+            @Valid @Min(1L) @RequestParam(required = true) long ssoConfigId,
+            @RequestParam boolean toUnlink) throws Exception {
+        if (log.isDebugEnabled()) {
+            log.debug("REST request to link existing SSO Configuration to Tenant"
+                    + "with Account Name = {}, SSO Config Id = {}, Unlink flag = {}",
+                    accountName, ssoConfigId, toUnlink);
+        }
+
+        boolean isDeleted = securityService.linkSSOConfigToTenant(accountName,
+                ssoConfigId, toUnlink);
+        return new ResponseEntity<>(isDeleted, HttpStatus.OK);
+    }
+
+    @GetMapping("/testSSOConfiguration")
+    public ResponseEntity<Boolean> testSSOConfiguration(
+            @Valid @NotNull @RequestParam(required = true) String accountName,
+            @Valid @Min(1L) @RequestParam(required = true) long ssoConfigId)
+            throws Exception {
+        if (log.isDebugEnabled()) {
+            log.debug("REST request to test existing SSO Configuration"
+                    + "with Account Name = {}, SSO Config Id = {}",
+                    accountName, ssoConfigId);
+        }
+
+        boolean isValid = securityService.testSSOConfiguration(accountName,
+                ssoConfigId);
+        return new ResponseEntity<>(isValid, HttpStatus.OK);
     }
 }

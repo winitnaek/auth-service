@@ -1,15 +1,14 @@
 package com.bsi.sec.repository;
 
 import com.bsi.sec.domain.SSOConfiguration;
-import org.springframework.data.jpa.repository.*;
-import org.springframework.stereotype.Repository;
-
+import static com.bsi.sec.util.CacheConstants.SSO_CONFIGURATION_CACHE;
+import org.apache.ignite.springdata20.repository.IgniteRepository;
+import org.apache.ignite.springdata20.repository.config.RepositoryConfig;
 
 /**
- * Spring Data  repository for the SSOConfiguration entity.
+ * Spring Data repository for the SSOConfiguration entity.
  */
-@SuppressWarnings("unused")
-@Repository
-public interface SSOConfigurationRepository extends JpaRepository<SSOConfiguration, Long> {
+@RepositoryConfig(cacheName = SSO_CONFIGURATION_CACHE)
+public interface SSOConfigurationRepository extends IgniteRepository<SSOConfiguration, Long> {
 
 }

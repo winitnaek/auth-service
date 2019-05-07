@@ -1,15 +1,14 @@
 package com.bsi.sec.repository;
 
 import com.bsi.sec.domain.Tenant;
-import org.springframework.data.jpa.repository.*;
-import org.springframework.stereotype.Repository;
-
+import static com.bsi.sec.util.CacheConstants.TENANT_CACHE;
+import org.apache.ignite.springdata20.repository.IgniteRepository;
+import org.apache.ignite.springdata20.repository.config.RepositoryConfig;
 
 /**
- * Spring Data  repository for the Tenant entity.
+ * Spring Data repository for the Tenant entity.
  */
-@SuppressWarnings("unused")
-@Repository
-public interface TenantRepository extends JpaRepository<Tenant, Long> {
+@RepositoryConfig(cacheName = TENANT_CACHE)
+public interface TenantRepository extends IgniteRepository<Tenant, Long> {
 
 }

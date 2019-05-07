@@ -213,7 +213,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.ignite</groupId>
-            <artifactId>ignite-spring-data</artifactId>
+            <artifactId>ignite-spring-data_2.0</artifactId>
             <version>${ignite.version}</version>
             <exclusions>
                 <exclusion>
@@ -226,6 +226,11 @@
             <groupId>org.apache.ignite</groupId>
             <artifactId>ignite-indexing</artifactId>
             <version>${ignite.version}</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.ignite</groupId>
+          <artifactId>ignite-log4j2</artifactId>
+          <version>${ignite.version}</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>

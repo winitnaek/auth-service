@@ -39,6 +39,7 @@ public class Tenant extends AbstractAuditingEntity implements Serializable {
 
     @NotNull
     @Column(name = "acct_id", nullable = false)
+    @QuerySqlField(index = true)
     private String acctId;
 
     @NotNull

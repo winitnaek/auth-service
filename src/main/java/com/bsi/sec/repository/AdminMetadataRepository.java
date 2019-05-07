@@ -1,15 +1,13 @@
 package com.bsi.sec.repository;
 
 import com.bsi.sec.domain.AdminMetadata;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
+import static com.bsi.sec.util.CacheConstants.ADMIN_METADATA_CACHE;
+import org.apache.ignite.springdata20.repository.IgniteRepository;
+import org.apache.ignite.springdata20.repository.config.RepositoryConfig;
 
 /**
- * Spring Data  repository for the AdminMetadata entity.
+ * Spring Data repository for the AdminMetadata entity.
  */
-@SuppressWarnings("unused")
-@Repository
-public interface AdminMetadataRepository extends JpaRepository<AdminMetadata, Long> {
-
+@RepositoryConfig(cacheName = ADMIN_METADATA_CACHE)
+public interface AdminMetadataRepository extends IgniteRepository<AdminMetadata, Long> {
 }

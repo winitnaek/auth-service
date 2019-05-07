@@ -8,6 +8,16 @@
     <Console name="CONSOLE" target="SYSTEM_OUT">
       <PatternLayout pattern="${layout}"/>
     </Console>
+    <RollingFile name="IGNLOG"
+        fileName="${logdir}/ignite.log"
+        filePattern="${logdir}/ignite.%d{yyyy-MM-dd}-%i.log">
+      <PatternLayout pattern="${layout}"/>
+      <Policies>
+        <TimeBasedTriggeringPolicy />
+        <SizeBasedTriggeringPolicy size="100 MB"/>
+      </Policies>
+      <DefaultRolloverStrategy max="10"/>
+    </RollingFile>
     <RollingFile name="CATALINA"
         fileName="${logdir}/catalina.log"
         filePattern="${logdir}/catalina.%d{yyyy-MM-dd}-%i.log">
@@ -36,6 +46,10 @@
     <Logger name="com.bsi.sec"
         level="debug" additivity="false">
       <AppenderRef ref="CONSOLE"/>
+    </Logger>
+    <Logger name="org.apache.ignite"
+        level="debug" additivity="false">
+      <AppenderRef ref="IGNLOG"/>
     </Logger>
   </Loggers>
 </Configuration>

@@ -1,7 +1,5 @@
 package com.bsi.sec.domain;
 
-
-
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -172,12 +170,12 @@ public class TenantSSOConf extends AbstractAuditingEntity implements Serializabl
 
     @Override
     public String toString() {
-        return "TenantSSOConf{" +
-            "id=" + getId() +
-            ", acctName='" + getAcctName() + "'" +
-            ", prodName='" + getProdName() + "'" +
-            ", dataset='" + getDataset() + "'" +
-            ", ssoConfDsplName='" + getSsoConfDsplName() + "'" +
-            "}";
+        return "TenantSSOConf{"
+                + "id=" + getId()
+                + ", acctName='" + getAcctName() + "'"
+                + ", prodName='" + getProdName() + "'"
+                + ", dataset='" + getDataset() + "'"
+                + ", ssoConfDsplName='" + getSsoConfDsplName() + "'"
+                + "}";
     }
 }
