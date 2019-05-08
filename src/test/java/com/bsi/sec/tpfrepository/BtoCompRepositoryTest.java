@@ -10,6 +10,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -56,9 +57,6 @@ public class BtoCompRepositoryTest extends BaseTest {
         System.out.println("Current -10 Yrs : " + now.get(Calendar.YEAR) + "-" + (now.get(Calendar.MONTH) + 1) + "-" + now.get(Calendar.DATE) + " " + now.get(Calendar.HOUR_OF_DAY) + ":" + now.get(Calendar.MINUTE) + ":" + now.get(Calendar.SECOND));
         Date fromDateTime = now.getTime();
         List<Btocomp> btocomps = btoCompRepository.getCompanyDataForSync(fromDateTime);
-        System.out.println(btocomps.size());
-        for (Btocomp btocomp : btocomps) {
-             System.out.println(btocomp.getSamlcid());
-        }
+        Assert.assertTrue((btocomps.size()>0));
     }
 }

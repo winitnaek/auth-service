@@ -19,4 +19,5 @@ public final class CacheConstants {
     public static final String SSO_CONFIGURATION_CACHE = "SSOConfCache";
     public static final String TENANT_CACHE = "TenantCache";
     public static final String TENANT_SSO_CONF_CACHE = "TenantSSOConfCache";
+    public static final String GET_COMPANY_CACHE_SEQ = "getCompanyCacheSeq";
 }
