@@ -5,9 +5,8 @@
  */
 package com.bsi.sec.svc;
 
+import com.bsi.sec.dto.DataSyncResponse;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.List;
 
 /**
  *

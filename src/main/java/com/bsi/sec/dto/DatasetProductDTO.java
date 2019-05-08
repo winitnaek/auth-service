@@ -14,6 +14,7 @@ import javax.validation.constraints.NotNull;
  */
 public final class DatasetProductDTO {
 
+    @NotNull
     @Min(1L)
     private Long id;
 

@@ -5,7 +5,10 @@
  */
 package com.bsi.sec.svc;
 
+import com.bsi.sec.dto.AuditLogDTO;
+import com.bsi.sec.dto.DataSyncResponse;
 import com.bsi.sec.dto.DatasetProductDTO;
+import com.bsi.sec.dto.ProductDTO;
 import com.bsi.sec.dto.SSOConfigDTO;
 import com.bsi.sec.dto.TenantDTO;
 import java.time.LocalDateTime;
@@ -176,9 +179,85 @@ public class SecurityService {
         return true;
     }
 
+    /**
+     *
+     * @param accountName
+     * @param ssoConfigId
+     * @return
+     */
     public boolean testSSOConfiguration(String accountName, long ssoConfigId) {
         //TODO: Add implementation!
         return true;
+    }
+
+    /**
+     *
+     * @param lastNoDays
+     * @return
+     */
+    public AuditLogDTO getAuditLogs(int lastNoDays) {
+        //TODO: Add implementation!
+        AuditLogDTO auditLogs = new AuditLogDTO();
+        auditLogs.setAccount("BSI");
+        auditLogs.setDataset("BSI_DSET_1");
+        auditLogs.setProduct("TPF");
+        auditLogs.setMessage("Tenant [BSI] has been created.");
+        return auditLogs;
+    }
+
+    /**
+     * TODO: Add implementation!
+     *
+     * @param accountName
+     * @return
+     */
+    public SSOConfigDTO getSSOConfigsByTenant(String accountName) {
+        SSOConfigDTO config = new SSOConfigDTO();
+        config.setAcctName("BSI");
+        config.setId(1L);
+        config.setDsplName("BSI SSO Config 1");
+        return config;
+    }
+
+    /**
+     * TODO: Add implementation!
+     *
+     * @param includeImported
+     * @return
+     */
+    public TenantDTO getTenants(boolean includeImported) {
+        TenantDTO tenant = new TenantDTO();
+        tenant.setId(1L);
+        tenant.setAcctName("BSI");
+        tenant.setDataset("BSI_DSET_1");
+        tenant.setProdName("TPF");
+        return tenant;
+    }
+
+    /**
+     * TODO: Add implementation!
+     *
+     * @return
+     */
+    public DataSyncResponse getLastSyncInfo() {
+        DataSyncResponse syncInfo = new DataSyncResponse();
+        syncInfo.setIsSucessfull(true);
+        syncInfo.setLastRunDateTime(LocalDateTime.now(ZoneOffset.UTC));
+        syncInfo.setMessage("Sync was done at " + syncInfo.getLastRunDateTime());
+        return syncInfo;
+    }
+
+    /**
+     * TODO: Add implementation!
+     *
+     * @return
+     */
+    public ProductDTO getProductsByTenants() {
+        ProductDTO prod = new ProductDTO();
+        prod.setAcctName("BSI");
+        prod.setId(1L);
+        prod.setProdName("TPF");
+        return prod;
     }
 
     /**

@@ -14,6 +14,7 @@ import javax.validation.constraints.NotNull;
  */
 public final class SSOConfigDTO {
 
+    @NotNull
     @Min(1L)
     private Long id;
 

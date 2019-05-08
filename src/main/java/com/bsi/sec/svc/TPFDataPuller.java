@@ -5,6 +5,7 @@
  */
 package com.bsi.sec.svc;
 
+import com.bsi.sec.dto.DataSyncResponse;
 import com.bsi.sec.domain.Company;
 import com.bsi.sec.repository.CompanyRepository;
 import com.bsi.sec.tpfrepository.BtoCompRepository;
@@ -39,7 +40,7 @@ public class TPFDataPuller implements DataSync {
     private BtoCompRepository btoCompRepository;
     
     @Autowired
-    CompanyRepository companyRepository;
+    private CompanyRepository companyRepository;
     
     
     /**

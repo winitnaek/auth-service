@@ -4,7 +4,6 @@
  * and open the template in the editor.
  */
 package com.bsi.sec.config;
-import com.bsi.sec.config.SecurityServiceProperties;
 import static com.bsi.sec.util.AppConstants.BEAN_TPF_DATA_SOURCE;
 import static com.bsi.sec.util.AppConstants.BEAN_TPF_ENTITY_MANAGER_FACTORY;
 import static com.bsi.sec.util.AppConstants.BEAN_TPF_TRANSACTION_MANAGER_FACTORY;
@@ -35,7 +34,6 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaDialect;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**

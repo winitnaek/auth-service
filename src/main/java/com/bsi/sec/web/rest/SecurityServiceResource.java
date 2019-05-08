@@ -1,6 +1,9 @@
 package com.bsi.sec.web.rest;
 
+import com.bsi.sec.dto.AuditLogDTO;
+import com.bsi.sec.dto.DataSyncResponse;
 import com.bsi.sec.dto.DatasetProductDTO;
+import com.bsi.sec.dto.ProductDTO;
 import com.bsi.sec.dto.SSOConfigDTO;
 import com.bsi.sec.dto.TenantDTO;
 import com.bsi.sec.svc.SecurityService;
@@ -142,6 +145,12 @@ public class SecurityServiceResource {
         return new ResponseEntity<>(isDeleted, HttpStatus.OK);
     }
 
+    /**
+     *
+     * @param ssoConfig
+     * @return
+     * @throws Exception
+     */
     @PostMapping("/addSSOConfig")
     public ResponseEntity<SSOConfigDTO> addSSOConfig(
             @Valid @NotNull @RequestBody(required = true) SSOConfigDTO ssoConfig) throws Exception {
@@ -154,6 +163,12 @@ public class SecurityServiceResource {
         return new ResponseEntity<>(config, HttpStatus.OK);
     }
 
+    /**
+     *
+     * @param ssoConfig
+     * @return
+     * @throws Exception
+     */
     @PostMapping("/updateSSOConfig")
     public ResponseEntity<SSOConfigDTO> updateSSOConfig(
             @Valid @NotNull @RequestBody(required = true) SSOConfigDTO ssoConfig) throws Exception {
@@ -166,6 +181,12 @@ public class SecurityServiceResource {
         return new ResponseEntity<>(config, HttpStatus.OK);
     }
 
+    /**
+     *
+     * @param id
+     * @return
+     * @throws Exception
+     */
     @PostMapping("/deleteSSOConfig")
     public ResponseEntity<Boolean> deleteSSOConfig(
             @Valid @Min(1L) @RequestParam(required = true) long id) throws Exception {
@@ -178,6 +199,14 @@ public class SecurityServiceResource {
         return new ResponseEntity<>(isDeleted, HttpStatus.OK);
     }
 
+    /**
+     *
+     * @param accountName
+     * @param ssoConfigId
+     * @param toUnlink
+     * @return
+     * @throws Exception
+     */
     @PostMapping("/linkSSOConfigToTenant")
     public ResponseEntity<Boolean> linkSSOConfigToTenant(
             @Valid @NotNull @RequestParam(required = true) String accountName,
@@ -194,6 +223,13 @@ public class SecurityServiceResource {
         return new ResponseEntity<>(isDeleted, HttpStatus.OK);
     }
 
+    /**
+     *
+     * @param accountName
+     * @param ssoConfigId
+     * @return
+     * @throws Exception
+     */
     @GetMapping("/testSSOConfiguration")
     public ResponseEntity<Boolean> testSSOConfiguration(
             @Valid @NotNull @RequestParam(required = true) String accountName,
@@ -209,4 +245,94 @@ public class SecurityServiceResource {
                 ssoConfigId);
         return new ResponseEntity<>(isValid, HttpStatus.OK);
     }
+
+    /**
+     *
+     * @param lastNoDays
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getAuditLogs")
+    public ResponseEntity<AuditLogDTO> getAuditLogs(
+            @Valid @Min(1L) @RequestParam(required = true) int lastNoDays)
+            throws Exception {
+        if (log.isDebugEnabled()) {
+            log.debug("REST request to get Audit Logs "
+                    + "for last {} days",
+                    lastNoDays);
+        }
+
+        AuditLogDTO auditLogs = securityService.getAuditLogs(lastNoDays);
+        return new ResponseEntity<>(auditLogs, HttpStatus.OK);
+    }
+
+    /**
+     *
+     * @param accountName
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getSSOConfigsByTenant")
+    public ResponseEntity<SSOConfigDTO> getSSOConfigsByTenant(
+            @Valid @NotNull @RequestParam(required = true) String accountName)
+            throws Exception {
+        if (log.isDebugEnabled()) {
+            log.debug("REST request to get SSO Configuration by Tenant "
+                    + "with Account Name = {}", accountName);
+        }
+
+        SSOConfigDTO ssoConfigDTO = securityService
+                .getSSOConfigsByTenant(accountName);
+        return new ResponseEntity<>(ssoConfigDTO, HttpStatus.OK);
+    }
+
+    /**
+     *
+     * @param includeImported
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getTenants")
+    public ResponseEntity<TenantDTO> getTenants(boolean includeImported)
+            throws Exception {
+        if (log.isDebugEnabled()) {
+            log.debug("REST request to get Tenants "
+                    + "with Include Imported flag = {}", includeImported);
+        }
+
+        TenantDTO tenantDTO = securityService
+                .getTenants(includeImported);
+        return new ResponseEntity<>(tenantDTO, HttpStatus.OK);
+    }
+
+    /**
+     *
+     * @return @throws Exception
+     */
+    @GetMapping("/getLastSyncInfo")
+    public ResponseEntity<DataSyncResponse> getLastSyncInfo()
+            throws Exception {
+        if (log.isDebugEnabled()) {
+            log.debug("REST request to get Last Data Sync Info.");
+        }
+
+        DataSyncResponse syncInfoDTO = securityService.getLastSyncInfo();
+        return new ResponseEntity<>(syncInfoDTO, HttpStatus.OK);
+    }
+
+    /**
+     *
+     * @return @throws Exception
+     */
+    @GetMapping("/getProductsByTenants")
+    public ResponseEntity<ProductDTO> getProductsByTenants()
+            throws Exception {
+        if (log.isDebugEnabled()) {
+            log.debug("REST request to get Last Data Sync Info.");
+        }
+
+        ProductDTO prodInfoDTO = securityService.getProductsByTenants();
+        return new ResponseEntity<>(prodInfoDTO, HttpStatus.OK);
+    }
+
 }

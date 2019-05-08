@@ -9,12 +9,12 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 /**
- * //TODO: Stub!!! Implement DTO!!!
  *
  * @author igorV
  */
 public final class ProductDTO {
 
+    @NotNull
     @Min(1L)
     private Long id;
 
@@ -24,17 +24,14 @@ public final class ProductDTO {
     @NotNull
     private String prodName;
 
-    @NotNull
-    private String dataset;
-
     public ProductDTO() {
+
     }
 
-    public ProductDTO(Long id, String acctName, String prodName, String dataset) {
+    public ProductDTO(Long id, String acctName, String prodName) {
         this.id = id;
         this.acctName = acctName;
         this.prodName = prodName;
-        this.dataset = dataset;
     }
 
     public Long getId() {
@@ -61,17 +58,9 @@ public final class ProductDTO {
         this.prodName = prodName;
     }
 
-    public String getDataset() {
-        return dataset;
-    }
-
-    public void setDataset(String dataset) {
-        this.dataset = dataset;
-    }
-
     @Override
     public String toString() {
-        return "ProductDTO{" + "id=" + id + ", acctName=" + acctName + ", prodName=" + prodName + ", dataset=" + dataset + '}';
+        return "ProductDTO{" + "id=" + id + ", acctName=" + acctName + ", prodName=" + prodName + '}';
     }
 
 }

@@ -11,7 +11,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import com.bsi.sec.base.BaseTest;
 import com.bsi.sec.dto.SSOConfigDTO;
 import com.bsi.sec.startup.ApplicationInitializer;
-import com.bsi.sec.svc.SecurityService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -23,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -50,12 +48,9 @@ public class SecurityServiceResourceTest extends BaseTest {
 
     private MockMvc mockmvc;
 
-    @MockBean
-    private SecurityService securityService;
-
     @Before
     public void setup() {
-        this.mockmvc = MockMvcBuilders.standaloneSetup(secServiceResource).build();
+        mockmvc = MockMvcBuilders.standaloneSetup(secServiceResource).build();
     }
 
     @Test
@@ -78,9 +73,9 @@ public class SecurityServiceResourceTest extends BaseTest {
     }
 
     @Test
-    public void testRunFullSFSyncSuccess() throws Exception {
+    public void testRunInitialDataSyncSuccess() throws Exception {
         MockHttpServletResponse response = mockmvc
-                .perform(post("/v1/SecurityService/runFullSFSync")
+                .perform(post("/v1/SecurityService/runInitialDataSync")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn()
@@ -91,12 +86,12 @@ public class SecurityServiceResourceTest extends BaseTest {
     }
 
     @Test
-    public void testRunPerSFSyncSuccess() throws Exception {
+    public void testRunPeriodicDataSyncSuccess() throws Exception {
         String fromDateTimeAsString = DateTimeFormatter.ISO_DATE_TIME
                 .withZone(ZoneOffset.UTC)
                 .format(LocalDateTime.now(ZoneOffset.UTC));
         MockHttpServletResponse response = mockmvc
-                .perform(post("/v1/SecurityService/runSFSync")
+                .perform(post("/v1/SecurityService/runPeriodicDataSync")
                         .param("fromDateTime", fromDateTimeAsString))
                 .andExpect(status().isOk())
                 .andReturn()
@@ -107,38 +102,9 @@ public class SecurityServiceResourceTest extends BaseTest {
     }
 
     @Test
-    public void testRunPerTPFSyncSuccess() throws Exception {
-        String fromDateTimeAsString = DateTimeFormatter.ISO_DATE_TIME
-                .withZone(ZoneOffset.UTC)
-                .format(LocalDateTime.now(ZoneOffset.UTC));
+    public void testEnablePeriodicDataSync() throws Exception {
         MockHttpServletResponse response = mockmvc
-                .perform(post("/v1/SecurityService/runTPFSync")
-                        .param("fromDateTime", fromDateTimeAsString))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse();
-
-        log.info("Status -> {}, Response Content -> {}, Error Message -> {}",
-                response.getStatus(), response.getContentAsString(), response.getErrorMessage());
-    }
-
-    @Test
-    public void testEnableSFSyncSuccess() throws Exception {
-        MockHttpServletResponse response = mockmvc
-                .perform(post("/v1/SecurityService/enableSFSync")
-                        .param("enabled", Boolean.TRUE.toString()))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse();
-
-        log.info("Status -> {}, Response Content -> {}, Error Message -> {}",
-                response.getStatus(), response.getContentAsString(), response.getErrorMessage());
-    }
-
-    @Test
-    public void testEnableTPFSyncSuccess() throws Exception {
-        MockHttpServletResponse response = mockmvc
-                .perform(post("/v1/SecurityService/enableTPFSync")
+                .perform(post("/v1/SecurityService/enablePeriodicDataSync")
                         .param("enabled", Boolean.TRUE.toString()))
                 .andExpect(status().isOk())
                 .andReturn()
@@ -193,7 +159,7 @@ public class SecurityServiceResourceTest extends BaseTest {
         log.info("Status -> {}, Response Content -> {}, Error Message -> {}",
                 response.getStatus(), response.getContentAsString(), response.getErrorMessage());
     }
-    
+
     @Test
     public void testUpdateSSOConfig() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
@@ -204,6 +170,118 @@ public class SecurityServiceResourceTest extends BaseTest {
                 .perform(post("/v1/SecurityService/updateSSOConfig")
                         .content(ssoConfigAsJson)
                         .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse();
+
+        log.info("Status -> {}, Response Content -> {}, Error Message -> {}",
+                response.getStatus(), response.getContentAsString(), response.getErrorMessage());
+    }
+
+    @Test
+    public void testDeleteSSOConfig() throws Exception {
+        MockHttpServletResponse response = mockmvc
+                .perform(post("/v1/SecurityService/deleteSSOConfig")
+                        .param("id", String.valueOf(1L)))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse();
+
+        log.info("Status -> {}, Response Content -> {}, Error Message -> {}",
+                response.getStatus(), response.getContentAsString(), response.getErrorMessage());
+    }
+
+    @Test
+    public void testLinkSSOConfigToTenant() throws Exception {
+        MockHttpServletResponse response = mockmvc
+                .perform(post("/v1/SecurityService/linkSSOConfigToTenant")
+                        .param("accountName", acctname)
+                        .param("ssoConfigId", String.valueOf(1L))
+                        .param("toUnlink", String.valueOf(true)))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse();
+
+        log.info("Status -> {}, Response Content -> {}, Error Message -> {}",
+                response.getStatus(), response.getContentAsString(), response.getErrorMessage());
+    }
+
+    @Test
+    public void ssoConfigurationTestSuccess() throws Exception {
+        MockHttpServletResponse response = mockmvc
+                .perform(get("/v1/SecurityService/testSSOConfiguration")
+                        .param("accountName", acctname)
+                        .param("ssoConfigId", String.valueOf(1L))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse();
+
+        log.info("Status -> {}, Response Content -> {}, Error Message -> {}",
+                response.getStatus(), response.getContentAsString(), response.getErrorMessage());
+    }
+
+    @Test
+    public void getAuditLogsTestSuccess() throws Exception {
+        MockHttpServletResponse response = mockmvc
+                .perform(get("/v1/SecurityService/getAuditLogs")
+                        .param("lastNoDays", "10")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse();
+
+        log.info("Status -> {}, Response Content -> {}, Error Message -> {}",
+                response.getStatus(), response.getContentAsString(), response.getErrorMessage());
+    }
+
+    @Test
+    public void getSSOConfigsByTenant() throws Exception {
+        MockHttpServletResponse response = mockmvc
+                .perform(get("/v1/SecurityService/getSSOConfigsByTenant")
+                        .param("accountName", acctname)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse();
+
+        log.info("Status -> {}, Response Content -> {}, Error Message -> {}",
+                response.getStatus(), response.getContentAsString(), response.getErrorMessage());
+    }
+
+    @Test
+    public void getTenants() throws Exception {
+        MockHttpServletResponse response = mockmvc
+                .perform(get("/v1/SecurityService/getTenants")
+                        .param("includeImported", String.valueOf(true))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse();
+
+        log.info("Status -> {}, Response Content -> {}, Error Message -> {}",
+                response.getStatus(), response.getContentAsString(), response.getErrorMessage());
+    }
+
+    @Test
+    public void getLastSyncInfo() throws Exception {
+        MockHttpServletResponse response = mockmvc
+                .perform(get("/v1/SecurityService/getLastSyncInfo"))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse();
+
+        log.info("Status -> {}, Response Content -> {}, Error Message -> {}",
+                response.getStatus(), response.getContentAsString(), response.getErrorMessage());
+    }
+
+    @Test
+    public void getProductsByTenants() throws Exception {
+        MockHttpServletResponse response = mockmvc
+                .perform(get("/v1/SecurityService/getProductsByTenants")
+                        .param("accountName", acctname)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
                 .andExpect(status().isOk())
                 .andReturn()
                 .getResponse();

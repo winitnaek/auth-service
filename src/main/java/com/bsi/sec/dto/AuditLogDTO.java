@@ -5,34 +5,71 @@
  */
 package com.bsi.sec.dto;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 /**
- * //TODO: Stub!!! Implement DTO!!!
  *
  * @author igorV
  */
 public final class AuditLogDTO {
 
+    @NotNull
+    @Min(1)
     private Long id;
 
     @NotNull
-    private String acctName;
+    private String serverHost;
 
     @NotNull
-    private String prodName;
+    private String user;
+
+    private String clientHost;
+
+    @NotNull
+    private String operation;
+
+    @NotNull
+    private String account;
+
+    @NotNull
+    private String product;
 
     @NotNull
     private String dataset;
 
+    @NotNull
+    private String area;
+
+    private String message;
+
     public AuditLogDTO() {
     }
 
-    public AuditLogDTO(Long id, String acctName, String prodName, String dataset) {
+    /**
+     *
+     * @param id
+     * @param serverHost
+     * @param user
+     * @param clientHost
+     * @param operation
+     * @param account
+     * @param product
+     * @param dataset
+     * @param area
+     * @param message
+     */
+    public AuditLogDTO(Long id, String serverHost, String user, String clientHost, String operation, String account, String product, String dataset, String area, String message) {
         this.id = id;
-        this.acctName = acctName;
-        this.prodName = prodName;
+        this.serverHost = serverHost;
+        this.user = user;
+        this.clientHost = clientHost;
+        this.operation = operation;
+        this.account = account;
+        this.product = product;
         this.dataset = dataset;
+        this.area = area;
+        this.message = message;
     }
 
     public Long getId() {
@@ -43,20 +80,52 @@ public final class AuditLogDTO {
         this.id = id;
     }
 
-    public String getAcctName() {
-        return acctName;
+    public String getServerHost() {
+        return serverHost;
     }
 
-    public void setAcctName(String acctName) {
-        this.acctName = acctName;
+    public void setServerHost(String serverHost) {
+        this.serverHost = serverHost;
     }
 
-    public String getProdName() {
-        return prodName;
+    public String getUser() {
+        return user;
     }
 
-    public void setProdName(String prodName) {
-        this.prodName = prodName;
+    public void setUser(String user) {
+        this.user = user;
+    }
+
+    public String getClientHost() {
+        return clientHost;
+    }
+
+    public void setClientHost(String clientHost) {
+        this.clientHost = clientHost;
+    }
+
+    public String getOperation() {
+        return operation;
+    }
+
+    public void setOperation(String operation) {
+        this.operation = operation;
+    }
+
+    public String getAccount() {
+        return account;
+    }
+
+    public void setAccount(String account) {
+        this.account = account;
+    }
+
+    public String getProduct() {
+        return product;
+    }
+
+    public void setProduct(String product) {
+        this.product = product;
     }
 
     public String getDataset() {
@@ -67,9 +136,25 @@ public final class AuditLogDTO {
         this.dataset = dataset;
     }
 
+    public String getArea() {
+        return area;
+    }
+
+    public void setArea(String area) {
+        this.area = area;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
     @Override
     public String toString() {
-        return "AuditLogDTO{" + "id=" + id + ", acctName=" + acctName + ", prodName=" + prodName + ", dataset=" + dataset + '}';
+        return "AuditLogDTO{" + "id=" + id + ", serverHost=" + serverHost + ", user=" + user + ", clientHost=" + clientHost + ", operation=" + operation + ", account=" + account + ", product=" + product + ", dataset=" + dataset + ", area=" + area + ", message=" + message + '}';
     }
 
 }
