@@ -22,7 +22,6 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.TreeMap;
 import org.apache.ignite.IgniteAtomicSequence;
 /**
@@ -132,7 +131,7 @@ public class TPFDataPuller implements DataSync {
         log.debug("Inside prepareCompanyList");
         log.debug("BtoComp Count : "+btoComplist.size());
         List<Company> companyList = new ArrayList<>();
-        for (Btocomp btocomp : btoComplist) {
+        btoComplist.stream().map((btocomp) -> {
             Company company = new Company();
             company.setDataset(btocomp.getBtodset().getName());
             company.setEnabled(Boolean.TRUE);
@@ -141,8 +140,10 @@ public class TPFDataPuller implements DataSync {
             company.setImportedDate(Instant.EPOCH);
             company.setName(btocomp.getLegalname());
             company.setSamlCid(btocomp.getSamlcid());
-            companyList.add(company);
-        }
+             return company;
+         }).forEachOrdered((company) -> {
+             companyList.add(company);
+         });
         log.debug("Returning  Company List count: "+companyList.size());
         return companyList;
     }
@@ -157,19 +158,13 @@ public class TPFDataPuller implements DataSync {
         log.debug("Received Company Count : "+companyList.size());
         
         TreeMap<Long, Company> companies = new TreeMap<>();
-        for (Company company : companyList) {
-             Long id = getCompanyCacheSeq.incrementAndGet();
-             log.debug("Generated next id : "+id);
-             companies.put(id,company);
-        }
+        companyList.forEach((company) -> {
+            Long id = getCompanyCacheSeq.incrementAndGet();
+            companies.put(id,company);
+        });
         companyRepository.save(companies);
         
-        log.debug("\n>>> Added " + companyRepository.count() + " Companies into the Company repository.");
-        
-        Iterator<Company> savedCompanies = companyRepository.findAll().iterator();
-       
-        while (savedCompanies.hasNext())
-            log.debug("   >>>   " + savedCompanies.next());
+        log.debug("Added " + companyRepository.count() + " Companies into the Company repository.");
         
         DataSyncResponse dataSyncResponse = new DataSyncResponse();
         dataSyncResponse.setIsSucessfull(Boolean.TRUE);
