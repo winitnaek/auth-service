@@ -58,7 +58,8 @@ public class TPFDataPuller implements DataSync {
     public DataSyncResponse runInitialSync(LocalDateTime fromDateTime) throws Exception {
         List<Btocomp> btoComplist = getCompanyDataForSync(fromDateTime);
         List<Company> companyList = prepareCompanyList(btoComplist);
-        DataSyncResponse dataSyncResponse = upsertCompanyDataForSync(companyList);
+        cleanUpCompaniesForInitialDataSync();
+        DataSyncResponse dataSyncResponse = insertCompanyDataForSync(companyList);
         return dataSyncResponse;
     }
 
@@ -88,6 +89,13 @@ public class TPFDataPuller implements DataSync {
     }
 
     /**
+     * cleanUpCompaniesForInitialDataSync
+     */
+    private void cleanUpCompaniesForInitialDataSync() {
+        companyRepository.deleteAll();
+    }
+
+    /**
      * getCompanyDataForSync
      *
      * @param fromDateTime
@@ -100,6 +108,7 @@ public class TPFDataPuller implements DataSync {
             btoComplist = btoCompRepository.getCompanyDataForSync(fromDate);
         } else {
             Date fromDate = getPeriodicSyncDateTime(fromDateTime);
+            log.debug("fromDate : for periodic sync : " + fromDate);
             btoComplist = btoCompRepository.getCompanyDataForSync(fromDate);
         }
         return btoComplist;
@@ -166,14 +175,14 @@ public class TPFDataPuller implements DataSync {
      * @param compnatList
      * @return
      */
-    private DataSyncResponse upsertCompanyDataForSync(List<Company> companyList) {
-        log.debug("Inside upsertCompanyDataForSync : ");
+    private DataSyncResponse insertCompanyDataForSync(List<Company> companyList) {
+        log.debug("Inside insertCompanyDataForSync : ");
         log.debug("Received Company Count : " + companyList.size());
 
         TreeMap<Long, Company> companies = new TreeMap<>();
         companyList.forEach((company) -> {
-            Long id = getCompanyCacheSeq.incrementAndGet();
-            companies.put(id, company);
+            //Long id = getCompanyCacheSeq.incrementAndGet();
+            companies.put(company.getId(), company);
         });
         companyRepository.save(companies);
 
@@ -182,7 +191,36 @@ public class TPFDataPuller implements DataSync {
         DataSyncResponse dataSyncResponse = new DataSyncResponse();
         dataSyncResponse.setIsSucessfull(Boolean.TRUE);
         dataSyncResponse.setLastRunDateTime(LocalDateTime.now());
-        dataSyncResponse.setMessage("TPF Data Synced Successfully.");
+        dataSyncResponse.setMessage("TPF Initial Data Synced Successfully.");
+        return dataSyncResponse;
+    }
+
+    /**
+     * upSertCompanyDataForSync
+     *
+     * @param compnatList
+     * @return
+     */
+    private DataSyncResponse upsertCompanyDataForSync(List<Company> companyList) {
+        log.debug("Inside upsertCompanyDataForSync : ");
+        log.debug("Received Company Count : " + companyList.size());
+        companyList.forEach((company) -> {
+            if (companyRepository.existsById(company.getId())) {
+                log.debug("Existing Company " + company.getId() + " exists. Updating now...");
+                companyRepository.save(company.getId(), company);
+            } else {
+                log.debug("New Company " + company.getId() + " exists. Adding now..");
+                //Long id = getCompanyCacheSeq.incrementAndGet();
+                companyRepository.save(company.getId(), company);
+            }
+        });
+
+        log.debug("Added " + companyRepository.count() + " Companies into the Company repository.");
+
+        DataSyncResponse dataSyncResponse = new DataSyncResponse();
+        dataSyncResponse.setIsSucessfull(Boolean.TRUE);
+        dataSyncResponse.setLastRunDateTime(LocalDateTime.now());
+        dataSyncResponse.setMessage("TPF Periodic Data Synced Successfully.");
         return dataSyncResponse;
     }
 }
