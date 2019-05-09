@@ -6,10 +6,10 @@
 package com.bsi.sec.svc;
 
 import com.bsi.sec.dto.AuditLogDTO;
-import com.bsi.sec.dto.DataSyncResponse;
 import com.bsi.sec.dto.DatasetProductDTO;
 import com.bsi.sec.dto.ProductDTO;
 import com.bsi.sec.dto.SSOConfigDTO;
+import com.bsi.sec.dto.SyncInfoDTO;
 import com.bsi.sec.dto.TenantDTO;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -239,11 +239,10 @@ public class SecurityService {
      *
      * @return
      */
-    public DataSyncResponse getLastSyncInfo() {
-        DataSyncResponse syncInfo = new DataSyncResponse();
-        syncInfo.setIsSucessfull(true);
-        syncInfo.setLastRunDateTime(LocalDateTime.now(ZoneOffset.UTC));
-        syncInfo.setMessage("Sync was done at " + syncInfo.getLastRunDateTime());
+    public SyncInfoDTO getLastSyncInfo() {
+        SyncInfoDTO syncInfo = new SyncInfoDTO();
+        syncInfo.setId(1L);
+        syncInfo.setLastFullSFSync(LocalDateTime.now(ZoneOffset.UTC));
         return syncInfo;
     }
 

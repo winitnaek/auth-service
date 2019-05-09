@@ -1,10 +1,10 @@
 package com.bsi.sec.web.rest;
 
 import com.bsi.sec.dto.AuditLogDTO;
-import com.bsi.sec.dto.DataSyncResponse;
 import com.bsi.sec.dto.DatasetProductDTO;
 import com.bsi.sec.dto.ProductDTO;
 import com.bsi.sec.dto.SSOConfigDTO;
+import com.bsi.sec.dto.SyncInfoDTO;
 import com.bsi.sec.dto.TenantDTO;
 import com.bsi.sec.svc.SecurityService;
 import static com.bsi.sec.util.WSConstants.SECURITY_SERVICE;
@@ -310,13 +310,13 @@ public class SecurityServiceResource {
      * @return @throws Exception
      */
     @GetMapping("/getLastSyncInfo")
-    public ResponseEntity<DataSyncResponse> getLastSyncInfo()
+    public ResponseEntity<SyncInfoDTO> getLastSyncInfo()
             throws Exception {
         if (log.isDebugEnabled()) {
             log.debug("REST request to get Last Data Sync Info.");
         }
 
-        DataSyncResponse syncInfoDTO = securityService.getLastSyncInfo();
+        SyncInfoDTO syncInfoDTO = securityService.getLastSyncInfo();
         return new ResponseEntity<>(syncInfoDTO, HttpStatus.OK);
     }
 
