@@ -1,10 +1,9 @@
 package com.bsi.sec.domain;
 
 import javax.persistence.*;
-import javax.validation.constraints.*;
 
 import java.io.Serializable;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Objects;
 import org.hibernate.envers.Audited;
 
@@ -19,33 +18,20 @@ public class AdminMetadata extends AbstractAuditingEntity implements Serializabl
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @NotNull
-    @Column(name = "is_full_sf_sync_on", nullable = false)
-    private Boolean isFullSFSyncOn;
+    @Column(name = "last_full_sync", nullable = true)
+    private LocalDateTime lastFullSync;
 
-    @NotNull
-    @Column(name = "is_sf_sync_on", nullable = false)
-    private Boolean isSFSyncOn;
+    @Column(name = "last_per_sync", nullable = true)
+    private LocalDateTime lastPerSync;
 
-    @NotNull
-    @Column(name = "is_tpf_sync_on", nullable = false)
-    private Boolean isTPFSyncOn;
+    @Column(name = "is_per_sync_on", nullable = false)
+    private boolean isPerSyncOn;
 
-    @NotNull
-    @Column(name = "last_full_sf_sync", nullable = false)
-    private LocalDate lastFullSFSync;
-
-    @NotNull
-    @Column(name = "last_sf_sync", nullable = false)
-    private LocalDate lastSFSync;
-
-    @NotNull
-    @Column(name = "last_tpf_sync", nullable = false)
-    private LocalDate lastTPFSync;
+    @Column(name = "is_sync_inprogress", nullable = false)
+    private boolean isSyncInProgress;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
@@ -56,85 +42,44 @@ public class AdminMetadata extends AbstractAuditingEntity implements Serializabl
         this.id = id;
     }
 
-    public Boolean isIsFullSFSyncOn() {
-        return isFullSFSyncOn;
+    public boolean isIsSyncInProgress() {
+        return isSyncInProgress;
     }
 
-    public AdminMetadata isFullSFSyncOn(Boolean isFullSFSyncOn) {
-        this.isFullSFSyncOn = isFullSFSyncOn;
+    public void setIsSyncInProgress(boolean isSyncInProgress) {
+        this.isSyncInProgress = isSyncInProgress;
+    }
+
+    public boolean isIsPerSyncOn() {
+        return isPerSyncOn;
+    }
+
+    public void setIsPerSyncOn(boolean isPerSyncOn) {
+        this.isPerSyncOn = isPerSyncOn;
+    }
+
+    public LocalDateTime getLastPerSync() {
+        return lastPerSync;
+    }
+
+    public void setLastPerSync(LocalDateTime lastPerSync) {
+        this.lastPerSync = lastPerSync;
+    }
+
+    public LocalDateTime getLastFullSync() {
+        return lastFullSync;
+    }
+
+    public void setLastFullSync(LocalDateTime lastFullSync) {
+        this.lastFullSync = lastFullSync;
+    }
+
+    public AdminMetadata lastFullSync(LocalDateTime lastFullSync) {
+        this.lastFullSync = lastFullSync;
         return this;
     }
 
-    public void setIsFullSFSyncOn(Boolean isFullSFSyncOn) {
-        this.isFullSFSyncOn = isFullSFSyncOn;
-    }
-
-    public Boolean isIsSFSyncOn() {
-        return isSFSyncOn;
-    }
-
-    public AdminMetadata isSFSyncOn(Boolean isSFSyncOn) {
-        this.isSFSyncOn = isSFSyncOn;
-        return this;
-    }
-
-    public void setIsSFSyncOn(Boolean isSFSyncOn) {
-        this.isSFSyncOn = isSFSyncOn;
-    }
-
-    public Boolean isIsTPFSyncOn() {
-        return isTPFSyncOn;
-    }
-
-    public AdminMetadata isTPFSyncOn(Boolean isTPFSyncOn) {
-        this.isTPFSyncOn = isTPFSyncOn;
-        return this;
-    }
-
-    public void setIsTPFSyncOn(Boolean isTPFSyncOn) {
-        this.isTPFSyncOn = isTPFSyncOn;
-    }
-
-    public LocalDate getLastFullSFSync() {
-        return lastFullSFSync;
-    }
-
-    public AdminMetadata lastFullSFSync(LocalDate lastFullSFSync) {
-        this.lastFullSFSync = lastFullSFSync;
-        return this;
-    }
-
-    public void setLastFullSFSync(LocalDate lastFullSFSync) {
-        this.lastFullSFSync = lastFullSFSync;
-    }
-
-    public LocalDate getLastSFSync() {
-        return lastSFSync;
-    }
-
-    public AdminMetadata lastSFSync(LocalDate lastSFSync) {
-        this.lastSFSync = lastSFSync;
-        return this;
-    }
-
-    public void setLastSFSync(LocalDate lastSFSync) {
-        this.lastSFSync = lastSFSync;
-    }
-
-    public LocalDate getLastTPFSync() {
-        return lastTPFSync;
-    }
-
-    public AdminMetadata lastTPFSync(LocalDate lastTPFSync) {
-        this.lastTPFSync = lastTPFSync;
-        return this;
-    }
-
-    public void setLastTPFSync(LocalDate lastTPFSync) {
-        this.lastTPFSync = lastTPFSync;
-    }
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -157,14 +102,7 @@ public class AdminMetadata extends AbstractAuditingEntity implements Serializabl
 
     @Override
     public String toString() {
-        return "AdminMetadata{"
-                + "id=" + getId()
-                + ", isFullSFSyncOn='" + isIsFullSFSyncOn() + "'"
-                + ", isSFSyncOn='" + isIsSFSyncOn() + "'"
-                + ", isTPFSyncOn='" + isIsTPFSyncOn() + "'"
-                + ", lastFullSFSync='" + getLastFullSFSync() + "'"
-                + ", lastSFSync='" + getLastSFSync() + "'"
-                + ", lastTPFSync='" + getLastTPFSync() + "'"
-                + "}";
+        return "AdminMetadata{" + "id=" + id + ", lastFullSync=" + lastFullSync + ", lastPerSync=" + lastPerSync + ", isPerSyncOn=" + isPerSyncOn + ", isSyncInProgress=" + isSyncInProgress + '}';
     }
+
 }

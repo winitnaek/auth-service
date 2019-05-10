@@ -33,13 +33,13 @@ public class SecurityServiceProperties {
 
     @Valid
     private Jpa jpa = new Jpa();
-    
+
     @Valid
     private TpfJpa tpfjpa = new TpfJpa();
 
     @Valid
     private DataSource dataSource = new DataSource();
-    
+
     @Valid
     private TpfDataSource tpfDataSource = new TpfDataSource();
 
@@ -54,6 +54,17 @@ public class SecurityServiceProperties {
 
     @Valid
     private Ajp ajp = new Ajp();
+
+    @Valid
+    private SF sf = new SF();
+
+    public SF getSf() {
+        return sf;
+    }
+
+    public void setSf(SF sf) {
+        this.sf = sf;
+    }
 
     public String getAppName() {
         return appName;
@@ -126,7 +137,7 @@ public class SecurityServiceProperties {
     public void setTpfjpa(TpfJpa tpfjpa) {
         this.tpfjpa = tpfjpa;
     }
-    
+
     public DataSource getDataSource() {
         return dataSource;
     }
@@ -142,7 +153,7 @@ public class SecurityServiceProperties {
     public void setTpfDataSource(TpfDataSource tpfDataSource) {
         this.tpfDataSource = tpfDataSource;
     }
-    
+
     /**
      * JPA properties
      */
@@ -165,7 +176,7 @@ public class SecurityServiceProperties {
         }
 
     }
-    
+
     public static class TpfJpa {
 
         @NotEmpty
@@ -567,8 +578,12 @@ public class SecurityServiceProperties {
         }
 
     }
-    
-     public static class TpfDataSource {
+
+    /**
+     * Tax Profile Factory data source.
+     */
+    public static class TpfDataSource {
+
         @NotEmpty
         private String username;
         @NotEmpty
@@ -779,9 +794,65 @@ public class SecurityServiceProperties {
         }
     }
 
+    /**
+     * Salesforce related properties.
+     */
+    public static class SF {
+
+        @NotEmpty
+        private String username;
+
+        @NotEmpty
+        private String password;
+
+        @NotEmpty
+        private String secToken;
+
+        @NotEmpty
+        private String authEndpoint;
+
+        public String getUsername() {
+            return username;
+        }
+
+        public void setUsername(String username) {
+            this.username = username;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
+
+        public String getSecToken() {
+            return secToken;
+        }
+
+        public void setSecToken(String secToken) {
+            this.secToken = secToken;
+        }
+
+        public String getAuthEndpoint() {
+            return authEndpoint;
+        }
+
+        public void setAuthEndpoint(String authEndpoint) {
+            this.authEndpoint = authEndpoint;
+        }
+
+        @Override
+        public String toString() {
+            return "SF{" + "username=" + username + ", password=" + password + ", secToken=" + secToken + ", authEndpoint=" + authEndpoint + '}';
+        }
+
+    }
+
     @Override
     public String toString() {
-        return "SecurityServiceProperties{" + "appName=" + appName + ", debugMode=" + debugMode + ", ldap=" + ldap + ", jpa=" + jpa + ", dataSource=" + dataSource + ", user=" + user + ", paging=" + paging + ", directories=" + directories + ", ajp=" + ajp + '}';
+        return "SecurityServiceProperties{" + "appName=" + appName + ", debugMode=" + debugMode + ", ldap=" + ldap + ", jpa=" + jpa + ", tpfjpa=" + tpfjpa + ", dataSource=" + dataSource + ", tpfDataSource=" + tpfDataSource + ", user=" + user + ", paging=" + paging + ", directories=" + directories + ", ajp=" + ajp + ", sf=" + sf + '}';
     }
 
 }

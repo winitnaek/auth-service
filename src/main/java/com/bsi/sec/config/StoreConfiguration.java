@@ -18,7 +18,6 @@ import static com.bsi.sec.util.CacheConstants.COMPANY_CACHE;
 import static com.bsi.sec.util.CacheConstants.SSO_CONFIGURATION_CACHE;
 import static com.bsi.sec.util.CacheConstants.TENANT_CACHE;
 import static com.bsi.sec.util.CacheConstants.TENANT_SSO_CONF_CACHE;
-import static com.bsi.sec.util.CacheConstants.GET_COMPANY_CACHE_SEQ;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.Ignition;
@@ -34,7 +33,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import static com.bsi.sec.util.CacheConstants.SEC_SVC_DATA_NODE;
-import org.apache.ignite.IgniteAtomicSequence;
 
 /**
  *
@@ -97,12 +95,6 @@ public class StoreConfiguration implements WebMvcConfigurer {
         }
 
         return Ignition.start(cfg);
-    }
-    
-    @Bean(name = GET_COMPANY_CACHE_SEQ)
-    public IgniteAtomicSequence getCompanyCacheSeq(){
-        Ignite ignite =  igniteInstance();
-        return ignite.atomicSequence(COMPANY_CACHE, 1, true);
     }
 
     @Bean

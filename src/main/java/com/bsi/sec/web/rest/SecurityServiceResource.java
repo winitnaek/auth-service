@@ -9,6 +9,7 @@ import com.bsi.sec.dto.TenantDTO;
 import com.bsi.sec.svc.SecurityService;
 import static com.bsi.sec.util.WSConstants.SECURITY_SERVICE;
 import java.time.LocalDateTime;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -293,16 +294,16 @@ public class SecurityServiceResource {
      * @throws Exception
      */
     @GetMapping("/getTenants")
-    public ResponseEntity<TenantDTO> getTenants(boolean includeImported)
+    public ResponseEntity<List<TenantDTO>> getTenants(boolean includeImported)
             throws Exception {
         if (log.isDebugEnabled()) {
             log.debug("REST request to get Tenants "
                     + "with Include Imported flag = {}", includeImported);
         }
 
-        TenantDTO tenantDTO = securityService
+        List<TenantDTO> tenants = securityService
                 .getTenants(includeImported);
-        return new ResponseEntity<>(tenantDTO, HttpStatus.OK);
+        return new ResponseEntity<>(tenants, HttpStatus.OK);
     }
 
     /**

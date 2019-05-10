@@ -12,13 +12,13 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
-import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import org.apache.ignite.cache.query.annotations.QuerySqlField;
+import org.hibernate.annotations.NaturalId;
 import org.hibernate.envers.Audited;
 
 /**
@@ -32,11 +32,11 @@ public class Tenant extends AbstractAuditingEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
-    @SequenceGenerator(name = "sequenceGenerator")
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @QuerySqlField(index = true)
     private Long id;
 
+    @NaturalId
     @NotNull
     @Column(name = "acct_id", nullable = false)
     @QuerySqlField(index = true)
@@ -47,8 +47,10 @@ public class Tenant extends AbstractAuditingEntity implements Serializable {
     @QuerySqlField(index = true)
     private String acctName;
 
+    @NaturalId
     @NotNull
     @Column(name = "prod_id", nullable = false)
+    @QuerySqlField(index = true)
     private String prodId;
 
     @NotNull

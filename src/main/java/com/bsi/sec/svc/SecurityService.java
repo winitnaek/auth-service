@@ -11,13 +11,17 @@ import com.bsi.sec.dto.ProductDTO;
 import com.bsi.sec.dto.SSOConfigDTO;
 import com.bsi.sec.dto.SyncInfoDTO;
 import com.bsi.sec.dto.TenantDTO;
+import com.bsi.sec.util.DateUtils;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -32,6 +36,9 @@ import org.springframework.stereotype.Service;
 public class SecurityService {
 
     private final static Logger log = LoggerFactory.getLogger(SecurityService.class);
+
+    @Autowired
+    private SFDataPuller sfDataPuller;
 
     /**
      *
@@ -62,6 +69,8 @@ public class SecurityService {
         if (log.isDebugEnabled()) {
             log.debug("SERVICE invoked to run Full Salesforce sync.");
         }
+
+        sfDataPuller.runInitialSync(DateUtils.defaultFromSyncTime());
 
         boolean isFullSFSyncSuccess = true;
         return isFullSFSyncSuccess;
@@ -225,13 +234,24 @@ public class SecurityService {
      * @param includeImported
      * @return
      */
-    public TenantDTO getTenants(boolean includeImported) {
+    public List<TenantDTO> getTenants(boolean includeImported) {
+        List<TenantDTO> tenants = new ArrayList<>();
+
         TenantDTO tenant = new TenantDTO();
         tenant.setId(1L);
         tenant.setAcctName("BSI");
         tenant.setDataset("BSI_DSET_1");
         tenant.setProdName("TPF");
-        return tenant;
+        tenants.add(tenant);
+
+        tenant = new TenantDTO();
+        tenant.setId(2L);
+        tenant.setAcctName("Walmart");
+        tenant.setDataset("WM_DSET_1");
+        tenant.setProdName("TF");
+        tenants.add(tenant);
+
+        return tenants;
     }
 
     /**
@@ -242,7 +262,9 @@ public class SecurityService {
     public SyncInfoDTO getLastSyncInfo() {
         SyncInfoDTO syncInfo = new SyncInfoDTO();
         syncInfo.setId(1L);
-        syncInfo.setLastFullSFSync(LocalDateTime.now(ZoneOffset.UTC));
+        LocalDateTime lastSync = LocalDateTime.now(ZoneOffset.UTC);
+        syncInfo.setLastFullSync(lastSync);
+        syncInfo.setLastPerSync(lastSync);
         return syncInfo;
     }
 

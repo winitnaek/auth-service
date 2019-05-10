@@ -7,14 +7,15 @@ package com.bsi.sec.startup;
 
 import com.bsi.sec.helper.SecurityWSInitializer;
 import com.bsi.sec.config.SecurityServiceProperties;
+import com.bsi.sec.svc.SFDataPuller;
+import com.bsi.sec.util.DateUtils;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.naming.ConfigurationException;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.AbstractHttp11Protocol;
 import org.slf4j.Logger;
@@ -35,7 +36,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.MimeMappings;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
-import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -55,7 +55,7 @@ import org.springframework.web.context.WebApplicationContext;
 @PropertySource("classpath:/sws.properties")
 @EnableConfigurationProperties({SecurityServiceProperties.class})
 @EnableTransactionManagement
-public class ApplicationInitializer implements WebServerFactoryCustomizer<TomcatServletWebServerFactory>, ServletContextInitializer {
+public class ApplicationInitializer implements WebServerFactoryCustomizer<TomcatServletWebServerFactory> {
 
     private static final Logger log = LoggerFactory.getLogger(ApplicationInitializer.class);
 
@@ -67,6 +67,9 @@ public class ApplicationInitializer implements WebServerFactoryCustomizer<Tomcat
 
     @Autowired
     private WebApplicationContext appContext;
+
+    @Autowired
+    private SFDataPuller sfDataPuller;
 
     @Value("${server.http.port:#{-1}}")
     private int httpPort;
@@ -106,8 +109,9 @@ public class ApplicationInitializer implements WebServerFactoryCustomizer<Tomcat
         initializeAjp(container);
     }
 
-    @Override
-    public void onStartup(ServletContext servletContext) throws ServletException {
+    @PreDestroy
+    public void onDestroy() throws Exception {
+        runOnDestroySFSyncSteps();
     }
 
     /**
@@ -120,13 +124,14 @@ public class ApplicationInitializer implements WebServerFactoryCustomizer<Tomcat
      * @throws ConfigurationException
      */
     @PostConstruct
-    public void initApplication() throws ConfigurationException {
+    public void initApplication() throws Exception {
         if (log.isDebugEnabled()) {
             log.debug("post initialization" + appContext);
         }
 
         initializeLogging();
         initializeApplicationServices();
+        runInitSFDataSync();
     }
 
     /**
@@ -184,4 +189,12 @@ public class ApplicationInitializer implements WebServerFactoryCustomizer<Tomcat
         initializer.initialize();
     }
 
+    private void runOnDestroySFSyncSteps() throws Exception {
+        sfDataPuller.postSync();
+    }
+
+    private void runInitSFDataSync() throws Exception {
+        sfDataPuller.initializeSync();
+        sfDataPuller.runInitialSync(DateUtils.defaultFromSyncTime());
+    }
 }

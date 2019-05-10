@@ -7,7 +7,6 @@ package com.bsi.sec.dto;
 
 import java.time.LocalDateTime;
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
 
 /**
  * <p>
@@ -21,20 +20,13 @@ public final class SyncInfoDTO {
     @Min(1L)
     private long id;
 
-    private boolean isFullSFSyncOn;
+    private LocalDateTime lastFullSync;
 
-    private boolean isSFSyncOn;
+    private LocalDateTime lastPerSync;
 
-    private boolean isTPFSyncOn;
+    private boolean isPerSyncOn;
 
-    @NotNull
-    private LocalDateTime lastFullSFSync;
-
-    @NotNull
-    private LocalDateTime lastSFSync;
-
-    @NotNull
-    private LocalDateTime lastTPFSync;
+    private boolean isSyncInProgress;
 
     public long getId() {
         return id;
@@ -44,57 +36,41 @@ public final class SyncInfoDTO {
         this.id = id;
     }
 
-    public boolean isIsFullSFSyncOn() {
-        return isFullSFSyncOn;
+    public LocalDateTime getLastFullSync() {
+        return lastFullSync;
     }
 
-    public void setIsFullSFSyncOn(boolean isFullSFSyncOn) {
-        this.isFullSFSyncOn = isFullSFSyncOn;
+    public void setLastFullSync(LocalDateTime lastFullSync) {
+        this.lastFullSync = lastFullSync;
     }
 
-    public boolean isIsSFSyncOn() {
-        return isSFSyncOn;
+    public LocalDateTime getLastPerSync() {
+        return lastPerSync;
     }
 
-    public void setIsSFSyncOn(boolean isSFSyncOn) {
-        this.isSFSyncOn = isSFSyncOn;
+    public void setLastPerSync(LocalDateTime lastPerSync) {
+        this.lastPerSync = lastPerSync;
     }
 
-    public boolean isIsTPFSyncOn() {
-        return isTPFSyncOn;
+    public boolean isIsPerSyncOn() {
+        return isPerSyncOn;
     }
 
-    public void setIsTPFSyncOn(boolean isTPFSyncOn) {
-        this.isTPFSyncOn = isTPFSyncOn;
+    public void setIsPerSyncOn(boolean isPerSyncOn) {
+        this.isPerSyncOn = isPerSyncOn;
     }
 
-    public LocalDateTime getLastFullSFSync() {
-        return lastFullSFSync;
+    public boolean isIsSyncInProgress() {
+        return isSyncInProgress;
     }
 
-    public void setLastFullSFSync(LocalDateTime lastFullSFSync) {
-        this.lastFullSFSync = lastFullSFSync;
-    }
-
-    public LocalDateTime getLastSFSync() {
-        return lastSFSync;
-    }
-
-    public void setLastSFSync(LocalDateTime lastSFSync) {
-        this.lastSFSync = lastSFSync;
-    }
-
-    public LocalDateTime getLastTPFSync() {
-        return lastTPFSync;
-    }
-
-    public void setLastTPFSync(LocalDateTime lastTPFSync) {
-        this.lastTPFSync = lastTPFSync;
+    public void setIsSyncInProgress(boolean isSyncInProgress) {
+        this.isSyncInProgress = isSyncInProgress;
     }
 
     @Override
     public String toString() {
-        return "SyncInfoDTO{" + "id=" + id + ", isFullSFSyncOn=" + isFullSFSyncOn + ", isSFSyncOn=" + isSFSyncOn + ", isTPFSyncOn=" + isTPFSyncOn + ", lastFullSFSync=" + lastFullSFSync + ", lastSFSync=" + lastSFSync + ", lastTPFSync=" + lastTPFSync + '}';
+        return "SyncInfoDTO{" + "id=" + id + ", lastFullSync=" + lastFullSync + ", lastPerSync=" + lastPerSync + ", isPerSyncOn=" + isPerSyncOn + ", isSyncInProgress=" + isSyncInProgress + '}';
     }
 
 }

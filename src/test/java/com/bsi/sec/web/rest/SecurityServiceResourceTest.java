@@ -236,7 +236,7 @@ public class SecurityServiceResourceTest extends BaseTest {
     }
 
     @Test
-    public void getSSOConfigsByTenant() throws Exception {
+    public void getSSOConfigsByTenantSuccessTest() throws Exception {
         MockHttpServletResponse response = mockmvc
                 .perform(get("/v1/SecurityService/getSSOConfigsByTenant")
                         .param("accountName", acctname)
@@ -250,7 +250,7 @@ public class SecurityServiceResourceTest extends BaseTest {
     }
 
     @Test
-    public void getTenants() throws Exception {
+    public void getTenantsSuccessTest() throws Exception {
         MockHttpServletResponse response = mockmvc
                 .perform(get("/v1/SecurityService/getTenants")
                         .param("includeImported", String.valueOf(true))
@@ -264,7 +264,7 @@ public class SecurityServiceResourceTest extends BaseTest {
     }
 
     @Test
-    public void getLastSyncInfo() throws Exception {
+    public void getLastSyncInfoSuccessTest() throws Exception {
         MockHttpServletResponse response = mockmvc
                 .perform(get("/v1/SecurityService/getLastSyncInfo"))
                 .andExpect(status().isOk())
@@ -276,7 +276,7 @@ public class SecurityServiceResourceTest extends BaseTest {
     }
 
     @Test
-    public void getProductsByTenants() throws Exception {
+    public void getProductsByTenantsSuccessTest() throws Exception {
         MockHttpServletResponse response = mockmvc
                 .perform(get("/v1/SecurityService/getProductsByTenants")
                         .param("accountName", acctname)

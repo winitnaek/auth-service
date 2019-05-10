@@ -74,7 +74,6 @@ public final class SSOConfigDTO {
     @NotNull
     private Boolean enabled;
 
-    @NotNull
     private String acctName;
 
     public Long getId() {

@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TreeMap;
-import org.apache.ignite.IgniteAtomicSequence;
 
 /**
  *
@@ -43,9 +42,6 @@ public class TPFDataPuller implements DataSync {
 
     @Autowired
     CompanyRepository companyRepository;
-
-    @Autowired
-    IgniteAtomicSequence getCompanyCacheSeq;
 
     /**
      * runInitialSync
@@ -85,6 +81,11 @@ public class TPFDataPuller implements DataSync {
      */
     @Override
     public void initializeSync() throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void postSync() throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -181,7 +182,6 @@ public class TPFDataPuller implements DataSync {
 
         TreeMap<Long, Company> companies = new TreeMap<>();
         companyList.forEach((company) -> {
-            //Long id = getCompanyCacheSeq.incrementAndGet();
             companies.put(company.getId(), company);
         });
         companyRepository.save(companies);
@@ -210,7 +210,6 @@ public class TPFDataPuller implements DataSync {
                 companyRepository.save(company.getId(), company);
             } else {
                 log.debug("New Company " + company.getId() + " exists. Adding now..");
-                //Long id = getCompanyCacheSeq.incrementAndGet();
                 companyRepository.save(company.getId(), company);
             }
         });

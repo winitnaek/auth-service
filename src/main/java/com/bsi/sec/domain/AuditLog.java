@@ -38,16 +38,16 @@ public class AuditLog extends AbstractAuditingEntity implements Serializable {
     private String operation;
 
     @NotNull
-    @Column(name = "jhi_account", nullable = false)
-    private String account;
+    @Column(name = "account_name", nullable = false)
+    private String accountName;
 
     @NotNull
-    @Column(name = "product", nullable = false)
-    private String product;
+    @Column(name = "product_name", nullable = false)
+    private String productName;
 
     @NotNull
-    @Column(name = "dataset", nullable = false)
-    private String dataset;
+    @Column(name = "dataset_name", nullable = false)
+    private String datasetName;
 
     @NotNull
     @Column(name = "area", nullable = false)
@@ -117,43 +117,43 @@ public class AuditLog extends AbstractAuditingEntity implements Serializable {
         this.operation = operation;
     }
 
-    public String getAccount() {
-        return account;
+    public String getAccountName() {
+        return accountName;
     }
 
     public AuditLog account(String account) {
-        this.account = account;
+        this.accountName = account;
         return this;
     }
 
-    public void setAccount(String account) {
-        this.account = account;
+    public void setAccountName(String accountName) {
+        this.accountName = accountName;
     }
 
-    public String getProduct() {
-        return product;
+    public String getProductName() {
+        return productName;
     }
 
     public AuditLog product(String product) {
-        this.product = product;
+        this.productName = product;
         return this;
     }
 
-    public void setProduct(String product) {
-        this.product = product;
+    public void setProductName(String productName) {
+        this.productName = productName;
     }
 
-    public String getDataset() {
-        return dataset;
+    public String getDatasetName() {
+        return datasetName;
     }
 
     public AuditLog dataset(String dataset) {
-        this.dataset = dataset;
+        this.datasetName = dataset;
         return this;
     }
 
-    public void setDataset(String dataset) {
-        this.dataset = dataset;
+    public void setDatasetName(String datasetName) {
+        this.datasetName = datasetName;
     }
 
     public String getArea() {
@@ -211,9 +211,9 @@ public class AuditLog extends AbstractAuditingEntity implements Serializable {
                 + ", user='" + getUser() + "'"
                 + ", clientHost='" + getClientHost() + "'"
                 + ", operation='" + getOperation() + "'"
-                + ", account='" + getAccount() + "'"
-                + ", product='" + getProduct() + "'"
-                + ", dataset='" + getDataset() + "'"
+                + ", account='" + getAccountName() + "'"
+                + ", product='" + getProductName() + "'"
+                + ", dataset='" + getDatasetName() + "'"
                 + ", area='" + getArea() + "'"
                 + ", message='" + getMessage() + "'"
                 + "}";
