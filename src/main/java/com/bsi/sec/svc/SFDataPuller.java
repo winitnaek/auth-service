@@ -161,22 +161,13 @@ public class SFDataPuller implements DataSync {
                     tn.setDataset(ent.getDataset_1__c());
                     tn.setEnabled(true);
                     tn.setImported(true);
-                    tn.setProdId(ent.getProduct__r().getId());
                     tn.setProdName(ent.getProduct_Name__c());
                     tenants.add(tn);
+                    
+                    if (log.isTraceEnabled()) {
+                        log.trace("Tenant: " + tn.toString());
+                    }
 
-                    String acct18DigitId = ent.getAccount_18_Digit_ID__c();
-                    String prodDisplName = ent.getProduct_Display_Name__c();
-                    String dset1 = ent.getDataset_1__c();
-                    String dset2 = ent.getDataset_2__c();
-                    String dset3 = ent.getDataset_3__c();
-
-                    System.out.println("Account 18-digit ID ==> " + acct18DigitId);
-                    System.out.println("Product Display Name ==> " + prodDisplName);
-                    System.out.println("Dataset 1 ==> " + dset1);
-                    System.out.println("Dataset 2 ==> " + dset2);
-                    System.out.println("Dataset 3 ==> " + dset3);
-                    System.out.println();
                 }
 
                 if (qr.isDone()) {

@@ -47,9 +47,7 @@ public class Tenant extends AbstractAuditingEntity implements Serializable {
     @QuerySqlField(index = true)
     private String acctName;
 
-    @NaturalId
-    @NotNull
-    @Column(name = "prod_id", nullable = false)
+    @Column(name = "prod_id", nullable = true)
     @QuerySqlField(index = true)
     private String prodId;
 
@@ -269,7 +267,6 @@ public class Tenant extends AbstractAuditingEntity implements Serializable {
                 + "id=" + getId()
                 + ", acctId='" + getAcctId() + "'"
                 + ", acctName='" + getAcctName() + "'"
-                + ", prodId='" + getProdId() + "'"
                 + ", prodName='" + getProdName() + "'"
                 + ", dataset='" + getDataset() + "'"
                 + ", enabled='" + isEnabled() + "'"
