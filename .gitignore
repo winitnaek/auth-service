@@ -79,14 +79,6 @@ out/
 /build/
 
 ######################
-# Package Files
-######################
-*.jar
-*.war
-*.ear
-*.db
-
-######################
 # Windows
 ######################
 # Windows image file caches
