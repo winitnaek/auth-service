@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -163,7 +164,7 @@ public class SFDataPuller implements DataSync {
                     tn.setImported(true);
                     tn.setProdName(ent.getProduct_Name__c());
                     tenants.add(tn);
-                    
+
                     if (log.isTraceEnabled()) {
                         log.trace("Tenant: " + tn.toString());
                     }
@@ -236,13 +237,18 @@ public class SFDataPuller implements DataSync {
      * @return
      */
     private Optional<LocalDateTime> getLastInitDataSyncDateTime() {
-        Optional<AdminMetadata> admMetaOpt = adminMetaDataRepo.findById(1L);
+        Iterator<AdminMetadata> adminMetaIter = adminMetaDataRepo
+                .findAll().iterator();
+        AdminMetadata admMeta = null;
 
-        if (!admMetaOpt.isPresent()) {
+        if (adminMetaIter.hasNext()) {
+            admMeta = adminMetaIter.next();
+        }
+
+        if (admMeta == null) {
             return Optional.empty();
         }
 
-        AdminMetadata admMeta = admMetaOpt.get();
         LocalDateTime lastFullSync = admMeta.getLastFullSync();
         return lastFullSync != null ? Optional.of(lastFullSync) : Optional.empty();
     }

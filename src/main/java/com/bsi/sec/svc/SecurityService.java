@@ -123,6 +123,10 @@ public class SecurityService {
 
         TenantDTO tenant = new TenantDTO(1L, "BSI Inc.",
                 "TPF", "BSI_DSET_1");
+        tenant.setEnabled(true);
+        tenant.setImported(true);
+        tenant.setSsoConfId(1L);
+        tenant.setSsoConfDsplName("SSO Conf 1");
         return tenant;
     }
 
@@ -242,6 +246,10 @@ public class SecurityService {
         tenant.setAcctName("BSI");
         tenant.setDataset("BSI_DSET_1");
         tenant.setProdName("TPF");
+        tenant.setEnabled(true);
+        tenant.setImported(true);
+        tenant.setSsoConfId(1L);
+        tenant.setSsoConfDsplName("SSO Conf 1");
         tenants.add(tenant);
 
         tenant = new TenantDTO();
@@ -249,6 +257,10 @@ public class SecurityService {
         tenant.setAcctName("Walmart");
         tenant.setDataset("WM_DSET_1");
         tenant.setProdName("TF");
+        tenant.setEnabled(true);
+        tenant.setImported(true);
+        tenant.setSsoConfId(2L);
+        tenant.setSsoConfDsplName("SSO Conf 2");
         tenants.add(tenant);
 
         return tenants;

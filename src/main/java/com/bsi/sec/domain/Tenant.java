@@ -61,13 +61,11 @@ public class Tenant extends AbstractAuditingEntity implements Serializable {
     @QuerySqlField(index = true)
     private String dataset;
 
-    @NotNull
     @Column(name = "enabled", nullable = false)
-    private Boolean enabled;
+    private boolean enabled;
 
-    @NotNull
     @Column(name = "imported", nullable = false)
-    private Boolean imported;
+    private boolean imported;
 
     @OneToMany(mappedBy = "tenant")
     private Set<Company> companies = new HashSet<>();
@@ -151,29 +149,29 @@ public class Tenant extends AbstractAuditingEntity implements Serializable {
         this.dataset = dataset;
     }
 
-    public Boolean isEnabled() {
+    public boolean isEnabled() {
         return enabled;
     }
 
-    public Tenant enabled(Boolean enabled) {
+    public Tenant enabled(boolean enabled) {
         this.enabled = enabled;
         return this;
     }
 
-    public void setEnabled(Boolean enabled) {
+    public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
 
-    public Boolean isImported() {
+    public boolean isImported() {
         return imported;
     }
 
-    public Tenant imported(Boolean imported) {
+    public Tenant imported(boolean imported) {
         this.imported = imported;
         return this;
     }
 
-    public void setImported(Boolean imported) {
+    public void setImported(boolean imported) {
         this.imported = imported;
     }
 

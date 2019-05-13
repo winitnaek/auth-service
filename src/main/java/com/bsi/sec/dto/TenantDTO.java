@@ -27,6 +27,15 @@ public final class TenantDTO {
     @NotNull
     private String dataset;
 
+    @NotNull
+    private Long ssoConfId;
+
+    private String ssoConfDsplName;
+
+    private boolean enabled;
+
+    private boolean imported;
+
     public TenantDTO() {
     }
 
@@ -69,9 +78,41 @@ public final class TenantDTO {
         this.dataset = dataset;
     }
 
+    public Long getSsoConfId() {
+        return ssoConfId;
+    }
+
+    public void setSsoConfId(Long ssoConfId) {
+        this.ssoConfId = ssoConfId;
+    }
+
+    public String getSsoConfDsplName() {
+        return ssoConfDsplName;
+    }
+
+    public void setSsoConfDsplName(String ssoConfDsplName) {
+        this.ssoConfDsplName = ssoConfDsplName;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public boolean isImported() {
+        return imported;
+    }
+
+    public void setImported(boolean imported) {
+        this.imported = imported;
+    }
+
     @Override
     public String toString() {
-        return "TenantDTO{" + "id=" + id + ", acctName=" + acctName + ", prodName=" + prodName + ", dataset=" + dataset + '}';
+        return "TenantDTO{" + "id=" + id + ", acctName=" + acctName + ", prodName=" + prodName + ", dataset=" + dataset + ", ssoConfId=" + ssoConfId + ", ssoConfDsplName=" + ssoConfDsplName + ", enabled=" + enabled + ", imported=" + imported + '}';
     }
 
 }
