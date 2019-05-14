@@ -286,6 +286,23 @@ public class SecurityServiceResource {
                 .getSSOConfigsByTenant(accountName);
         return new ResponseEntity<>(ssoConfigDTO, HttpStatus.OK);
     }
+    
+    /**
+     *
+     * @param accountName
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/getSSOConfigs")
+    public ResponseEntity<List<SSOConfigDTO>> getSSOConfigs()
+            throws Exception {
+        if (log.isDebugEnabled()) {
+            log.debug("REST request to get All the SSO Configuration ");
+        }
+
+        List<SSOConfigDTO> ssoConfigDTO = securityService.getSSOConfigs();
+        return new ResponseEntity<>(ssoConfigDTO, HttpStatus.OK);
+    }
 
     /**
      *

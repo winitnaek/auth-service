@@ -231,6 +231,28 @@ public class SecurityService {
         config.setDsplName("BSI SSO Config 1");
         return config;
     }
+    
+    /**
+     * TODO: Add implementation!
+     *
+     * @param accountName
+     * @return
+     */
+    public List<SSOConfigDTO> getSSOConfigs() {
+        List<SSOConfigDTO> configs = new ArrayList<>();
+        SSOConfigDTO config = new SSOConfigDTO();
+        config.setAcctName("BSI");
+        config.setId(1L);
+        config.setDsplName("BSI SSO Config 1");
+        configs.add(config);
+        
+        SSOConfigDTO config1 = new SSOConfigDTO();
+        config1.setAcctName("Walmart");
+        config1.setId(2L);
+        config1.setDsplName("Walmart SSO Config 1");
+        configs.add(config1);
+        return configs;
+    }
 
     /**
      * TODO: Add implementation!
