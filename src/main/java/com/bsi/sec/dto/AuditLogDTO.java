@@ -7,7 +7,7 @@ package com.bsi.sec.dto;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-
+import java.time.Instant;
 /**
  *
  * @author igorV
@@ -17,6 +17,9 @@ public final class AuditLogDTO {
     @NotNull
     @Min(1)
     private Long id;
+    
+    @NotNull
+    private Instant createdDate;
 
     @NotNull
     private String serverHost;
@@ -47,8 +50,9 @@ public final class AuditLogDTO {
     }
 
     /**
-     *
+     * AuditLogDTO
      * @param id
+     * @param createdDate
      * @param serverHost
      * @param user
      * @param clientHost
@@ -57,10 +61,11 @@ public final class AuditLogDTO {
      * @param product
      * @param dataset
      * @param area
-     * @param message
+     * @param message 
      */
-    public AuditLogDTO(Long id, String serverHost, String user, String clientHost, String operation, String account, String product, String dataset, String area, String message) {
+    public AuditLogDTO(Long id, Instant createdDate, String serverHost, String user, String clientHost, String operation, String account, String product, String dataset, String area, String message) {
         this.id = id;
+        this.createdDate = createdDate;
         this.serverHost = serverHost;
         this.user = user;
         this.clientHost = clientHost;
@@ -78,6 +83,14 @@ public final class AuditLogDTO {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Instant getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(Instant createdDate) {
+        this.createdDate = createdDate;
     }
 
     public String getServerHost() {
@@ -154,7 +167,6 @@ public final class AuditLogDTO {
 
     @Override
     public String toString() {
-        return "AuditLogDTO{" + "id=" + id + ", serverHost=" + serverHost + ", user=" + user + ", clientHost=" + clientHost + ", operation=" + operation + ", account=" + account + ", product=" + product + ", dataset=" + dataset + ", area=" + area + ", message=" + message + '}';
+        return "AuditLogDTO{" + "id=" + id + ", createdDate=" + createdDate + ", serverHost=" + serverHost + ", user=" + user + ", clientHost=" + clientHost + ", operation=" + operation + ", account=" + account + ", product=" + product + ", dataset=" + dataset + ", area=" + area + ", message=" + message + '}';
     }
-
 }

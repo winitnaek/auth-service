@@ -12,6 +12,7 @@ import com.bsi.sec.dto.SSOConfigDTO;
 import com.bsi.sec.dto.SyncInfoDTO;
 import com.bsi.sec.dto.TenantDTO;
 import com.bsi.sec.util.DateUtils;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -208,13 +209,25 @@ public class SecurityService {
      * @param lastNoDays
      * @return
      */
-    public AuditLogDTO getAuditLogs(int lastNoDays) {
+    public List<AuditLogDTO> getAuditLogs(int lastNoDays) {
         //TODO: Add implementation!
-        AuditLogDTO auditLogs = new AuditLogDTO();
-        auditLogs.setAccount("BSI");
-        auditLogs.setDataset("BSI_DSET_1");
-        auditLogs.setProduct("TPF");
-        auditLogs.setMessage("Tenant [BSI] has been created.");
+        List<AuditLogDTO> auditLogs = new ArrayList<>();
+        AuditLogDTO auditLog = new AuditLogDTO();
+        auditLog.setCreatedDate(Instant.now());
+        auditLog.setAccount("BSI");
+        auditLog.setDataset("BSI_DSET_1");
+        auditLog.setProduct("TPF");
+        auditLog.setMessage("Tenant [BSI] has been created.");
+        auditLogs.add(auditLog);
+        
+        AuditLogDTO auditLog1 = new AuditLogDTO();
+        auditLog1.setCreatedDate(Instant.now());
+        auditLog1.setAccount("WALMART");
+        auditLog1.setDataset("BSI_DSET_2");
+        auditLog1.setProduct("TF");
+        auditLog1.setMessage("Tenant Tried to Login.");
+        auditLogs.add(auditLog1);
+        
         return auditLogs;
     }
 

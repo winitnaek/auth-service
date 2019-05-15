@@ -254,7 +254,7 @@ public class SecurityServiceResource {
      * @throws Exception
      */
     @GetMapping("/getAuditLogs")
-    public ResponseEntity<AuditLogDTO> getAuditLogs(
+    public ResponseEntity<List<AuditLogDTO>> getAuditLogs(
             @Valid @Min(1L) @RequestParam(required = true) int lastNoDays)
             throws Exception {
         if (log.isDebugEnabled()) {
@@ -263,7 +263,7 @@ public class SecurityServiceResource {
                     lastNoDays);
         }
 
-        AuditLogDTO auditLogs = securityService.getAuditLogs(lastNoDays);
+        List<AuditLogDTO> auditLogs = securityService.getAuditLogs(lastNoDays);
         return new ResponseEntity<>(auditLogs, HttpStatus.OK);
     }
 
