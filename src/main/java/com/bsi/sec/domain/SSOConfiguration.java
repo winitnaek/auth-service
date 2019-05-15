@@ -32,7 +32,7 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @SequenceGenerator(name = "sequenceGenerator")
     @QuerySqlField(index = true)
     private Long id;
@@ -387,26 +387,110 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
     public void setTenant(Tenant tenant) {
         this.tenant = tenant;
     }
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        SSOConfiguration sSOConfiguration = (SSOConfiguration) o;
-        if (sSOConfiguration.getId() == null || getId() == null) {
-            return false;
-        }
-        return Objects.equals(getId(), sSOConfiguration.getId());
-    }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getId());
+        int hash = 7;
+        hash = 83 * hash + Objects.hashCode(this.id);
+        hash = 83 * hash + Objects.hashCode(this.dsplName);
+        hash = 83 * hash + Objects.hashCode(this.idpIssuer);
+        hash = 83 * hash + Objects.hashCode(this.idpReqURL);
+        hash = 83 * hash + Objects.hashCode(this.spConsumerURL);
+        hash = 83 * hash + Objects.hashCode(this.spIssuer);
+        hash = 83 * hash + Objects.hashCode(this.attribIndex);
+        hash = 83 * hash + Objects.hashCode(this.validateRespSignature);
+        hash = 83 * hash + Objects.hashCode(this.validateIdpIssuer);
+        hash = 83 * hash + Objects.hashCode(this.signRequests);
+        hash = 83 * hash + Objects.hashCode(this.allowLogout);
+        hash = 83 * hash + Objects.hashCode(this.nonSamlLogoutURL);
+        hash = 83 * hash + Objects.hashCode(this.redirectToApplication);
+        hash = 83 * hash + Objects.hashCode(this.appRedirectURL);
+        hash = 83 * hash + Objects.hashCode(this.certAlias);
+        hash = 83 * hash + Objects.hashCode(this.certPassword);
+        hash = 83 * hash + Objects.hashCode(this.certText);
+        hash = 83 * hash + Objects.hashCode(this.expireRequestSecs);
+        hash = 83 * hash + Objects.hashCode(this.enabled);
+        hash = 83 * hash + Objects.hashCode(this.tenantSSOConf);
+        hash = 83 * hash + Objects.hashCode(this.tenant);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final SSOConfiguration other = (SSOConfiguration) obj;
+        if (!Objects.equals(this.dsplName, other.dsplName)) {
+            return false;
+        }
+        if (!Objects.equals(this.idpIssuer, other.idpIssuer)) {
+            return false;
+        }
+        if (!Objects.equals(this.idpReqURL, other.idpReqURL)) {
+            return false;
+        }
+        if (!Objects.equals(this.spConsumerURL, other.spConsumerURL)) {
+            return false;
+        }
+        if (!Objects.equals(this.spIssuer, other.spIssuer)) {
+            return false;
+        }
+        if (!Objects.equals(this.nonSamlLogoutURL, other.nonSamlLogoutURL)) {
+            return false;
+        }
+        if (!Objects.equals(this.appRedirectURL, other.appRedirectURL)) {
+            return false;
+        }
+        if (!Objects.equals(this.certAlias, other.certAlias)) {
+            return false;
+        }
+        if (!Objects.equals(this.certPassword, other.certPassword)) {
+            return false;
+        }
+        if (!Objects.equals(this.certText, other.certText)) {
+            return false;
+        }
+        if (!Objects.equals(this.id, other.id)) {
+            return false;
+        }
+        if (!Objects.equals(this.attribIndex, other.attribIndex)) {
+            return false;
+        }
+        if (!Objects.equals(this.validateRespSignature, other.validateRespSignature)) {
+            return false;
+        }
+        if (!Objects.equals(this.validateIdpIssuer, other.validateIdpIssuer)) {
+            return false;
+        }
+        if (!Objects.equals(this.signRequests, other.signRequests)) {
+            return false;
+        }
+        if (!Objects.equals(this.allowLogout, other.allowLogout)) {
+            return false;
+        }
+        if (!Objects.equals(this.redirectToApplication, other.redirectToApplication)) {
+            return false;
+        }
+        if (!Objects.equals(this.expireRequestSecs, other.expireRequestSecs)) {
+            return false;
+        }
+        if (!Objects.equals(this.enabled, other.enabled)) {
+            return false;
+        }
+        if (!Objects.equals(this.tenantSSOConf, other.tenantSSOConf)) {
+            return false;
+        }
+        if (!Objects.equals(this.tenant, other.tenant)) {
+            return false;
+        }
+        return true;
     }
 
     @Override

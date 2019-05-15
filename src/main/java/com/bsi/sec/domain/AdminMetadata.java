@@ -28,7 +28,7 @@ public class AdminMetadata extends AbstractAuditingEntity implements Serializabl
     private LocalDateTime lastPerSync;
 
     @Column(name = "is_per_sync_on", nullable = false)
-    private boolean isPerSyncOn;
+    private boolean isPerSyncOn = true;
 
     @Column(name = "is_sync_inprogress", nullable = false)
     private boolean isSyncInProgress;
@@ -79,25 +79,45 @@ public class AdminMetadata extends AbstractAuditingEntity implements Serializabl
         return this;
     }
 
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        AdminMetadata adminMetadata = (AdminMetadata) o;
-        if (adminMetadata.getId() == null || getId() == null) {
-            return false;
-        }
-        return Objects.equals(getId(), adminMetadata.getId());
+    public int hashCode() {
+        int hash = 3;
+        hash = 79 * hash + Objects.hashCode(this.id);
+        hash = 79 * hash + Objects.hashCode(this.lastFullSync);
+        hash = 79 * hash + Objects.hashCode(this.lastPerSync);
+        hash = 79 * hash + (this.isPerSyncOn ? 1 : 0);
+        hash = 79 * hash + (this.isSyncInProgress ? 1 : 0);
+        return hash;
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hashCode(getId());
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final AdminMetadata other = (AdminMetadata) obj;
+        if (this.isPerSyncOn != other.isPerSyncOn) {
+            return false;
+        }
+        if (this.isSyncInProgress != other.isSyncInProgress) {
+            return false;
+        }
+        if (!Objects.equals(this.id, other.id)) {
+            return false;
+        }
+        if (!Objects.equals(this.lastFullSync, other.lastFullSync)) {
+            return false;
+        }
+        if (!Objects.equals(this.lastPerSync, other.lastPerSync)) {
+            return false;
+        }
+        return true;
     }
 
     @Override

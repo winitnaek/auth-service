@@ -181,26 +181,66 @@ public class AuditLog extends AbstractAuditingEntity implements Serializable {
     public void setMessage(String message) {
         this.message = message;
     }
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        AuditLog auditLog = (AuditLog) o;
-        if (auditLog.getId() == null || getId() == null) {
-            return false;
-        }
-        return Objects.equals(getId(), auditLog.getId());
-    }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getId());
+        int hash = 7;
+        hash = 97 * hash + Objects.hashCode(this.id);
+        hash = 97 * hash + Objects.hashCode(this.serverHost);
+        hash = 97 * hash + Objects.hashCode(this.user);
+        hash = 97 * hash + Objects.hashCode(this.clientHost);
+        hash = 97 * hash + Objects.hashCode(this.operation);
+        hash = 97 * hash + Objects.hashCode(this.accountName);
+        hash = 97 * hash + Objects.hashCode(this.productName);
+        hash = 97 * hash + Objects.hashCode(this.datasetName);
+        hash = 97 * hash + Objects.hashCode(this.area);
+        hash = 97 * hash + Objects.hashCode(this.message);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final AuditLog other = (AuditLog) obj;
+        if (!Objects.equals(this.serverHost, other.serverHost)) {
+            return false;
+        }
+        if (!Objects.equals(this.user, other.user)) {
+            return false;
+        }
+        if (!Objects.equals(this.clientHost, other.clientHost)) {
+            return false;
+        }
+        if (!Objects.equals(this.operation, other.operation)) {
+            return false;
+        }
+        if (!Objects.equals(this.accountName, other.accountName)) {
+            return false;
+        }
+        if (!Objects.equals(this.productName, other.productName)) {
+            return false;
+        }
+        if (!Objects.equals(this.datasetName, other.datasetName)) {
+            return false;
+        }
+        if (!Objects.equals(this.area, other.area)) {
+            return false;
+        }
+        if (!Objects.equals(this.message, other.message)) {
+            return false;
+        }
+        if (!Objects.equals(this.id, other.id)) {
+            return false;
+        }
+        return true;
     }
 
     @Override

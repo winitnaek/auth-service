@@ -11,7 +11,9 @@ package com.bsi.sec.util;
  */
 public final class SOQLQueries {
 
-    public static final String GET_ACTIVE_ENTITLEMENTS = "select e.Account_Name__c,"
+    public static final String GET_ACTIVE_ENTITLEMENTS = "select"
+            + " e.id,"
+            + " e.Account_Name__c,"
             + " e.Account_18_Digit_ID__c, e.Product_Name__c,"
             + " e.Dataset_1__c from Entitlement e"
             + " where e.Active_SaaS__c = 1"

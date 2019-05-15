@@ -33,6 +33,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import static com.bsi.sec.util.CacheConstants.SEC_SVC_DATA_NODE;
+import org.apache.ignite.configuration.DataStorageConfiguration;
 
 /**
  *
@@ -86,6 +87,16 @@ public class StoreConfiguration implements WebMvcConfigurer {
             ccfgTenantSSOConf, ccfgTenant, ccfgSSOConf
         });
 
+        DataStorageConfiguration dataStoreConf = cfg.getDataStorageConfiguration();
+
+        if (dataStoreConf == null) {
+            dataStoreConf = new DataStorageConfiguration();
+            cfg.setDataStorageConfiguration(dataStoreConf);
+        }
+
+        dataStoreConf.getDefaultDataRegionConfiguration()
+                .setPersistenceEnabled(true);
+
         try {
             cfg.setGridLogger(igniteLog4J2Logger());
         } catch (ConfigurationException ex) {
@@ -94,7 +105,9 @@ public class StoreConfiguration implements WebMvcConfigurer {
             }
         }
 
-        return Ignition.start(cfg);
+        Ignite ignite = Ignition.start(cfg);
+        ignite.cluster().active(true);
+        return ignite;
     }
 
     @Bean

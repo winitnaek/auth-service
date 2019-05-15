@@ -54,10 +54,15 @@ public class SFDataPuller implements DataSync {
     @Autowired
     private AdminMetadataRepository adminMetaDataRepo;
 
+    @Autowired
+    private DataSyncHandler storeSyncer;
+
     private EnterpriseConnection connection;
 
     @Override
     public DataSyncResponse runInitialSync(LocalDateTime fromDateTime) throws Exception {
+        storeSyncer.markAsSyncInprogress();
+
         DataSyncResponse response;
         Optional<LocalDateTime> lastInitDataSyncDtOpt = getLastInitDataSyncDateTime();
 
@@ -82,9 +87,9 @@ public class SFDataPuller implements DataSync {
                     .toInstant(ZoneOffset.UTC).toString());
         }
 
-        List<Tenant> allTenants = getAllActiveEntitlements(fromDateTime);
-
-        response = new DataSyncResponse();
+        List<Tenant> allTenants = getAllActiveTenants(fromDateTime);
+        response = storeSyncer.syncTenantData(allTenants);
+        storeSyncer.markAsSyncDone();
         return response;
     }
 
@@ -116,7 +121,7 @@ public class SFDataPuller implements DataSync {
      * @param fromDateTime
      * @return
      */
-    private List<Tenant> getAllActiveEntitlements(LocalDateTime fromDateTime)
+    private List<Tenant> getAllActiveTenants(LocalDateTime fromDateTime)
             throws ConfigurationException, RecordNotFoundException {
         if (connection == null) {
             throw new ConfigurationException("Salesforce connection must be established!");
@@ -156,13 +161,13 @@ public class SFDataPuller implements DataSync {
                 for (SObject rec : records) {
                     Entitlement ent = (Entitlement) rec;
                     Tenant tn = new Tenant();
-                    tn.setId(idGenerator.generate());
                     tn.setAcctId(ent.getAccount_18_Digit_ID__c());
                     tn.setAcctName(ent.getAccount_Name__c());
                     tn.setDataset(ent.getDataset_1__c());
                     tn.setEnabled(true);
                     tn.setImported(true);
                     tn.setProdName(ent.getProduct_Name__c());
+                    tn.setId(idGenerator.generate(tn));
                     tenants.add(tn);
 
                     if (log.isTraceEnabled()) {

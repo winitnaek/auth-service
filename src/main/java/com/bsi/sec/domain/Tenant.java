@@ -237,38 +237,75 @@ public class Tenant extends AbstractAuditingEntity implements Serializable {
     public void setTenantSSOConf(TenantSSOConf tenantSSOConf) {
         this.tenantSSOConf = tenantSSOConf;
     }
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        Tenant tenant = (Tenant) o;
-        if (tenant.getId() == null || getId() == null) {
-            return false;
-        }
-        return Objects.equals(getId(), tenant.getId());
-    }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getId());
+        int hash = 5;
+        hash = 71 * hash + Objects.hashCode(this.id);
+        hash = 71 * hash + Objects.hashCode(this.acctId);
+        hash = 71 * hash + Objects.hashCode(this.acctName);
+        hash = 71 * hash + Objects.hashCode(this.prodId);
+        hash = 71 * hash + Objects.hashCode(this.prodName);
+        hash = 71 * hash + Objects.hashCode(this.dataset);
+        hash = 71 * hash + (this.enabled ? 1 : 0);
+        hash = 71 * hash + (this.imported ? 1 : 0);
+        hash = 71 * hash + Objects.hashCode(this.companies);
+        hash = 71 * hash + Objects.hashCode(this.ssoConfigs);
+        hash = 71 * hash + Objects.hashCode(this.tenantSSOConf);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Tenant other = (Tenant) obj;
+        if (this.enabled != other.enabled) {
+            return false;
+        }
+        if (this.imported != other.imported) {
+            return false;
+        }
+        if (!Objects.equals(this.acctId, other.acctId)) {
+            return false;
+        }
+        if (!Objects.equals(this.acctName, other.acctName)) {
+            return false;
+        }
+        if (!Objects.equals(this.prodId, other.prodId)) {
+            return false;
+        }
+        if (!Objects.equals(this.prodName, other.prodName)) {
+            return false;
+        }
+        if (!Objects.equals(this.dataset, other.dataset)) {
+            return false;
+        }
+        if (!Objects.equals(this.id, other.id)) {
+            return false;
+        }
+        if (!Objects.equals(this.companies, other.companies)) {
+            return false;
+        }
+        if (!Objects.equals(this.ssoConfigs, other.ssoConfigs)) {
+            return false;
+        }
+        if (!Objects.equals(this.tenantSSOConf, other.tenantSSOConf)) {
+            return false;
+        }
+        return true;
     }
 
     @Override
     public String toString() {
-        return "Tenant{"
-                + "id=" + getId()
-                + ", acctId='" + getAcctId() + "'"
-                + ", acctName='" + getAcctName() + "'"
-                + ", prodName='" + getProdName() + "'"
-                + ", dataset='" + getDataset() + "'"
-                + ", enabled='" + isEnabled() + "'"
-                + ", imported='" + isImported() + "'"
-                + "}";
+        return "Tenant{" + "id=" + id + ", acctId=" + acctId + ", acctName=" + acctName + ", prodId=" + prodId + ", prodName=" + prodName + ", dataset=" + dataset + ", enabled=" + enabled + ", imported=" + imported + ", companies=" + companies + ", ssoConfigs=" + ssoConfigs + ", tenantSSOConf=" + tenantSSOConf + '}';
     }
+
 }

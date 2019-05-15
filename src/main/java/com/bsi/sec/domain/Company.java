@@ -168,23 +168,60 @@ public class Company implements Serializable {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        Company company = (Company) o;
-        if (company.getId() == null || getId() == null) {
-            return false;
-        }
-        return Objects.equals(getId(), company.getId());
+    public int hashCode() {
+        int hash = 5;
+        hash = 11 * hash + Objects.hashCode(this.id);
+        hash = 11 * hash + Objects.hashCode(this.dataset);
+        hash = 11 * hash + Objects.hashCode(this.name);
+        hash = 11 * hash + Objects.hashCode(this.samlCid);
+        hash = 11 * hash + Objects.hashCode(this.enabled);
+        hash = 11 * hash + Objects.hashCode(this.imported);
+        hash = 11 * hash + Objects.hashCode(this.importedDate);
+        hash = 11 * hash + Objects.hashCode(this.importedBy);
+        hash = 11 * hash + Objects.hashCode(this.tenant);
+        return hash;
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hashCode(getId());
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Company other = (Company) obj;
+        if (!Objects.equals(this.dataset, other.dataset)) {
+            return false;
+        }
+        if (!Objects.equals(this.name, other.name)) {
+            return false;
+        }
+        if (!Objects.equals(this.samlCid, other.samlCid)) {
+            return false;
+        }
+        if (!Objects.equals(this.importedBy, other.importedBy)) {
+            return false;
+        }
+        if (!Objects.equals(this.id, other.id)) {
+            return false;
+        }
+        if (!Objects.equals(this.enabled, other.enabled)) {
+            return false;
+        }
+        if (!Objects.equals(this.imported, other.imported)) {
+            return false;
+        }
+        if (!Objects.equals(this.importedDate, other.importedDate)) {
+            return false;
+        }
+        if (!Objects.equals(this.tenant, other.tenant)) {
+            return false;
+        }
+        return true;
     }
 
     @Override

@@ -28,7 +28,7 @@ public class TenantSSOConf extends AbstractAuditingEntity implements Serializabl
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "sequenceGenerator")
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @SequenceGenerator(name = "sequenceGenerator")
     @QuerySqlField(index = true)
     private Long id;
@@ -146,26 +146,54 @@ public class TenantSSOConf extends AbstractAuditingEntity implements Serializabl
     public void setSsoConfig(SSOConfiguration sSOConfiguration) {
         this.ssoConfig = sSOConfiguration;
     }
-    // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        TenantSSOConf tenantSSOConf = (TenantSSOConf) o;
-        if (tenantSSOConf.getId() == null || getId() == null) {
-            return false;
-        }
-        return Objects.equals(getId(), tenantSSOConf.getId());
-    }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getId());
+        int hash = 5;
+        hash = 59 * hash + Objects.hashCode(this.id);
+        hash = 59 * hash + Objects.hashCode(this.acctName);
+        hash = 59 * hash + Objects.hashCode(this.prodName);
+        hash = 59 * hash + Objects.hashCode(this.dataset);
+        hash = 59 * hash + Objects.hashCode(this.ssoConfDsplName);
+        hash = 59 * hash + Objects.hashCode(this.tenant);
+        hash = 59 * hash + Objects.hashCode(this.ssoConfig);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final TenantSSOConf other = (TenantSSOConf) obj;
+        if (!Objects.equals(this.acctName, other.acctName)) {
+            return false;
+        }
+        if (!Objects.equals(this.prodName, other.prodName)) {
+            return false;
+        }
+        if (!Objects.equals(this.dataset, other.dataset)) {
+            return false;
+        }
+        if (!Objects.equals(this.ssoConfDsplName, other.ssoConfDsplName)) {
+            return false;
+        }
+        if (!Objects.equals(this.id, other.id)) {
+            return false;
+        }
+        if (!Objects.equals(this.tenant, other.tenant)) {
+            return false;
+        }
+        if (!Objects.equals(this.ssoConfig, other.ssoConfig)) {
+            return false;
+        }
+        return true;
     }
 
     @Override
