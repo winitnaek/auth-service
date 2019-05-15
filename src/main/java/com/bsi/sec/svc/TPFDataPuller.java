@@ -33,7 +33,7 @@ import java.util.TreeMap;
  * @author Vinit
  */
 @Service
-public class TPFDataPuller implements DataSync {
+public class TPFDataPuller implements DataPuller {
 
     private final static Logger log = LoggerFactory.getLogger(TPFDataPuller.class);
 
@@ -50,7 +50,6 @@ public class TPFDataPuller implements DataSync {
      * @return
      * @throws Exception
      */
-    @Override
     public DataSyncResponse runInitialSync(LocalDateTime fromDateTime) throws Exception {
         List<Btocomp> btoComplist = getCompanyDataForSync(fromDateTime);
         List<Company> companyList = prepareCompanyList(btoComplist);
@@ -66,7 +65,6 @@ public class TPFDataPuller implements DataSync {
      * @return
      * @throws Exception
      */
-    @Override
     public DataSyncResponse runPeriodicSync(LocalDateTime fromDateTime) throws Exception {
         List<Btocomp> btoComplist = getCompanyDataForSync(fromDateTime);
         List<Company> companyList = prepareCompanyList(btoComplist);
@@ -75,18 +73,16 @@ public class TPFDataPuller implements DataSync {
     }
 
     /**
-     * initializeSync
+     * initialize
      *
      * @throws Exception
      */
     @Override
-    public void initializeSync() throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void initialize() throws Exception {
     }
 
     @Override
-    public void postSync() throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void postCleanup() throws Exception {
     }
 
     /**

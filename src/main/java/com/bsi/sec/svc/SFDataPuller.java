@@ -7,12 +7,9 @@ package com.bsi.sec.svc;
 
 import com.bsi.sec.config.SecurityServiceProperties;
 import com.bsi.sec.config.SecurityServiceProperties.SF;
-import com.bsi.sec.domain.AdminMetadata;
 import com.bsi.sec.domain.Tenant;
-import com.bsi.sec.dto.DataSyncResponse;
 import com.bsi.sec.exception.ConfigurationException;
 import com.bsi.sec.exception.RecordNotFoundException;
-import com.bsi.sec.repository.AdminMetadataRepository;
 import com.bsi.sec.util.DateUtils;
 import com.bsi.sec.util.SOQLQueries;
 import com.sforce.soap.enterprise.EnterpriseConnection;
@@ -25,9 +22,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +36,7 @@ import org.springframework.stereotype.Component;
  * @author igorV
  */
 @Component
-public class SFDataPuller implements DataSync {
+public class SFDataPuller implements DataPuller {
 
     private final static Logger log = LoggerFactory.getLogger(SFDataPuller.class);
 
@@ -51,89 +46,22 @@ public class SFDataPuller implements DataSync {
     @Autowired
     private EntityIDGenerator idGenerator;
 
-    @Autowired
-    private AdminMetadataRepository adminMetaDataRepo;
-
-    @Autowired
-    private DataSyncHandler storeSyncer;
-
     private EnterpriseConnection connection;
 
-    @Override
-    public DataSyncResponse runInitialSync(LocalDateTime fromDateTime) throws Exception {
-        storeSyncer.markAsSyncInprogress();
-
-        DataSyncResponse response;
-        Optional<LocalDateTime> lastInitDataSyncDtOpt = getLastInitDataSyncDateTime();
-
-        if (lastInitDataSyncDtOpt.isPresent()) {
-            LocalDateTime lastInitDataSyncDt = lastInitDataSyncDtOpt.get();
-            response = new DataSyncResponse();
-            response.setLastRunDateTime(lastInitDataSyncDt);
-            response.setIsSucessfull(true);
-
-            String msg = "Last full SF data sync ran at " + lastInitDataSyncDt;
-            response.setMessage(msg);
-
-            if (log.isInfoEnabled()) {
-                log.info(msg);
-            }
-
-            return response;
-        }
-
-        if (log.isInfoEnabled()) {
-            log.info("Starting initial data sync from {}", fromDateTime
-                    .toInstant(ZoneOffset.UTC).toString());
-        }
-
-        List<Tenant> allTenants = getAllActiveTenants(fromDateTime);
-        response = storeSyncer.syncTenantData(allTenants);
-        storeSyncer.markAsSyncDone();
-        return response;
-    }
-
-    @Override
-    public DataSyncResponse runPeriodicSync(LocalDateTime fromDateTime) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
     /**
+     * Fetches all "SaaS Active" account records from Salesforce.
      *
-     * @throws Exception
-     */
-    @Override
-    public void initializeSync() throws Exception {
-        login();
-    }
-
-    /**
-     *
-     * @throws Exception
-     */
-    @Override
-    public void postSync() throws Exception {
-        logout();
-    }
-
-    /**
-     *
-     * @param fromDateTime
+     * @param fromDtTm
      * @return
      */
-    private List<Tenant> getAllActiveTenants(LocalDateTime fromDateTime)
+    public List<Tenant> getAllActiveEntitlements(LocalDateTime fromDtTm)
             throws ConfigurationException, RecordNotFoundException {
         if (connection == null) {
             throw new ConfigurationException("Salesforce connection must be established!");
         }
 
         try {
-            LocalDateTime fromDateTimeToUse = fromDateTime != null ? fromDateTime
-                    : DateUtils.defaultFromSyncTime();
-            String fromDateAsUTC = DateTimeFormatter.ISO_INSTANT
-                    .format(fromDateTimeToUse.toInstant(ZoneOffset.UTC));
-            String queryToUse = SOQLQueries.GET_ACTIVE_ENTITLEMENTS
-                    .replace(":createddate", fromDateAsUTC);
+            String queryToUse = getActiveEntitlmentsQuery(fromDtTm);
             QueryResult qr = connection.queryAll(queryToUse);
             boolean done = false;
 
@@ -149,7 +77,7 @@ public class SFDataPuller implements DataSync {
             }
 
             if (log.isDebugEnabled()) {
-                log.debug("\\nInitial pull...");
+                log.debug("\nInitial pull...");
                 log.debug("\nLogged-in user can see " + qr.getRecords().length + " Entitlement records.");
             }
 
@@ -187,6 +115,24 @@ public class SFDataPuller implements DataSync {
         } catch (ConnectionException ex) {
             throw new ConfigurationException("Failed while getting active entitlements!", ex);
         }
+    }
+
+    /**
+     *
+     * @throws Exception
+     */
+    @Override
+    public void initialize() throws Exception {
+        login();
+    }
+
+    /**
+     *
+     * @throws Exception
+     */
+    @Override
+    public void postCleanup() throws Exception {
+        logout();
     }
 
     /**
@@ -236,26 +182,17 @@ public class SFDataPuller implements DataSync {
     }
 
     /**
-     * <p>
-     * Retrieves latest full SF data sync date/time.</p>
      *
+     * @param fromDtTm
      * @return
      */
-    private Optional<LocalDateTime> getLastInitDataSyncDateTime() {
-        Iterator<AdminMetadata> adminMetaIter = adminMetaDataRepo
-                .findAll().iterator();
-        AdminMetadata admMeta = null;
-
-        if (adminMetaIter.hasNext()) {
-            admMeta = adminMetaIter.next();
-        }
-
-        if (admMeta == null) {
-            return Optional.empty();
-        }
-
-        LocalDateTime lastFullSync = admMeta.getLastFullSync();
-        return lastFullSync != null ? Optional.of(lastFullSync) : Optional.empty();
+    private String getActiveEntitlmentsQuery(LocalDateTime fromDtTm) {
+        LocalDateTime fromDateTimeToUse = fromDtTm != null ? fromDtTm
+                : DateUtils.defaultFromSyncTime();
+        String fromDateAsUTC = DateTimeFormatter.ISO_INSTANT
+                .format(fromDateTimeToUse.toInstant(ZoneOffset.UTC));
+        String queryToUse = SOQLQueries.GET_ACTIVE_ENTITLEMENTS
+                .replace(":createddate", fromDateAsUTC);
+        return queryToUse;
     }
-
 }

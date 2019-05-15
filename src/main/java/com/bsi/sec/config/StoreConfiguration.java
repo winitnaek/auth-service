@@ -12,15 +12,14 @@ import com.bsi.sec.domain.SSOConfiguration;
 import com.bsi.sec.domain.Tenant;
 import com.bsi.sec.domain.TenantSSOConf;
 import com.bsi.sec.exception.ConfigurationException;
+import static com.bsi.sec.util.AppConstants.BEAN_IGNITE_TX_MGR;
 import static com.bsi.sec.util.CacheConstants.ADMIN_METADATA_CACHE;
 import static com.bsi.sec.util.CacheConstants.AUDIT_LOG_CACHE;
 import static com.bsi.sec.util.CacheConstants.COMPANY_CACHE;
 import static com.bsi.sec.util.CacheConstants.SSO_CONFIGURATION_CACHE;
 import static com.bsi.sec.util.CacheConstants.TENANT_CACHE;
 import static com.bsi.sec.util.CacheConstants.TENANT_SSO_CONF_CACHE;
-import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCheckedException;
-import org.apache.ignite.Ignition;
 import org.apache.ignite.cache.CacheAtomicityMode;
 import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
@@ -30,10 +29,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import static com.bsi.sec.util.CacheConstants.SEC_SVC_DATA_NODE;
+import org.apache.ignite.Ignite;
+import org.apache.ignite.Ignition;
 import org.apache.ignite.configuration.DataStorageConfiguration;
+import org.apache.ignite.transactions.spring.SpringTransactionManager;
+import org.springframework.context.annotation.Primary;
 
 /**
  *
@@ -48,6 +50,42 @@ public class StoreConfiguration implements WebMvcConfigurer {
     @Bean
     @Primary
     public Ignite igniteInstance() {
+        Ignite ignite = Ignition.start(igniteCfg());
+        ignite.cluster().active(true);
+        return ignite;
+    }
+
+    @Bean(name = BEAN_IGNITE_TX_MGR)
+    public SpringTransactionManager igniteSpringTxMgr() {
+        SpringTransactionManager mgr = new SpringTransactionManager();
+        mgr.setIgniteInstanceName(SEC_SVC_DATA_NODE);
+        return mgr;
+    }
+
+    @Bean
+    public Log4J2Logger igniteLog4J2Logger() throws ConfigurationException {
+        Log4J2Logger logger;
+        try {
+            logger = new Log4J2Logger(StoreConfiguration.class.getClassLoader()
+                    .getResource("log4j2.xml"));
+            return logger;
+        } catch (IgniteCheckedException ex) {
+            String err = "Failed to create Ignite Log4j2Logger bean!";
+            if (log.isErrorEnabled()) {
+                log.error(err, ex);
+            }
+            throw new ConfigurationException(err, ex);
+        }
+
+    }
+
+    /**
+     * Builds Ignite configuration.
+     *
+     * @return
+     */
+    @Bean
+    public IgniteConfiguration igniteCfg() {
         IgniteConfiguration cfg = new IgniteConfiguration();
         // Setting some custom name for the node.
         cfg.setIgniteInstanceName(SEC_SVC_DATA_NODE);
@@ -105,27 +143,7 @@ public class StoreConfiguration implements WebMvcConfigurer {
             }
         }
 
-        Ignite ignite = Ignition.start(cfg);
-        ignite.cluster().active(true);
-        return ignite;
-    }
-
-    @Bean
-    @Primary
-    public Log4J2Logger igniteLog4J2Logger() throws ConfigurationException {
-        Log4J2Logger logger;
-        try {
-            logger = new Log4J2Logger(StoreConfiguration.class.getClassLoader()
-                    .getResource("log4j2.xml"));
-            return logger;
-        } catch (IgniteCheckedException ex) {
-            String err = "Failed to create Ignite Log4j2Logger bean!";
-            if (log.isErrorEnabled()) {
-                log.error(err, ex);
-            }
-            throw new ConfigurationException(err, ex);
-        }
-
+        return cfg;
     }
 
 }

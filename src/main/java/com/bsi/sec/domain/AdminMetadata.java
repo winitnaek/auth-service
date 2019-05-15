@@ -5,6 +5,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import org.apache.ignite.cache.query.annotations.QuerySqlField;
 import org.hibernate.envers.Audited;
 
 /**
@@ -18,7 +19,7 @@ public class AdminMetadata extends AbstractAuditingEntity implements Serializabl
     private static final long serialVersionUID = 1L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @QuerySqlField(index = true)
     private Long id;
 
     @Column(name = "last_full_sync", nullable = true)

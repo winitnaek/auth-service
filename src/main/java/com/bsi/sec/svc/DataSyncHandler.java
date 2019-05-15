@@ -8,10 +8,14 @@ package com.bsi.sec.svc;
 import com.bsi.sec.domain.AdminMetadata;
 import com.bsi.sec.domain.Tenant;
 import com.bsi.sec.dto.DataSyncResponse;
+import com.bsi.sec.exception.ConfigurationException;
+import com.bsi.sec.exception.RecordNotFoundException;
 import com.bsi.sec.repository.AdminMetadataRepository;
 import com.bsi.sec.repository.CompanyRepository;
 import com.bsi.sec.repository.TenantRepository;
 import com.bsi.sec.repository.TenantSSOConfRepository;
+import static com.bsi.sec.util.AppConstants.BEAN_IGNITE_TX_MGR;
+import java.time.LocalDateTime;
 import java.util.Iterator;
 import org.slf4j.Logger;
 import java.util.List;
@@ -24,12 +28,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
- * Contains logic to update cache store.
+ * Contains/runs data sync related steps.
  *
  * @author igorV
  */
 @Component
-@Transactional
+@Transactional(transactionManager = BEAN_IGNITE_TX_MGR)
 public class DataSyncHandler {
 
     private final static Logger log = LoggerFactory.getLogger(DataSyncHandler.class);
@@ -49,29 +53,104 @@ public class DataSyncHandler {
     @Autowired
     private EntityIDGenerator idGenerator;
 
+    @Autowired
+    private SFDataPuller sfDataPuller;
+
+    @Autowired
+    private TPFDataPuller tpfDataPuller;
+
     /**
-     * Responsible for syncing tenant information against the cache store.
+     * Responsible for performing initial data sync.
      *
-     * @param allTenants
+     * @param tenants
      * @return
      */
     @Transactional
-    public DataSyncResponse syncTenantData(List<Tenant> allTenants) {
+    public DataSyncResponse runInitialSync(LocalDateTime fromDtTm)
+            throws ConfigurationException, RecordNotFoundException {
         if (log.isInfoEnabled()) {
-            log.info("Starting syncing {} Tenants", allTenants.size());
+            log.info("Starting initial data sync starting from {}.",
+                    fromDtTm.toString());
+        }
+
+        markAsInprogress();
+        LocalDateTime lastInitSyncDateTime = getLastInitSyncDateTime();
+        DataSyncResponse response;
+
+        if (lastInitSyncDateTime != null) {
+            return buildResponse(lastInitSyncDateTime);
         }
 
         clearCustomDataFromCache();
-        saveTenants(allTenants);
+        saveTenants(getAllActiveTenants(fromDtTm));
+        markAsDone();
+        response = new DataSyncResponse();
+
+        if (log.isInfoEnabled()) {
+            log.info("Finished initial data sync");
+        }
+
+        return response;
+    }
+
+    /**
+     * Responsible for performing periodic/incremental data sync.
+     *
+     * @param tenants
+     * @return
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public DataSyncResponse runPeriodicSync(List<Tenant> tenants) {
+        if (log.isInfoEnabled()) {
+            log.info("Starting periodic data sync for {} Tenants",
+                    tenants.size());
+        }
+
+        //TODO: Add implementation!!
         DataSyncResponse response = new DataSyncResponse();
         return response;
+    }
+
+    /**
+     * Retrieves last initial data sync date/time.
+     *
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public LocalDateTime getLastInitSyncDateTime() {
+        Iterator<AdminMetadata> adminMetaIter = adminMetaDataRepo
+                .findAll().iterator();
+        AdminMetadata admMeta = null;
+
+        if (adminMetaIter.hasNext()) {
+            admMeta = adminMetaIter.next();
+        }
+
+        if (admMeta == null) {
+            return null;
+        }
+
+        LocalDateTime lastFullSync = admMeta.getLastFullSync();
+        return lastFullSync != null ? lastFullSync : null;
+    }
+
+    /**
+     * Fetches all "SaaS Active" account records from Salesforce.
+     *
+     * @param fromDtTm
+     * @return
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public List<Tenant> getAllActiveTenants(LocalDateTime fromDtTm)
+            throws ConfigurationException, RecordNotFoundException {
+        return sfDataPuller.getAllActiveEntitlements(fromDtTm);
     }
 
     /**
      * Update AdminMetadata.isSyncInProgress to FALSE
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void markAsSyncDone() {
+    public void markAsDone() {
         updateMetadataInprogFlag(false);
     }
 
@@ -79,8 +158,28 @@ public class DataSyncHandler {
      * Update AdminMetadata.isSyncInProgress to TRUE
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void markAsSyncInprogress() {
+    public void markAsInprogress() {
         updateMetadataInprogFlag(true);
+    }
+
+    /**
+     * Populates data sync response.
+     *
+     * @param lastInitSyncDateTime
+     * @return
+     */
+    private DataSyncResponse buildResponse(LocalDateTime lastInitSyncDateTime) {
+        DataSyncResponse response = new DataSyncResponse();
+        response.setLastRunDateTime(lastInitSyncDateTime);
+        response.setIsSucessfull(true);
+        String msg = "Last full SF data sync ran at " + lastInitSyncDateTime;
+        response.setMessage(msg);
+
+        if (log.isInfoEnabled()) {
+            log.info(msg);
+        }
+
+        return response;
     }
 
     /**
@@ -128,13 +227,13 @@ public class DataSyncHandler {
 
         allTenants.forEach(t -> {
             if (log.isTraceEnabled()) {
-                log.trace("Saving Tenant {}...", t.toString());
+                log.trace("\nSaving Tenant {}...", t.toString());
             }
 
             Tenant tenUpd = tenantRepo.save(t.getId(), t);
 
             if (log.isTraceEnabled()) {
-                log.trace("Tenant {} is saved.", tenUpd.toString());
+                log.trace("Tenant {} is saved.\n", tenUpd.toString());
             }
         });
     }

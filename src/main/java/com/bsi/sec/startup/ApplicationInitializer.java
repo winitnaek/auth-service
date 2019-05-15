@@ -5,16 +5,13 @@
  */
 package com.bsi.sec.startup;
 
-import com.bsi.sec.helper.SecurityWSInitializer;
+import com.bsi.sec.helper.SecurityServiceInitializer;
 import com.bsi.sec.config.SecurityServiceProperties;
-import com.bsi.sec.svc.SFDataPuller;
-import com.bsi.sec.util.DateUtils;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.naming.ConfigurationException;
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.AbstractHttp11Protocol;
@@ -63,13 +60,10 @@ public class ApplicationInitializer implements WebServerFactoryCustomizer<Tomcat
     private SecurityServiceProperties props;
 
     @Autowired
-    private SecurityWSInitializer initializer;
+    private SecurityServiceInitializer initializer;
 
     @Autowired
     private WebApplicationContext appContext;
-
-    @Autowired
-    private SFDataPuller sfDataPuller;
 
     @Value("${server.http.port:#{-1}}")
     private int httpPort;
@@ -84,7 +78,6 @@ public class ApplicationInitializer implements WebServerFactoryCustomizer<Tomcat
      */
     public static void main(String[] args) throws UnknownHostException, ConfigurationException {
         SpringApplication app = new SpringApplication(ApplicationInitializer.class);
-
         Environment env = app.run(args).getEnvironment();
 
         if (log.isInfoEnabled()) {
@@ -109,11 +102,6 @@ public class ApplicationInitializer implements WebServerFactoryCustomizer<Tomcat
         initializeAjp(container);
     }
 
-    @PreDestroy
-    public void onDestroy() throws Exception {
-        runOnDestroySFSyncSteps();
-    }
-
     /**
      * Initializes app.
      * <p>
@@ -131,7 +119,6 @@ public class ApplicationInitializer implements WebServerFactoryCustomizer<Tomcat
 
         initializeLogging();
         initializeApplicationServices();
-        runInitSFDataSync();
     }
 
     /**
@@ -185,16 +172,8 @@ public class ApplicationInitializer implements WebServerFactoryCustomizer<Tomcat
         java.util.logging.Logger.getLogger("org.apache.catalina.core.ContainerBase.[Tomcat].[localhost]").setLevel(Level.FINEST);
     }
 
-    private void initializeApplicationServices() {
+    private void initializeApplicationServices() throws Exception {
         initializer.initialize();
     }
 
-    private void runOnDestroySFSyncSteps() throws Exception {
-        sfDataPuller.postSync();
-    }
-
-    private void runInitSFDataSync() throws Exception {
-        sfDataPuller.initializeSync();
-        sfDataPuller.runInitialSync(DateUtils.defaultFromSyncTime());
-    }
 }

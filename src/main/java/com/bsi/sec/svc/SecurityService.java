@@ -39,7 +39,7 @@ public class SecurityService {
     private final static Logger log = LoggerFactory.getLogger(SecurityService.class);
 
     @Autowired
-    private SFDataPuller sfDataPuller;
+    private DataSyncHandler dataSyncHandler;
 
     /**
      *
@@ -71,7 +71,7 @@ public class SecurityService {
             log.debug("SERVICE invoked to run Full Salesforce sync.");
         }
 
-        sfDataPuller.runInitialSync(DateUtils.defaultFromSyncTime());
+        dataSyncHandler.runInitialSync(DateUtils.defaultFromSyncTime());
 
         boolean isFullSFSyncSuccess = true;
         return isFullSFSyncSuccess;
@@ -244,7 +244,7 @@ public class SecurityService {
         config.setDsplName("BSI SSO Config 1");
         return config;
     }
-    
+
     /**
      * TODO: Add implementation!
      *
@@ -258,7 +258,7 @@ public class SecurityService {
         config.setId(1L);
         config.setDsplName("BSI SSO Config 1");
         configs.add(config);
-        
+
         SSOConfigDTO config1 = new SSOConfigDTO();
         config1.setAcctName("Walmart");
         config1.setId(2L);
