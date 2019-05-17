@@ -5,11 +5,32 @@
  */
 package com.bsi.sec.svc;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 /**
  *
  * @author igorV
  */
 public interface DataPuller {
+
+    /**
+     * Retrieves all data (e.g. for initial data sync)
+     *
+     * @param fromDtTm
+     * @return
+     * @throws Exception
+     */
+    public List<?> pullAll(LocalDateTime fromDtTm) throws Exception;
+
+    /**
+     * Retrieves changed data (e.g. for periodic data sync)
+     *
+     * @param fromDtTm
+     * @return
+     * @throws Exception
+     */
+    public List<?> pullUpdates(LocalDateTime fromDtTm) throws Exception;
 
     /**
      * Any initialization logic should be specified here!

@@ -5,19 +5,20 @@
  */
 package com.bsi.sec.dto;
 
+import com.bsi.sec.svc.AuditLogger;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.time.Instant;
+
 /**
  *
  * @author igorV
  */
 public final class AuditLogDTO {
 
-    @NotNull
     @Min(1)
     private Long id;
-    
+
     @NotNull
     private Instant createdDate;
 
@@ -30,7 +31,7 @@ public final class AuditLogDTO {
     private String clientHost;
 
     @NotNull
-    private String operation;
+    private AuditLogger.Ops operation;
 
     @NotNull
     private String account;
@@ -42,7 +43,7 @@ public final class AuditLogDTO {
     private String dataset;
 
     @NotNull
-    private String area;
+    private AuditLogger.Areas area;
 
     private String message;
 
@@ -51,6 +52,7 @@ public final class AuditLogDTO {
 
     /**
      * AuditLogDTO
+     *
      * @param id
      * @param createdDate
      * @param serverHost
@@ -61,9 +63,9 @@ public final class AuditLogDTO {
      * @param product
      * @param dataset
      * @param area
-     * @param message 
+     * @param message
      */
-    public AuditLogDTO(Long id, Instant createdDate, String serverHost, String user, String clientHost, String operation, String account, String product, String dataset, String area, String message) {
+    public AuditLogDTO(Long id, Instant createdDate, String serverHost, String user, String clientHost, AuditLogger.Ops operation, String account, String product, String dataset, AuditLogger.Areas area, String message) {
         this.id = id;
         this.createdDate = createdDate;
         this.serverHost = serverHost;
@@ -117,11 +119,11 @@ public final class AuditLogDTO {
         this.clientHost = clientHost;
     }
 
-    public String getOperation() {
+    public AuditLogger.Ops getOperation() {
         return operation;
     }
 
-    public void setOperation(String operation) {
+    public void setOperation(AuditLogger.Ops operation) {
         this.operation = operation;
     }
 
@@ -149,11 +151,11 @@ public final class AuditLogDTO {
         this.dataset = dataset;
     }
 
-    public String getArea() {
+    public AuditLogger.Areas getArea() {
         return area;
     }
 
-    public void setArea(String area) {
+    public void setArea(AuditLogger.Areas area) {
         this.area = area;
     }
 

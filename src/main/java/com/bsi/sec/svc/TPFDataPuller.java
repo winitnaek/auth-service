@@ -6,7 +6,6 @@
 package com.bsi.sec.svc;
 
 import com.bsi.sec.domain.Company;
-import com.bsi.sec.dto.DataSyncResponse;
 import com.bsi.sec.repository.CompanyRepository;
 import com.bsi.sec.tpfrepository.BtoCompRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +17,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bsi.sec.tpfdomain.Btocomp;
+import static com.bsi.sec.util.AppConstants.BEAN_TPF_TRANSACTION_MANAGER_FACTORY;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.TreeMap;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
@@ -33,6 +32,7 @@ import java.util.TreeMap;
  * @author Vinit
  */
 @Service
+@Transactional(transactionManager = BEAN_TPF_TRANSACTION_MANAGER_FACTORY)
 public class TPFDataPuller implements DataPuller {
 
     private final static Logger log = LoggerFactory.getLogger(TPFDataPuller.class);
@@ -43,33 +43,16 @@ public class TPFDataPuller implements DataPuller {
     @Autowired
     CompanyRepository companyRepository;
 
-    /**
-     * runInitialSync
-     *
-     * @param fromDateTime
-     * @return
-     * @throws Exception
-     */
-    public DataSyncResponse runInitialSync(LocalDateTime fromDateTime) throws Exception {
-        List<Btocomp> btoComplist = getCompanyDataForSync(fromDateTime);
+    @Override
+    public List<Company> pullAll(LocalDateTime fromDtTm) throws Exception {
+        List<Btocomp> btoComplist = getCompanyDataForSync(fromDtTm);
         List<Company> companyList = prepareCompanyList(btoComplist);
-        cleanUpCompaniesForInitialDataSync();
-        DataSyncResponse dataSyncResponse = insertCompanyDataForSync(companyList);
-        return dataSyncResponse;
+        return companyList;
     }
 
-    /**
-     * runPeriodicSync
-     *
-     * @param fromDateTime
-     * @return
-     * @throws Exception
-     */
-    public DataSyncResponse runPeriodicSync(LocalDateTime fromDateTime) throws Exception {
-        List<Btocomp> btoComplist = getCompanyDataForSync(fromDateTime);
-        List<Company> companyList = prepareCompanyList(btoComplist);
-        DataSyncResponse dataSyncResponse = upsertCompanyDataForSync(companyList);
-        return dataSyncResponse;
+    @Override
+    public List<Company> pullUpdates(LocalDateTime fromDtTm) throws Exception {
+        return pullAll(fromDtTm);
     }
 
     /**
@@ -86,13 +69,6 @@ public class TPFDataPuller implements DataPuller {
     }
 
     /**
-     * cleanUpCompaniesForInitialDataSync
-     */
-    private void cleanUpCompaniesForInitialDataSync() {
-        companyRepository.deleteAll();
-    }
-
-    /**
      * getCompanyDataForSync
      *
      * @param fromDateTime
@@ -100,32 +76,10 @@ public class TPFDataPuller implements DataPuller {
      */
     private List<Btocomp> getCompanyDataForSync(LocalDateTime fromDateTime) {
         List<Btocomp> btoComplist = null;
-        if (fromDateTime == null) {
-            Date fromDate = getInitialSyncDateTime();
-            btoComplist = btoCompRepository.getCompanyDataForSync(fromDate);
-        } else {
-            Date fromDate = getPeriodicSyncDateTime(fromDateTime);
-            log.debug("fromDate : for periodic sync : " + fromDate);
-            btoComplist = btoCompRepository.getCompanyDataForSync(fromDate);
-        }
+        Date fromDate = getPeriodicSyncDateTime(fromDateTime);
+        log.debug("fromDate : for periodic sync : " + fromDate);
+        btoComplist = btoCompRepository.getCompanyDataForSync(fromDate);
         return btoComplist;
-    }
-
-    /**
-     * getInitialSyncDateTime
-     *
-     * @return
-     */
-    private Date getInitialSyncDateTime() {
-        Calendar now = Calendar.getInstance();
-        now.set(Calendar.HOUR_OF_DAY, 23);
-        now.set(Calendar.MINUTE, 59);
-        now.set(Calendar.SECOND, 59);
-        log.debug("Current : " + now.get(Calendar.YEAR) + "-" + (now.get(Calendar.MONTH) + 1) + "-" + now.get(Calendar.DATE) + " " + now.get(Calendar.HOUR_OF_DAY) + ":" + now.get(Calendar.MINUTE) + ":" + now.get(Calendar.SECOND));
-        now.add(Calendar.YEAR, -10);
-        log.debug("Current -10 Yrs : " + now.get(Calendar.YEAR) + "-" + (now.get(Calendar.MONTH) + 1) + "-" + now.get(Calendar.DATE) + " " + now.get(Calendar.HOUR_OF_DAY) + ":" + now.get(Calendar.MINUTE) + ":" + now.get(Calendar.SECOND));
-        Date fromDate = now.getTime();
-        return fromDate;
     }
 
     /**
@@ -166,56 +120,4 @@ public class TPFDataPuller implements DataPuller {
         return companyList;
     }
 
-    /**
-     * upSertCompanyDataForSync
-     *
-     * @param compnatList
-     * @return
-     */
-    private DataSyncResponse insertCompanyDataForSync(List<Company> companyList) {
-        log.debug("Inside insertCompanyDataForSync : ");
-        log.debug("Received Company Count : " + companyList.size());
-
-        TreeMap<Long, Company> companies = new TreeMap<>();
-        companyList.forEach((company) -> {
-            companies.put(company.getId(), company);
-        });
-        companyRepository.save(companies);
-
-        log.debug("Added " + companyRepository.count() + " Companies into the Company repository.");
-
-        DataSyncResponse dataSyncResponse = new DataSyncResponse();
-        dataSyncResponse.setIsSucessfull(Boolean.TRUE);
-        dataSyncResponse.setLastRunDateTime(LocalDateTime.now());
-        dataSyncResponse.setMessage("TPF Initial Data Synced Successfully.");
-        return dataSyncResponse;
-    }
-
-    /**
-     * upSertCompanyDataForSync
-     *
-     * @param compnatList
-     * @return
-     */
-    private DataSyncResponse upsertCompanyDataForSync(List<Company> companyList) {
-        log.debug("Inside upsertCompanyDataForSync : ");
-        log.debug("Received Company Count : " + companyList.size());
-        companyList.forEach((company) -> {
-            if (companyRepository.existsById(company.getId())) {
-                log.debug("Existing Company " + company.getId() + " exists. Updating now...");
-                companyRepository.save(company.getId(), company);
-            } else {
-                log.debug("New Company " + company.getId() + " exists. Adding now..");
-                companyRepository.save(company.getId(), company);
-            }
-        });
-
-        log.debug("Added " + companyRepository.count() + " Companies into the Company repository.");
-
-        DataSyncResponse dataSyncResponse = new DataSyncResponse();
-        dataSyncResponse.setIsSucessfull(Boolean.TRUE);
-        dataSyncResponse.setLastRunDateTime(LocalDateTime.now());
-        dataSyncResponse.setMessage("TPF Periodic Data Synced Successfully.");
-        return dataSyncResponse;
-    }
 }

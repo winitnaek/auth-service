@@ -48,13 +48,41 @@ public class SFDataPuller implements DataPuller {
 
     private EnterpriseConnection connection;
 
+    @Override
+    public List<Tenant> pullAll(LocalDateTime fromDtTm) throws Exception {
+        return getAllActiveEntitlements(fromDtTm);
+    }
+
+    @Override
+    public List<Object> pullUpdates(LocalDateTime fromDtTm) throws Exception {
+        return null;
+    }
+
+    /**
+     *
+     * @throws Exception
+     */
+    @Override
+    public void initialize() throws Exception {
+        login();
+    }
+
+    /**
+     *
+     * @throws Exception
+     */
+    @Override
+    public void postCleanup() throws Exception {
+        logout();
+    }
+
     /**
      * Fetches all "SaaS Active" account records from Salesforce.
      *
      * @param fromDtTm
      * @return
      */
-    public List<Tenant> getAllActiveEntitlements(LocalDateTime fromDtTm)
+    private List<Tenant> getAllActiveEntitlements(LocalDateTime fromDtTm)
             throws ConfigurationException, RecordNotFoundException {
         if (connection == null) {
             throw new ConfigurationException("Salesforce connection must be established!");
@@ -95,7 +123,7 @@ public class SFDataPuller implements DataPuller {
                     tn.setEnabled(true);
                     tn.setImported(true);
                     tn.setProdName(ent.getProduct_Name__c());
-                    tn.setId(idGenerator.generate(tn));
+                    tn.setId(idGenerator.generate());
                     tenants.add(tn);
 
                     if (log.isTraceEnabled()) {
@@ -115,24 +143,6 @@ public class SFDataPuller implements DataPuller {
         } catch (ConnectionException ex) {
             throw new ConfigurationException("Failed while getting active entitlements!", ex);
         }
-    }
-
-    /**
-     *
-     * @throws Exception
-     */
-    @Override
-    public void initialize() throws Exception {
-        login();
-    }
-
-    /**
-     *
-     * @throws Exception
-     */
-    @Override
-    public void postCleanup() throws Exception {
-        logout();
     }
 
     /**

@@ -5,7 +5,11 @@
  */
 package com.bsi.sec.svc;
 
-import java.util.Objects;
+import static com.bsi.sec.util.CacheConstants.ADMIN_METADATA_CACHE;
+import javax.annotation.PostConstruct;
+import org.apache.ignite.Ignite;
+import org.apache.ignite.IgniteAtomicSequence;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -15,7 +19,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class EntityIDGenerator {
 
-    public long generate(Object o) {
-        return Objects.hashCode(o);
+    @Autowired
+    private Ignite igniteInstance;
+
+    private IgniteAtomicSequence sequence;
+
+    @PostConstruct
+    public void initialize() {
+        sequence = igniteInstance.atomicSequence(ADMIN_METADATA_CACHE, 0, true);
+    }
+
+    public long generate() {
+        return sequence.incrementAndGet();
     }
 }

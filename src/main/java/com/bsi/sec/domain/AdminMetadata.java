@@ -23,15 +23,19 @@ public class AdminMetadata extends AbstractAuditingEntity implements Serializabl
     private Long id;
 
     @Column(name = "last_full_sync", nullable = true)
+    @QuerySqlField
     private LocalDateTime lastFullSync;
 
     @Column(name = "last_per_sync", nullable = true)
+    @QuerySqlField
     private LocalDateTime lastPerSync;
 
     @Column(name = "is_per_sync_on", nullable = false)
+    @QuerySqlField
     private boolean isPerSyncOn = true;
 
     @Column(name = "is_sync_inprogress", nullable = false)
+    @QuerySqlField
     private boolean isSyncInProgress;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove

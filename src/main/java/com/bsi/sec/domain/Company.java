@@ -32,26 +32,32 @@ public class Company implements Serializable {
 
     @NotNull
     @Column(name = "dataset", nullable = false)
+    @QuerySqlField(index = true)
     private String dataset;
 
     @NotNull
     @Column(name = "name", nullable = false)
+    @QuerySqlField
     private String name;
 
     @NotNull
     @Column(name = "saml_cid", nullable = false, unique = true)
+    @QuerySqlField(index = true)
     private String samlCid;
 
     @NotNull
     @Column(name = "enabled", nullable = false)
+    @QuerySqlField
     private Boolean enabled;
 
     @NotNull
     @Column(name = "imported", nullable = false)
+    @QuerySqlField
     private Boolean imported;
 
     @CreatedDate
     @Column(name = "imported_date", updatable = false)
+    @QuerySqlField
     @JsonIgnore
     private Instant importedDate = Instant.now();
 

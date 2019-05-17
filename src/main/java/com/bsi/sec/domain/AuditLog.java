@@ -54,6 +54,7 @@ public class AuditLog extends AbstractAuditingEntity implements Serializable {
     private String area;
 
     @Column(name = "message")
+    @QuerySqlField
     private String message;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
@@ -184,17 +185,17 @@ public class AuditLog extends AbstractAuditingEntity implements Serializable {
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 97 * hash + Objects.hashCode(this.id);
-        hash = 97 * hash + Objects.hashCode(this.serverHost);
-        hash = 97 * hash + Objects.hashCode(this.user);
-        hash = 97 * hash + Objects.hashCode(this.clientHost);
-        hash = 97 * hash + Objects.hashCode(this.operation);
-        hash = 97 * hash + Objects.hashCode(this.accountName);
-        hash = 97 * hash + Objects.hashCode(this.productName);
-        hash = 97 * hash + Objects.hashCode(this.datasetName);
-        hash = 97 * hash + Objects.hashCode(this.area);
-        hash = 97 * hash + Objects.hashCode(this.message);
+        int hash = 5;
+        hash = 61 * hash + Objects.hashCode(this.id);
+        hash = 61 * hash + Objects.hashCode(this.serverHost);
+        hash = 61 * hash + Objects.hashCode(this.user);
+        hash = 61 * hash + Objects.hashCode(this.clientHost);
+        hash = 61 * hash + Objects.hashCode(this.operation);
+        hash = 61 * hash + Objects.hashCode(this.accountName);
+        hash = 61 * hash + Objects.hashCode(this.productName);
+        hash = 61 * hash + Objects.hashCode(this.datasetName);
+        hash = 61 * hash + Objects.hashCode(this.area);
+        hash = 61 * hash + Objects.hashCode(this.message);
         return hash;
     }
 
@@ -245,17 +246,7 @@ public class AuditLog extends AbstractAuditingEntity implements Serializable {
 
     @Override
     public String toString() {
-        return "AuditLog{"
-                + "id=" + getId()
-                + ", serverHost='" + getServerHost() + "'"
-                + ", user='" + getUser() + "'"
-                + ", clientHost='" + getClientHost() + "'"
-                + ", operation='" + getOperation() + "'"
-                + ", account='" + getAccountName() + "'"
-                + ", product='" + getProductName() + "'"
-                + ", dataset='" + getDatasetName() + "'"
-                + ", area='" + getArea() + "'"
-                + ", message='" + getMessage() + "'"
-                + "}";
+        return "AuditLog{" + "id=" + id + ", serverHost=" + serverHost + ", user=" + user + ", clientHost=" + clientHost + ", operation=" + operation + ", accountName=" + accountName + ", productName=" + productName + ", datasetName=" + datasetName + ", area=" + area + ", message=" + message + '}';
     }
+
 }
