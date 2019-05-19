@@ -6,12 +6,13 @@
 package com.bsi.sec.svc;
 
 import com.bsi.sec.dto.DataSyncResponse;
+import java.time.LocalDateTime;
 
 /**
  *
  * @author igorV
  */
-public interface DataSyncJob {
+public interface AsyncDataSyncJob {
 
     /**
      * Contract for running the data sync job.
@@ -19,5 +20,6 @@ public interface DataSyncJob {
      * @return
      * @throws Exception
      */
-    public DataSyncResponse run() throws Exception;
+    public DataSyncResponse run(LocalDateTime fromDtTm, boolean onDemandRequest) throws Exception;
+
 }

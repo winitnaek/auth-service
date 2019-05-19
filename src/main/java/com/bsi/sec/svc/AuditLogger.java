@@ -10,6 +10,7 @@ import com.bsi.sec.domain.AuditLog;
 import com.bsi.sec.domain.Tenant;
 import com.bsi.sec.dto.AuditLogDTO;
 import com.bsi.sec.repository.AuditLogRepository;
+import java.time.Instant;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -126,7 +127,7 @@ public class AuditLogger {
      * @param input
      * @return
      */
-    private String buildMessage(AuditLogDTO input) {
+    private String buildMessage(AuditLog input) {
         try {
             return "Area [" + input.getArea() + "]: Ran operation["
                     + input.getOperation() + "] at "
@@ -156,7 +157,15 @@ public class AuditLogger {
         ent.setUser(input.getUser());
         long id = input.getId();
         ent.setId(id);
-        ent.setMessage(buildMessage(input));
+
+        Instant instant = ent.getCreatedDate();
+
+        if (instant == null) {
+            instant = Instant.now();
+            ent.setCreatedDate(instant);
+        }
+
+        ent.setMessage(buildMessage(ent));
         AuditLog entUpd = auditLogRepo.save(id, ent);
 
         if (log.isDebugEnabled()) {

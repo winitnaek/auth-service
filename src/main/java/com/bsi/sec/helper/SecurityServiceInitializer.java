@@ -6,7 +6,7 @@
 package com.bsi.sec.helper;
 
 import com.bsi.sec.config.SecurityServiceProperties;
-import com.bsi.sec.svc.DataSyncHandler;
+import com.bsi.sec.svc.AsyncInitialDataSyncJob;
 import com.bsi.sec.svc.SFDataPuller;
 import com.bsi.sec.util.DateUtils;
 import java.io.Closeable;
@@ -33,7 +33,7 @@ public class SecurityServiceInitializer implements Closeable {
     private SFDataPuller sfDataPuller;
 
     @Autowired
-    private DataSyncHandler dataSyncHandler;
+    private AsyncInitialDataSyncJob dataSyncJob;
 
     public void initialize() throws Exception {
         runInitialDataSync();
@@ -54,6 +54,6 @@ public class SecurityServiceInitializer implements Closeable {
 
     private void runInitialDataSync() throws Exception {
         sfDataPuller.initialize();
-        dataSyncHandler.runInitialSync(DateUtils.defaultFromSyncTime());
+        dataSyncJob.run(DateUtils.defaultFromSyncTime(), false);
     }
 }

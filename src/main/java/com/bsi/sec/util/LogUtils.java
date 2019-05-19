@@ -72,7 +72,11 @@ public class LogUtils {
             mapper.writeValue(out, pairs);
             msgOut.append(new String(out.toByteArray()));
             String msgToRet = msgOut.toString();
-            log.trace("Message as JSON -> " + msgToRet);
+
+            if (log.isTraceEnabled()) {
+                log.trace("Message as JSON -> " + msgToRet);
+            }
+
             return msgToRet;
         } catch (Exception e) {
             if (log.isErrorEnabled()) {

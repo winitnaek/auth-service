@@ -35,7 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 @Transactional(transactionManager = BEAN_IGNITE_TX_MGR)
-public class DataSyncHandler {
+public class DataSyncHandler implements DataSyncResponseBuilder {
 
     private final static Logger log = LoggerFactory.getLogger(DataSyncHandler.class);
 
@@ -70,7 +70,8 @@ public class DataSyncHandler {
      * @return
      */
     @Transactional
-    public DataSyncResponse runInitialSync(LocalDateTime fromDtTm)
+    public DataSyncResponse runInitialSync(LocalDateTime fromDtTm,
+            boolean onDemandRequest)
             throws Exception {
         if (log.isInfoEnabled()) {
             log.info("Starting initial data sync starting from {}.",
@@ -78,11 +79,14 @@ public class DataSyncHandler {
         }
 
         markAsInprogress();
-        LocalDateTime lastInitSyncDateTime = getLastInitSyncDateTime();
 
-        if (lastInitSyncDateTime != null) {
-            markAsDone();
-            return buildResponse(lastInitSyncDateTime, true);
+        if (!onDemandRequest) {
+            LocalDateTime lastInitSyncDateTime = getLastInitSyncDateTime();
+
+            if (lastInitSyncDateTime != null) {
+                markAsDone();
+                return buildResponse(lastInitSyncDateTime, true);
+            }
         }
 
         clearCustomDataFromCache();
@@ -186,29 +190,6 @@ public class DataSyncHandler {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void markAsInprogress() {
         updateMetadataInprogFlag(true);
-    }
-
-    /**
-     * Populates data sync response.
-     *
-     * @param lastInitSyncDateTime
-     * @return
-     */
-    private DataSyncResponse buildResponse(LocalDateTime lastInitSyncDateTime,
-            boolean isFullSync) {
-        DataSyncResponse response = new DataSyncResponse();
-        response.setLastRunDateTime(lastInitSyncDateTime);
-        response.setIsSucessfull(true);
-
-        String msg = "Last " + (isFullSync ? "Full" : "Periodic") + " SF data sync ran at "
-                + lastInitSyncDateTime;
-        response.setMessage(msg);
-
-        if (log.isInfoEnabled()) {
-            log.info(response.toString());
-        }
-
-        return response;
     }
 
     /**

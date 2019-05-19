@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service responsible for serving REST resource/controller requests!
@@ -33,13 +34,13 @@ import org.springframework.stereotype.Service;
  * @author igorV
  */
 @Service
-//@Transactional
+@Transactional
 public class SecurityService {
 
     private final static Logger log = LoggerFactory.getLogger(SecurityService.class);
 
     @Autowired
-    private DataSyncHandler dataSyncHandler;
+    private AsyncInitialDataSyncJob dataSyncJob;
 
     /**
      *
@@ -71,7 +72,7 @@ public class SecurityService {
             log.debug("SERVICE invoked to run Full Salesforce sync.");
         }
 
-        dataSyncHandler.runInitialSync(DateUtils.defaultFromSyncTime());
+        dataSyncJob.run(DateUtils.defaultFromSyncTime(), true);
 
         boolean isFullSFSyncSuccess = true;
         return isFullSFSyncSuccess;
@@ -219,7 +220,7 @@ public class SecurityService {
         auditLog.setProduct("TPF");
         auditLog.setMessage("Tenant [BSI] has been created.");
         auditLogs.add(auditLog);
-        
+
         AuditLogDTO auditLog1 = new AuditLogDTO();
         auditLog1.setCreatedDate(Instant.now());
         auditLog1.setAccount("WALMART");
@@ -227,7 +228,7 @@ public class SecurityService {
         auditLog1.setProduct("TF");
         auditLog1.setMessage("Tenant Tried to Login.");
         auditLogs.add(auditLog1);
-        
+
         return auditLogs;
     }
 
