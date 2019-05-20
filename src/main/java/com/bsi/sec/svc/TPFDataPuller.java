@@ -109,7 +109,7 @@ public class TPFDataPuller implements DataPuller {
             company.setEnabled(Boolean.TRUE);
             company.setId((long) btocomp.getBtocompPK().getCompid());
             company.setImported(Boolean.TRUE);
-            company.setImportedDate(Instant.EPOCH);
+            company.setImportedDate(Instant.now());
             company.setName(btocomp.getLegalname());
             company.setSamlCid(btocomp.getSamlcid());
             return company;
