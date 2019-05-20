@@ -39,6 +39,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class DataSyncHandler implements DataSyncResponseBuilder {
 
     private final static Logger log = LoggerFactory.getLogger(DataSyncHandler.class);
+    
+    //Using this as limitation of TPF data availability in SF. SF#00130002
+    private final static String BSI_eFormsFactory_SaaS_ID="01tU0000000HOybIAG";
+    private final static String BSI_eFormsFactory_SaaS= "BSI eFormsFactory SaaS";
 
     @Autowired
     private TenantRepository tenantRepo;
@@ -295,14 +299,14 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
             }
             if(!companyTenantDsetAvailable){
                 Tenant tn = new Tenant();
-                tn.setAcctId(String.valueOf(tn.hashCode()));// IS this code ok?
+                tn.setAcctId(String.valueOf(tn.hashCode()));
                 tn.setAcctName(company.getDataset()+""+company.getSamlCid());
                 tn.setDataset(company.getDataset());
                 tn.setEnabled(true);
                 tn.setImported(true);
-               // tn.setProdId(""); //What to enter id// Do we need one?
-                tn.setProdName("TPF");
-                tn.setId(idGenerator.generate());//Is this generator ok?
+                tn.setProdId(BSI_eFormsFactory_SaaS_ID); 
+                tn.setProdName(BSI_eFormsFactory_SaaS);
+                tn.setId(idGenerator.generate());
                 company.setTenant(tn);
                 companySaveList.add(company);
                 tenantSaveList.add(tn);
@@ -324,7 +328,6 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
             companyRepo.save(companies);
         }
         log.debug("Tenant count after Company Save : "+tenantRepo.count());
-        
 
         if (isInit) {
             auditLogger.logAll(AuditLogger.Areas.COMPANY,
