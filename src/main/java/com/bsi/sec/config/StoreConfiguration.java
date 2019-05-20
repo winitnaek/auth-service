@@ -34,6 +34,8 @@ import static com.bsi.sec.util.CacheConstants.SEC_SVC_DATA_NODE;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.Ignition;
 import org.apache.ignite.configuration.DataStorageConfiguration;
+import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
+import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 import org.apache.ignite.transactions.spring.SpringTransactionManager;
 import org.springframework.context.annotation.Primary;
 
@@ -142,6 +144,11 @@ public class StoreConfiguration implements WebMvcConfigurer {
                 log.error("Failed to set Ignite grid logger!", ex);
             }
         }
+
+        // TODO: Review. Limit discovery to single process within same JVM.
+        TcpDiscoverySpi disco = new TcpDiscoverySpi()
+                .setIpFinder(new TcpDiscoveryVmIpFinder(true));
+        cfg.setDiscoverySpi(disco);
 
         return cfg;
     }
