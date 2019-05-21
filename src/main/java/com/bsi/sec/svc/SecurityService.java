@@ -40,7 +40,10 @@ public class SecurityService {
     private final static Logger log = LoggerFactory.getLogger(SecurityService.class);
 
     @Autowired
-    private AsyncInitialDataSyncJob dataSyncJob;
+    private AsyncInitialDataSyncJob initialDataSyncJob;
+
+    @Autowired
+    private AsyncPeriodicDataSyncJob periodicDataSyncJob;
 
     /**
      *
@@ -72,7 +75,7 @@ public class SecurityService {
             log.debug("SERVICE invoked to run Full Salesforce sync.");
         }
 
-        dataSyncJob.run(DateUtils.defaultFromSyncTime(), true);
+        initialDataSyncJob.run(DateUtils.defaultFromSyncTime(), true);
 
         boolean isFullSFSyncSuccess = true;
         return isFullSFSyncSuccess;
@@ -88,6 +91,8 @@ public class SecurityService {
             log.debug("SERVICE invoked to run Periodic Salesforce sync with args: fromDateTime -> {}",
                     fromDateTime.toInstant(ZoneOffset.UTC).toString());
         }
+
+        periodicDataSyncJob.run(fromDateTime, true);
 
         boolean isPerSFSyncSuccess = true;
         return isPerSFSyncSuccess;

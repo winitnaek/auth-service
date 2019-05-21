@@ -5,10 +5,12 @@
  */
 package com.bsi.sec.svc;
 
+import com.bsi.sec.dao.TenantDao;
 import com.bsi.sec.domain.AdminMetadata;
 import com.bsi.sec.domain.Company;
 import com.bsi.sec.domain.Tenant;
 import com.bsi.sec.dto.DataSyncResponse;
+import com.bsi.sec.exception.ProcessingException;
 import com.bsi.sec.repository.AdminMetadataRepository;
 import com.bsi.sec.repository.CompanyRepository;
 import com.bsi.sec.repository.TenantRepository;
@@ -26,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 /**
  *
@@ -63,6 +66,9 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
     @Autowired
     private AuditLogger auditLogger;
 
+    @Autowired
+    private TenantDao tenantDao;
+
     /**
      * Responsible for performing initial data sync.
      *
@@ -78,38 +84,52 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
                     fromDtTm.toString());
         }
 
-        markAsInprogress();
-
-        if (!onDemandRequest) {
-            LocalDateTime lastInitSyncDateTime = getLastInitSyncDateTime();
-
-            if (lastInitSyncDateTime != null) {
-                markAsDone();
-                return buildResponse(lastInitSyncDateTime, true);
-            }
-        }
-
-        clearCustomDataFromCache();
-
-        // Sync Tenants
-        List<Tenant> tenants = getAllActiveTenants(fromDtTm);
-        saveTenants(tenants, true);
-
-        // Sync Companies
-        List<Company> companies = getAllCompanies(fromDtTm);
-        saveCompanies(companies, true);
-
-        // Update Latest Sync Date in Metadata
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
-        updateLastFullSyncDateTime(now);
 
-        markAsDone();
+        try {
+            markAsInprogress();
 
-        if (log.isInfoEnabled()) {
-            log.info("Finished initial data sync");
+            if (!onDemandRequest) {
+                LocalDateTime lastInitSyncDateTime = getLastInitSyncDateTime();
+
+                if (lastInitSyncDateTime != null) {
+                    markAsDone();
+                    return buildResponse(lastInitSyncDateTime, true);
+                }
+            }
+
+            clearCustomDataFromCache();
+
+            // Sync Tenants
+            List<Tenant> tenants = getAllActiveTenants(fromDtTm);
+            saveTenants(tenants, true);
+
+            // Sync Companies
+            List<Company> companies = getAllCompanies(fromDtTm);
+            saveCompanies(companies, true);
+
+            // Update Latest Sync Date in Metadata
+            updateLastSyncDateTime(now, true);
+
+            markAsDone();
+
+            if (log.isInfoEnabled()) {
+                log.info("Finished initial data sync.");
+            }
+
+            return buildResponse(now, true);
+        } catch (Exception ex) {
+            // Reset In-Prog indicator as Done in  case of exception!
+            markAsDone();
+
+            String errMsg = "Failed while running Initial Data Sync process!";
+
+            if (log.isErrorEnabled()) {
+                log.error(errMsg, ex);
+            }
+
+            throw new ProcessingException(errMsg, ex);
         }
-
-        return buildResponse(now, true);
     }
 
     /**
@@ -119,15 +139,48 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
      * @return
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public DataSyncResponse runPeriodicSync(List<Tenant> tenants) {
+    public DataSyncResponse runPeriodicSync(LocalDateTime fromDtTm,
+            boolean onDemandRequest) throws Exception {
         if (log.isInfoEnabled()) {
-            log.info("Starting periodic data sync for {} Tenants",
-                    tenants.size());
+            log.info("Starting periodic data sync starting from {}.",
+                    fromDtTm.toString());
         }
 
-        //TODO: Add implementation!!
-        DataSyncResponse response = new DataSyncResponse();
-        return response;
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+
+        try {
+            markAsInprogress();
+
+            // Sync Tenants
+            List<Tenant> tenants = getUpdatedTenants(fromDtTm);
+            saveTenants(tenants, false);
+
+            // Sync Companies
+            List<Company> companies = getUpdatedCompanies(fromDtTm);
+            saveCompanies(companies, false);
+
+            // Update Latest Sync Date in Metadata
+            updateLastSyncDateTime(now, false);
+
+            markAsDone();
+
+            if (log.isInfoEnabled()) {
+                log.info("Finished periodic data sync.");
+            }
+
+            return buildResponse(now, false);
+        } catch (Exception ex) {
+            // Reset In-Prog indicator as Done in  case of exception!
+            markAsDone();
+
+            String errMsg = "Failed while running Periodic Data Sync process!";
+
+            if (log.isErrorEnabled()) {
+                log.error(errMsg, ex);
+            }
+
+            throw new ProcessingException(errMsg, ex);
+        }
     }
 
     /**
@@ -165,6 +218,11 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
         return sfDataPuller.pullAll(fromDtTm);
     }
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public List<Tenant> getUpdatedTenants(LocalDateTime fromDtTm) throws Exception {
+        return sfDataPuller.pullUpdates(fromDtTm);
+    }
+
     /**
      * Fetches all TPF Companies from TPF DB.
      *
@@ -174,6 +232,18 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public List<Company> getAllCompanies(LocalDateTime fromDtTm) throws Exception {
         return tpfDataPuller.pullAll(fromDtTm);
+    }
+
+    /**
+     * Fetches updated TPF Companies from TPF DB.
+     *
+     * @param fromDtTm
+     * @return
+     * @throws Exception
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public List<Company> getUpdatedCompanies(LocalDateTime fromDtTm) throws Exception {
+        return tpfDataPuller.pullUpdates(fromDtTm);
     }
 
     /**
@@ -239,16 +309,25 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
 
     /**
      *
-     * @param allTenants
+     * @param tenants
      */
-    private void saveTenants(List<Tenant> allTenants, boolean isInit) {
-        if (log.isTraceEnabled()) {
-            log.trace("Saving {} Tenants to store...", allTenants.size());
+    private void saveTenants(List<Tenant> tenants, boolean isInit) {
+        if (CollectionUtils.isEmpty(tenants)) {
+            return;
         }
 
-        allTenants.forEach(t -> {
+        if (log.isTraceEnabled()) {
+            log.trace("Saving {} Tenants to store...", tenants.size());
+        }
+
+        tenants.forEach(t -> {
             if (log.isTraceEnabled()) {
                 log.trace("\nSaving Tenant {}...", t.toString());
+            }
+
+            if (!isInit) {
+                // Periodic Sync
+                markExistingTenantForUpdate(t);
             }
 
             Tenant tenUpd = tenantRepo.save(t.getId(), t);
@@ -270,6 +349,10 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
      * @param companies
      */
     private void saveCompanies(List<Company> companyList, boolean isInit) {
+        if (CollectionUtils.isEmpty(companyList)) {
+            return;
+        }
+
         if (log.isDebugEnabled()) {
             log.debug("Saving {} Companies to store...", companyList.size());
         }
@@ -323,17 +406,23 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
      *
      * @param now
      */
-    private void updateLastFullSyncDateTime(LocalDateTime dateTime) {
+    private void updateLastSyncDateTime(LocalDateTime dateTime, boolean fullSync) {
         Iterator<AdminMetadata> metaDataEntIter
                 = adminMetaDataRepo.findAll().iterator();
         AdminMetadata ent = metaDataEntIter.next();
 
-        ent.setLastFullSync(dateTime);
+        if (fullSync) {
+            ent.setLastFullSync(dateTime);
+        } else {
+            ent.setLastPerSync(dateTime);
+        }
+
         AdminMetadata savedEnt = adminMetaDataRepo.save(ent.getId(), ent);
 
         if (savedEnt != null) {
             if (log.isDebugEnabled()) {
-                log.debug("Last Full Sync Date/Time has been updated to {}",
+                log.debug("Last " + (fullSync ? "Full" : "Periodic")
+                        + " Sync Date/Time has been updated to {}",
                         dateTime.toString());
             }
 
@@ -342,8 +431,43 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
 
         } else {
             if (log.isErrorEnabled()) {
-                log.error("Failed to update Last Full Sync Date/Time to {}",
+                log.error("Failed to update Last " + (fullSync ? "Full" : "Periodic")
+                        + " Sync Date/Time to {}",
                         dateTime.toString());
+            }
+        }
+    }
+
+    /**
+     * <ul>
+     * <li>Retrieves existing records from cache store by Account Name, Product
+     * Name, Dataset Name</li>
+     * <li>Updates incoming candidate record IDs with existing IDs</li>
+     * </ul>
+     *
+     * @param tenantsIn
+     */
+    private void markExistingTenantForUpdate(Tenant tenIn) {
+        if (log.isDebugEnabled()) {
+            log.debug("As a part of Periodic Sync process, marking applicable"
+                    + " Tenant records as existing records...");
+        }
+
+        String acctName = tenIn.getAcctName();
+        String prodName = tenIn.getProdName();
+        String dset = tenIn.getDataset();
+        Tenant exstTenant = tenantDao.getTenantByDsetProdAcct(dset, prodName, acctName);
+
+        if (exstTenant != null) {
+            // Mark Tenant with existing ID!
+            tenIn.setId(exstTenant.getId());
+
+            if (log.isDebugEnabled()) {
+                log.debug("Existing Tenant => {}", tenIn.toString());
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("New Tenant => {}", tenIn.toString());
             }
         }
     }

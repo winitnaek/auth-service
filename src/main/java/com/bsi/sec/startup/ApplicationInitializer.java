@@ -48,7 +48,13 @@ import org.springframework.web.context.WebApplicationContext;
     DataSourceTransactionManagerAutoConfiguration.class,
     HibernateJpaAutoConfiguration.class, SecurityAutoConfiguration.class,
     MultipartAutoConfiguration.class, DispatcherServletAutoConfiguration.class},
-        scanBasePackages = {"com.bsi.sec.config", "com.bsi.sec.svc", "com.bsi.sec.web.rest", "com.bsi.sec.helper"})
+        scanBasePackages = {
+            "com.bsi.sec.config", 
+            "com.bsi.sec.svc", 
+            "com.bsi.sec.dao",
+            "com.bsi.sec.web.rest", 
+            "com.bsi.sec.helper"
+        })
 @PropertySource("classpath:/sws.properties")
 @EnableConfigurationProperties({SecurityServiceProperties.class})
 @EnableTransactionManagement
