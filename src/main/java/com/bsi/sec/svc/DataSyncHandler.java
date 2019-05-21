@@ -14,14 +14,19 @@ import com.bsi.sec.repository.CompanyRepository;
 import com.bsi.sec.repository.TenantRepository;
 import com.bsi.sec.repository.TenantSSOConfRepository;
 import static com.bsi.sec.util.AppConstants.BEAN_IGNITE_TX_MGR;
+import static com.bsi.sec.util.CacheConstants.TENANT_CACHE;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import org.slf4j.Logger;
 import java.util.List;
+import javax.cache.Cache.Entry;
 import java.util.TreeMap;
-
+import org.apache.ignite.Ignite;
+import org.apache.ignite.IgniteCache;
+import org.apache.ignite.cache.query.QueryCursor;
+import org.apache.ignite.cache.query.SqlQuery;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -67,7 +72,9 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
 
     @Autowired
     private AuditLogger auditLogger;
-
+    
+    @Autowired
+    Ignite igniteInstance;
     /**
      * Responsible for performing initial data sync.
      *
@@ -82,7 +89,7 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
             log.info("Starting initial data sync starting from {}.",
                     fromDtTm.toString());
         }
-
+        
         markAsInprogress();
 
         if (!onDemandRequest) {
@@ -278,12 +285,11 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
         if (log.isDebugEnabled()) {
             log.debug("Saving {} Companies to store...", companyList.size());
         }
-        Iterator<Tenant> tenants = tenantRepo.findAll().iterator();
+
         List<Tenant> tenantList = new ArrayList<>();
-        while (tenants.hasNext()){
-            tenantList.add(tenants.next());
-        }
-        log.debug("Tenants size before Company Save  : "+tenantList.size());
+        tenantList = getAllTenantsByProductId(BSI_eFormsFactory_SaaS_ID);
+        log.debug(BSI_eFormsFactory_SaaS+ " Tenants size before Company Save  : "+tenantList.size());
+        
         List<Tenant> tenantSaveList = new ArrayList<>();
         List<Company> companySaveList = new ArrayList<>();
         
@@ -341,7 +347,22 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
             log.debug("{} Companies are saved.\n", companies.size());
         }
     }
-
+    /**
+     * getAllTenantsByProductId
+     * @param prodId
+     * @return 
+     */
+    private List<Tenant> getAllTenantsByProductId(String prodId){
+        List<Tenant> tenantList = new ArrayList<>();
+        IgniteCache<Long, Tenant> tenantCache = igniteInstance.cache(TENANT_CACHE);
+        SqlQuery sqlQry = new SqlQuery(Tenant.class, "prodId= ?");
+        try (QueryCursor<Entry<Long, Tenant>> cursor = tenantCache.query(sqlQry.setArgs(prodId))) {
+            for (Entry<Long, Tenant> tn : cursor){
+               tenantList.add(tn.getValue());
+            }
+        }
+        return tenantList;
+    }
     /**
      * Clear all custom data from cache!
      */
