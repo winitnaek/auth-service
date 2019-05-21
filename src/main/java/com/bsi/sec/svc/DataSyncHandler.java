@@ -16,13 +16,19 @@ import com.bsi.sec.repository.CompanyRepository;
 import com.bsi.sec.repository.TenantRepository;
 import com.bsi.sec.repository.TenantSSOConfRepository;
 import static com.bsi.sec.util.AppConstants.BEAN_IGNITE_TX_MGR;
+import static com.bsi.sec.util.CacheConstants.TENANT_CACHE;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Iterator;
 import org.slf4j.Logger;
 import java.util.List;
+import javax.cache.Cache.Entry;
 import java.util.TreeMap;
-
+import org.apache.ignite.Ignite;
+import org.apache.ignite.IgniteCache;
+import org.apache.ignite.cache.query.QueryCursor;
+import org.apache.ignite.cache.query.SqlQuery;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -41,6 +47,10 @@ import org.springframework.util.CollectionUtils;
 public class DataSyncHandler implements DataSyncResponseBuilder {
 
     private final static Logger log = LoggerFactory.getLogger(DataSyncHandler.class);
+    
+    //Using this as limitation of TPF data availability in SF. SF#00130002
+    private final static String BSI_eFormsFactory_SaaS_ID="01tU0000000HOybIAG";
+    private final static String BSI_eFormsFactory_SaaS= "BSI eFormsFactory SaaS";
 
     @Autowired
     private TenantRepository tenantRepo;
@@ -69,6 +79,9 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
     @Autowired
     private TenantDao tenantDao;
 
+    
+    @Autowired
+    Ignite igniteInstance;
     /**
      * Responsible for performing initial data sync.
      *
@@ -85,7 +98,7 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
         }
 
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
-
+        
         try {
             markAsInprogress();
 
@@ -357,11 +370,54 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
             log.debug("Saving {} Companies to store...", companyList.size());
         }
 
+        List<Tenant> tenantList = new ArrayList<>();
+        tenantList = getAllTenantsByProductId(BSI_eFormsFactory_SaaS_ID);
+        log.debug(BSI_eFormsFactory_SaaS+ " Tenants size before Company Save  : "+tenantList.size());
+        
+        List<Tenant> tenantSaveList = new ArrayList<>();
+        List<Company> companySaveList = new ArrayList<>();
+        
+        for (Company company : companyList) {
+            boolean companyTenantDsetAvailable = false;
+            for (Tenant tenant : tenantList) {
+                if(tenant.getDataset().equalsIgnoreCase(company.getDataset())){
+                        companyTenantDsetAvailable = true;
+                        company.setTenant(tenant);
+                        companySaveList.add(company);
+                        break;
+                }
+            }
+            if(!companyTenantDsetAvailable){
+                Tenant tn = new Tenant();
+                tn.setAcctId(String.valueOf(tn.hashCode()));
+                tn.setAcctName(company.getDataset()+""+company.getSamlCid());
+                tn.setDataset(company.getDataset());
+                tn.setEnabled(true);
+                tn.setImported(true);
+                tn.setProdId(BSI_eFormsFactory_SaaS_ID); 
+                tn.setProdName(BSI_eFormsFactory_SaaS);
+                tn.setId(idGenerator.generate());
+                company.setTenant(tn);
+                companySaveList.add(company);
+                tenantSaveList.add(tn);
+                companySaveList.add(company);
+            }
+        }
+        if(tenantSaveList.size() > 0){
+            TreeMap<Long, Tenant> tenantsSave = new TreeMap<>();
+            tenantSaveList.forEach((tn) -> {
+                tenantsSave.put(tn.getId(), tn);
+            });
+            tenantRepo.save(tenantsSave);
+        }
         TreeMap<Long, Company> companies = new TreeMap<>();
-        companyList.forEach((company) -> {
-            companies.put(company.getId(), company);
-        });
-        companyRepo.save(companies);
+        if(companySaveList.size() > 0){
+           companySaveList.forEach((company) -> {
+                companies.put(company.getId(), company);
+            });
+            companyRepo.save(companies);
+        }
+        log.debug("Tenant count after Company Save : "+tenantRepo.count());
 
         if (isInit) {
             auditLogger.logAll(AuditLogger.Areas.COMPANY,
@@ -375,7 +431,22 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
             log.debug("{} Companies are saved.\n", companies.size());
         }
     }
-
+    /**
+     * getAllTenantsByProductId
+     * @param prodId
+     * @return 
+     */
+    private List<Tenant> getAllTenantsByProductId(String prodId){
+        List<Tenant> tenantList = new ArrayList<>();
+        IgniteCache<Long, Tenant> tenantCache = igniteInstance.cache(TENANT_CACHE);
+        SqlQuery sqlQry = new SqlQuery(Tenant.class, "prodId= ?");
+        try (QueryCursor<Entry<Long, Tenant>> cursor = tenantCache.query(sqlQry.setArgs(prodId))) {
+            for (Entry<Long, Tenant> tn : cursor){
+               tenantList.add(tn.getValue());
+            }
+        }
+        return tenantList;
+    }
     /**
      * Clear all custom data from cache!
      */
