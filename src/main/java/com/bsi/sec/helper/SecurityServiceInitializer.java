@@ -5,8 +5,8 @@
  */
 package com.bsi.sec.helper;
 
-import com.bsi.sec.config.SecurityServiceProperties;
 import com.bsi.sec.svc.AsyncInitialDataSyncJob;
+import com.bsi.sec.svc.PeriodicDataSyncJobScheduler;
 import com.bsi.sec.svc.SFDataPuller;
 import com.bsi.sec.util.DateUtils;
 import java.io.Closeable;
@@ -27,18 +27,27 @@ public class SecurityServiceInitializer implements Closeable {
     private static final Logger log = LoggerFactory.getLogger(SecurityServiceInitializer.class);
 
     @Autowired
-    private SecurityServiceProperties props;
-
-    @Autowired
     private SFDataPuller sfDataPuller;
 
     @Autowired
-    private AsyncInitialDataSyncJob dataSyncJob;
+    private AsyncInitialDataSyncJob initDataSyncJob;
 
+    @Autowired
+    private PeriodicDataSyncJobScheduler scheduler;
+
+    /**
+     *
+     * @throws Exception
+     */
     public void initialize() throws Exception {
         runInitialDataSync();
+        schedulePeriodicSyncs();
     }
 
+    /**
+     *
+     * @throws IOException
+     */
     @Override
     public void close() throws IOException {
         Ignition.stopAll(true);
@@ -52,8 +61,21 @@ public class SecurityServiceInitializer implements Closeable {
         }
     }
 
+    /**
+     *
+     * @throws Exception
+     */
     private void runInitialDataSync() throws Exception {
         sfDataPuller.initialize();
-        dataSyncJob.run(DateUtils.defaultFromSyncTime(), false);
+        initDataSyncJob.run(DateUtils.defaultFromSyncTime(), false);
     }
+
+    /**
+     *
+     * @throws Exception
+     */
+    private void schedulePeriodicSyncs() throws Exception {
+        scheduler.schedule();
+    }
+
 }

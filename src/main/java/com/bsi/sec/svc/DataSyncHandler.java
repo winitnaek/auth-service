@@ -5,11 +5,13 @@
  */
 package com.bsi.sec.svc;
 
+import com.bsi.sec.dao.AdminMetadataDao;
 import com.bsi.sec.dao.TenantDao;
 import com.bsi.sec.domain.AdminMetadata;
 import com.bsi.sec.domain.Company;
 import com.bsi.sec.domain.Tenant;
 import com.bsi.sec.dto.DataSyncResponse;
+import com.bsi.sec.exception.BadStateException;
 import com.bsi.sec.exception.ProcessingException;
 import com.bsi.sec.repository.AdminMetadataRepository;
 import com.bsi.sec.repository.CompanyRepository;
@@ -20,7 +22,6 @@ import static com.bsi.sec.util.CacheConstants.TENANT_CACHE;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Iterator;
 import org.slf4j.Logger;
 import java.util.List;
 import javax.cache.Cache.Entry;
@@ -44,13 +45,14 @@ import org.springframework.util.CollectionUtils;
  */
 @Component
 @Transactional(transactionManager = BEAN_IGNITE_TX_MGR)
-public class DataSyncHandler implements DataSyncResponseBuilder {
+public class DataSyncHandler implements DataSyncResponseBuilder,
+        DataSyncJobStateChecker {
 
     private final static Logger log = LoggerFactory.getLogger(DataSyncHandler.class);
-    
+
     //Using this as limitation of TPF data availability in SF. SF#00130002
-    private final static String BSI_eFormsFactory_SaaS_ID="01tU0000000HOybIAG";
-    private final static String BSI_eFormsFactory_SaaS= "BSI eFormsFactory SaaS";
+    private final static String BSI_eFormsFactory_SaaS_ID = "01tU0000000HOybIAG";
+    private final static String BSI_eFormsFactory_SaaS = "BSI eFormsFactory SaaS";
 
     @Autowired
     private TenantRepository tenantRepo;
@@ -79,9 +81,12 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
     @Autowired
     private TenantDao tenantDao;
 
-    
+    @Autowired
+    private AdminMetadataDao adminMetaDataDao;
+
     @Autowired
     Ignite igniteInstance;
+
     /**
      * Responsible for performing initial data sync.
      *
@@ -93,13 +98,17 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
             boolean onDemandRequest)
             throws Exception {
         if (log.isInfoEnabled()) {
-            log.info("Starting initial data sync starting from {}.",
+            log.info("Starting Initial Data Sync starting from {}.",
                     fromDtTm.toString());
         }
 
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
-        
+
         try {
+            if (onDemandRequest) {
+                checkIfSyncAlreadyRunning(adminMetaDataDao);
+            }
+
             markAsInprogress();
 
             if (!onDemandRequest) {
@@ -151,17 +160,24 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
      * @param tenants
      * @return
      */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public DataSyncResponse runPeriodicSync(LocalDateTime fromDtTm,
             boolean onDemandRequest) throws Exception {
         if (log.isInfoEnabled()) {
-            log.info("Starting periodic data sync starting from {}.",
-                    fromDtTm.toString());
+            log.info("Starting Periodic Data Sync process...");
         }
 
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
 
         try {
+            checkIfPerSyncIsEnabled();
+            checkIfSyncAlreadyRunning(adminMetaDataDao);
+
+            if (log.isInfoEnabled()) {
+                log.info("Starting periodic data sync starting from {}.",
+                        fromDtTm.toString());
+            }
+
             markAsInprogress();
 
             // Sync Tenants
@@ -203,20 +219,14 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
      */
     @Transactional(readOnly = true)
     public LocalDateTime getLastInitSyncDateTime() {
-        Iterator<AdminMetadata> adminMetaIter = adminMetaDataRepo
-                .findAll().iterator();
-        AdminMetadata admMeta = null;
-
-        if (adminMetaIter.hasNext()) {
-            admMeta = adminMetaIter.next();
-        }
+        AdminMetadata admMeta = adminMetaDataDao.get();
 
         if (admMeta == null) {
             return null;
         }
 
-        LocalDateTime lastFullSync = admMeta.getLastFullSync();
-        return lastFullSync != null ? lastFullSync : null;
+        LocalDateTime lastSync = admMeta.getLastFullSync();
+        return lastSync != null ? lastSync : null;
     }
 
     /**
@@ -276,19 +286,30 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
     }
 
     /**
+     *
+     * @param adminMetaDao
+     * @throws BadStateException
+     */
+    @Override
+    public void checkIfPerSyncIsEnabled()
+            throws BadStateException {
+        AdminMetadata metaData = adminMetaDataDao.get();
+
+        if (metaData != null && !metaData.isIsPerSyncOn()) {
+            throw new BadStateException("Periodic Sync is turned off!");
+        }
+    }
+
+    /**
      * Updates Metadata in-progress flag as specified by the parameter.
      *
      * @param isInprog
      */
     private void updateMetadataInprogFlag(boolean isInprog) {
-        Iterator<AdminMetadata> metaDataEntIter
-                = adminMetaDataRepo.findAll().iterator();
-        AdminMetadata ent;
+        AdminMetadata ent = adminMetaDataDao.get();
         boolean metaDataExists = true;
 
-        if (metaDataEntIter.hasNext()) {
-            ent = metaDataEntIter.next();
-        } else {
+        if (ent == null) {
             // Initially, create new record if not exists.
             ent = new AdminMetadata();
             ent.setId(idGenerator.generate());
@@ -305,13 +326,10 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
                         savedEnt.toString());
             }
 
-            if (metaDataExists) {
-                auditLogger.logEntity(savedEnt, AuditLogger.Areas.ADMIN_META_DATA,
-                        AuditLogger.Ops.UPDATE);
-            } else {
-                auditLogger.logEntity(savedEnt, AuditLogger.Areas.ADMIN_META_DATA,
-                        AuditLogger.Ops.INSERT);
-            }
+            AuditLogger.Ops op = metaDataExists ? AuditLogger.Ops.UPDATE
+                    : AuditLogger.Ops.INSERT;
+            auditLogger.logEntity(savedEnt, AuditLogger.Areas.ADMIN_META_DATA,
+                    op);
         } else {
             if (log.isErrorEnabled()) {
                 log.error("Failed to mark entity {} as Sync"
@@ -372,29 +390,29 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
 
         List<Tenant> tenantList = new ArrayList<>();
         tenantList = getAllTenantsByProductId(BSI_eFormsFactory_SaaS_ID);
-        log.debug(BSI_eFormsFactory_SaaS+ " Tenants size before Company Save  : "+tenantList.size());
-        
+        log.debug(BSI_eFormsFactory_SaaS + " Tenants size before Company Save  : " + tenantList.size());
+
         List<Tenant> tenantSaveList = new ArrayList<>();
         List<Company> companySaveList = new ArrayList<>();
-        
+
         for (Company company : companyList) {
             boolean companyTenantDsetAvailable = false;
             for (Tenant tenant : tenantList) {
-                if(tenant.getDataset().equalsIgnoreCase(company.getDataset())){
-                        companyTenantDsetAvailable = true;
-                        company.setTenant(tenant);
-                        companySaveList.add(company);
-                        break;
+                if (tenant.getDataset().equalsIgnoreCase(company.getDataset())) {
+                    companyTenantDsetAvailable = true;
+                    company.setTenant(tenant);
+                    companySaveList.add(company);
+                    break;
                 }
             }
-            if(!companyTenantDsetAvailable){
+            if (!companyTenantDsetAvailable) {
                 Tenant tn = new Tenant();
                 tn.setAcctId(String.valueOf(tn.hashCode()));
-                tn.setAcctName(company.getDataset()+""+company.getSamlCid());
+                tn.setAcctName(company.getDataset() + "" + company.getSamlCid());
                 tn.setDataset(company.getDataset());
                 tn.setEnabled(true);
                 tn.setImported(true);
-                tn.setProdId(BSI_eFormsFactory_SaaS_ID); 
+                tn.setProdId(BSI_eFormsFactory_SaaS_ID);
                 tn.setProdName(BSI_eFormsFactory_SaaS);
                 tn.setId(idGenerator.generate());
                 company.setTenant(tn);
@@ -403,7 +421,7 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
                 companySaveList.add(company);
             }
         }
-        if(tenantSaveList.size() > 0){
+        if (tenantSaveList.size() > 0) {
             TreeMap<Long, Tenant> tenantsSave = new TreeMap<>();
             tenantSaveList.forEach((tn) -> {
                 tenantsSave.put(tn.getId(), tn);
@@ -411,13 +429,13 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
             tenantRepo.save(tenantsSave);
         }
         TreeMap<Long, Company> companies = new TreeMap<>();
-        if(companySaveList.size() > 0){
-           companySaveList.forEach((company) -> {
+        if (companySaveList.size() > 0) {
+            companySaveList.forEach((company) -> {
                 companies.put(company.getId(), company);
             });
             companyRepo.save(companies);
         }
-        log.debug("Tenant count after Company Save : "+tenantRepo.count());
+        log.debug("Tenant count after Company Save : " + tenantRepo.count());
 
         if (isInit) {
             auditLogger.logAll(AuditLogger.Areas.COMPANY,
@@ -431,22 +449,25 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
             log.debug("{} Companies are saved.\n", companies.size());
         }
     }
+
     /**
      * getAllTenantsByProductId
+     *
      * @param prodId
-     * @return 
+     * @return
      */
-    private List<Tenant> getAllTenantsByProductId(String prodId){
+    private List<Tenant> getAllTenantsByProductId(String prodId) {
         List<Tenant> tenantList = new ArrayList<>();
         IgniteCache<Long, Tenant> tenantCache = igniteInstance.cache(TENANT_CACHE);
         SqlQuery sqlQry = new SqlQuery(Tenant.class, "prodId= ?");
         try (QueryCursor<Entry<Long, Tenant>> cursor = tenantCache.query(sqlQry.setArgs(prodId))) {
-            for (Entry<Long, Tenant> tn : cursor){
-               tenantList.add(tn.getValue());
+            for (Entry<Long, Tenant> tn : cursor) {
+                tenantList.add(tn.getValue());
             }
         }
         return tenantList;
     }
+
     /**
      * Clear all custom data from cache!
      */
@@ -478,9 +499,13 @@ public class DataSyncHandler implements DataSyncResponseBuilder {
      * @param now
      */
     private void updateLastSyncDateTime(LocalDateTime dateTime, boolean fullSync) {
-        Iterator<AdminMetadata> metaDataEntIter
-                = adminMetaDataRepo.findAll().iterator();
-        AdminMetadata ent = metaDataEntIter.next();
+        AdminMetadata ent = adminMetaDataDao.get();
+
+        if (ent == null) {
+            // Initially, create new record if not exists.
+            ent = new AdminMetadata();
+            ent.setId(idGenerator.generate());
+        }
 
         if (fullSync) {
             ent.setLastFullSync(dateTime);

@@ -5,7 +5,11 @@
  */
 package com.bsi.sec.svc;
 
+import com.bsi.sec.dao.AdminMetadataDao;
+import com.bsi.sec.domain.AdminMetadata;
 import com.bsi.sec.dto.DataSyncResponse;
+import com.bsi.sec.exception.RecordNotFoundException;
+import static com.bsi.sec.util.AppConstants.SYNC_EVERY_MINS;
 import com.bsi.sec.util.LogUtils;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -17,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Asynchronous Initial Data Sync job.
@@ -33,6 +38,9 @@ public class AsyncPeriodicDataSyncJob implements AsyncDataSyncJob, DataSyncRespo
 
     @Autowired
     private DataSyncHandler dataSyncHandler;
+
+    @Autowired
+    private AdminMetadataDao adminMetaDataDao;
 
     private IgniteCompute asyncCompute;
 
@@ -68,6 +76,42 @@ public class AsyncPeriodicDataSyncJob implements AsyncDataSyncJob, DataSyncRespo
             }
         });
 
-        return buildResponse(LocalDateTime.now(), true);
+        return buildResponse(LocalDateTime.now(), false);
+    }
+
+    /**
+     * Shortcut version of Periodic Sync job.
+     *
+     */
+    public DataSyncResponse run() throws Exception {
+        LocalDateTime fromDtTm = getLastPerSyncDateTime();
+
+        if (fromDtTm == null) {
+            throw new RecordNotFoundException("Admin Metadata record is not found!");
+        }
+
+        return run(fromDtTm, false);
+    }
+
+    /**
+     * Retrieves last initial data sync date/time.
+     *
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public LocalDateTime getLastPerSyncDateTime() {
+        AdminMetadata admMeta = adminMetaDataDao.get();
+
+        if (admMeta == null) {
+            return null;
+        }
+
+        LocalDateTime lastSync = admMeta.getLastPerSync();
+
+        if (lastSync == null) {
+            lastSync = LocalDateTime.now().minusMinutes(SYNC_EVERY_MINS);
+        }
+
+        return lastSync;
     }
 }
