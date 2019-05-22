@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * <p>Sync Job response builder.</p>
  *
  * @author igorV
  */
@@ -31,7 +32,7 @@ public interface DataSyncResponseBuilder {
         response.setIsSucessfull(true);
 
         String msg = "Last " + (isFullSync ? "Full" : "Periodic") + " SF Data"
-                + " Sync requested at " + lastInitSyncDateTime;
+                + " Sync request submitted at " + lastInitSyncDateTime;
         response.setMessage(msg);
 
         if (log.isInfoEnabled()) {

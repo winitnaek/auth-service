@@ -66,7 +66,7 @@ public class SecurityService {
     }
 
     /**
-     * TODO: Test-only stub! Add implementation!
+     * Full Data Sync service
      *
      * @return
      */
@@ -82,7 +82,8 @@ public class SecurityService {
     }
 
     /**
-     *
+     * Periodic Data Sync service
+     * 
      * @param fromDateTime
      * @return
      */

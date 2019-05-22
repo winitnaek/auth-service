@@ -35,4 +35,8 @@ public final class AppConstants {
     public static final String BEAN_IGNITE_JOB_RUNNER_EXEC = "igniteJobRunnerExecutor";
     public static final String BEAN_IGNITE_DATA_SOURCE = "igniteDataSource";
 
+    // Scheduling
+    public static final int SYNC_EVERY_MINS = 5;
+    public static final String SCHED_CRON_EXPR = "*/:min * * * *".replace(":min",
+            String.valueOf(SYNC_EVERY_MINS));
 }

@@ -31,18 +31,6 @@ public class TenantDao {
     @Autowired
     private Ignite ignite;
 
-    /*
-        SqlFieldsQuery sql = new SqlFieldsQuery(
-                "select dataset, prodName, acctName from Tenant where dataset = ?");
-        IgniteCache<Long, Tenant> cache = ignite.cache(TENANT_CACHE);
-
-        try (QueryCursor<List<?>> cursor = cache.query(sql.setArgs("DSCSBGDZ4Y7WUXS1"))) {
-            for (List<?> row : cursor) {
-                log.info("Dataset={}, Account Name={}, Product Name={}",
-                        row.get(0), row.get(1), row.get(2));
-            }
-        }
-     */
     /**
      *
      * @param dset
