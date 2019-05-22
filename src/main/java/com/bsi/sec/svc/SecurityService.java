@@ -5,12 +5,14 @@
  */
 package com.bsi.sec.svc;
 
+import com.bsi.sec.domain.Tenant;
 import com.bsi.sec.dto.AuditLogDTO;
 import com.bsi.sec.dto.DatasetProductDTO;
 import com.bsi.sec.dto.ProductDTO;
 import com.bsi.sec.dto.SSOConfigDTO;
 import com.bsi.sec.dto.SyncInfoDTO;
 import com.bsi.sec.dto.TenantDTO;
+import static com.bsi.sec.util.CacheConstants.TENANT_CACHE;
 import com.bsi.sec.util.DateUtils;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -20,6 +22,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.cache.Cache;
+import org.apache.ignite.Ignite;
+import org.apache.ignite.IgniteCache;
+import org.apache.ignite.cache.query.QueryCursor;
+import org.apache.ignite.cache.query.SqlQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +51,9 @@ public class SecurityService {
 
     @Autowired
     private AsyncPeriodicDataSyncJob periodicDataSyncJob;
+    
+    @Autowired
+    Ignite igniteInstance;
 
     /**
      *
@@ -281,29 +291,25 @@ public class SecurityService {
      */
     public List<TenantDTO> getTenants(boolean includeImported) {
         List<TenantDTO> tenants = new ArrayList<>();
-
-        TenantDTO tenant = new TenantDTO();
-        tenant.setId(1L);
-        tenant.setAcctName("BSI");
-        tenant.setDataset("BSI_DSET_1");
-        tenant.setProdName("TPF");
-        tenant.setEnabled(true);
-        tenant.setImported(true);
-        tenant.setSsoConfId(1L);
-        tenant.setSsoConfDsplName("SSO Conf 1");
-        tenants.add(tenant);
-
-        tenant = new TenantDTO();
-        tenant.setId(2L);
-        tenant.setAcctName("Walmart");
-        tenant.setDataset("WM_DSET_1");
-        tenant.setProdName("TF");
-        tenant.setEnabled(true);
-        tenant.setImported(true);
-        tenant.setSsoConfId(2L);
-        tenant.setSsoConfDsplName("SSO Conf 2");
-        tenants.add(tenant);
-
+        IgniteCache<Long, Tenant> tenantCache = igniteInstance.cache(TENANT_CACHE);
+        SqlQuery sqlQry = new SqlQuery(Tenant.class, "imported= ?");
+        try (QueryCursor<Cache.Entry<Long, Tenant>> cursor = tenantCache.query(sqlQry.setArgs(includeImported))) {
+            for (Cache.Entry<Long, Tenant> tn : cursor){
+                TenantDTO tenant = new TenantDTO();
+                Tenant tnt = tn.getValue();
+                tenant.setId(tnt.getId());
+                tenant.setAcctName(tnt.getAcctName());
+                tenant.setDataset(tnt.getDataset());
+                tenant.setProdName(tnt.getProdName());
+                tenant.setEnabled(tnt.isEnabled());
+                tenant.setImported(tnt.isImported());
+                if(tnt.getTenantSSOConf() !=null){
+                    tenant.setSsoConfId(tnt.getTenantSSOConf().getId());
+                    tenant.setSsoConfDsplName(tnt.getTenantSSOConf().getSsoConfDsplName());
+                }
+                tenants.add(tenant);
+            }
+        }
         return tenants;
     }
 
