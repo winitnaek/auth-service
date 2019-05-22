@@ -11,6 +11,7 @@ import com.bsi.sec.domain.Tenant;
 import com.bsi.sec.dto.AuditLogDTO;
 import com.bsi.sec.repository.AuditLogRepository;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -158,10 +159,10 @@ public class AuditLogger {
         long id = input.getId();
         ent.setId(id);
 
-        Instant instant = ent.getCreatedDate();
+        LocalDateTime instant = ent.getCreatedDate();
 
         if (instant == null) {
-            instant = Instant.now();
+            instant = LocalDateTime.now();
             ent.setCreatedDate(instant);
         }
 

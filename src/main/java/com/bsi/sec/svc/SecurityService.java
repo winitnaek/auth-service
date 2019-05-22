@@ -6,6 +6,7 @@
 package com.bsi.sec.svc;
 
 import com.bsi.sec.domain.Tenant;
+import com.bsi.sec.domain.AuditLog;
 import com.bsi.sec.dto.AuditLogDTO;
 import com.bsi.sec.dto.DatasetProductDTO;
 import com.bsi.sec.dto.ProductDTO;
@@ -13,6 +14,7 @@ import com.bsi.sec.dto.SSOConfigDTO;
 import com.bsi.sec.dto.SyncInfoDTO;
 import com.bsi.sec.dto.TenantDTO;
 import static com.bsi.sec.util.CacheConstants.TENANT_CACHE;
+import static com.bsi.sec.util.CacheConstants.AUDIT_LOG_CACHE;
 import com.bsi.sec.util.DateUtils;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -226,24 +228,20 @@ public class SecurityService {
      * @return
      */
     public List<AuditLogDTO> getAuditLogs(int lastNoDays) {
-        //TODO: Add implementation!
         List<AuditLogDTO> auditLogs = new ArrayList<>();
-        AuditLogDTO auditLog = new AuditLogDTO();
-        auditLog.setCreatedDate(Instant.now());
-        auditLog.setAccount("BSI");
-        auditLog.setDataset("BSI_DSET_1");
-        auditLog.setProduct("TPF");
-        auditLog.setMessage("Tenant [BSI] has been created.");
-        auditLogs.add(auditLog);
-
-        AuditLogDTO auditLog1 = new AuditLogDTO();
-        auditLog1.setCreatedDate(Instant.now());
-        auditLog1.setAccount("WALMART");
-        auditLog1.setDataset("BSI_DSET_2");
-        auditLog1.setProduct("TF");
-        auditLog1.setMessage("Tenant Tried to Login.");
-        auditLogs.add(auditLog1);
-
+        IgniteCache<Long, AuditLog> tenantCache = igniteInstance.cache(AUDIT_LOG_CACHE);
+        SqlQuery sqlQry = new SqlQuery(AuditLog.class, "createdDate > ? ");
+        try (QueryCursor<Cache.Entry<Long, AuditLog>> cursor = tenantCache.query(sqlQry.setArgs("2019-05-14 00:00:00"))) {
+            for (Cache.Entry<Long, AuditLog> ag : cursor){
+                 AuditLogDTO auditLog = new AuditLogDTO();
+                auditLog.setCreatedDate(ag.getValue().getCreatedDate());
+                auditLog.setAccount(ag.getValue().getAccountName());
+                auditLog.setDataset(ag.getValue().getDatasetName());
+                auditLog.setProduct(ag.getValue().getProductName());
+                auditLog.setMessage(ag.getValue().getMessage());
+                auditLogs.add(auditLog);
+            }
+        }
         return auditLogs;
     }
 

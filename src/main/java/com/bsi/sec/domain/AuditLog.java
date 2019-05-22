@@ -4,6 +4,7 @@ import javax.persistence.*;
 import javax.validation.constraints.*;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Objects;
 import org.apache.ignite.cache.query.annotations.QuerySqlField;
 import org.hibernate.envers.Audited;
@@ -14,7 +15,7 @@ import org.hibernate.envers.Audited;
 @Entity
 @Audited
 @Table(name = "audit_log")
-public class AuditLog extends AbstractAuditingEntity implements Serializable {
+public class AuditLog implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -57,6 +58,10 @@ public class AuditLog extends AbstractAuditingEntity implements Serializable {
     @QuerySqlField
     private String message;
 
+    @Column(name = "created_date")
+    @QuerySqlField(name = "createdDate")
+    private LocalDateTime createdDate;
+    
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
         return id;
@@ -181,6 +186,14 @@ public class AuditLog extends AbstractAuditingEntity implements Serializable {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public LocalDateTime getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(LocalDateTime createdDate) {
+        this.createdDate = createdDate;
     }
 
     @Override

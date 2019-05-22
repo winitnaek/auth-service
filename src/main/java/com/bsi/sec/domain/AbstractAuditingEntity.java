@@ -10,9 +10,11 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import javax.persistence.Column;
 import javax.persistence.EntityListeners;
 import javax.persistence.MappedSuperclass;
+import org.apache.ignite.cache.query.annotations.QuerySqlField;
 
 /**
  * Base abstract class for entities which will hold definitions for created, last modified by and created,
@@ -32,8 +34,8 @@ public abstract class AbstractAuditingEntity implements Serializable {
 
     @CreatedDate
     @Column(name = "created_date", updatable = false)
-    @JsonIgnore
-    private Instant createdDate;
+    @QuerySqlField(name = "createdDate")
+    private LocalDateTime createdDate;
 
     @LastModifiedBy
     @Column(name = "last_modified_by", length = 50)
@@ -53,11 +55,11 @@ public abstract class AbstractAuditingEntity implements Serializable {
         this.createdBy = createdBy;
     }
 
-    public Instant getCreatedDate() {
+    public LocalDateTime getCreatedDate() {
         return createdDate;
     }
 
-    public void setCreatedDate(Instant createdDate) {
+    public void setCreatedDate(LocalDateTime createdDate) {
         this.createdDate = createdDate;
     }
 

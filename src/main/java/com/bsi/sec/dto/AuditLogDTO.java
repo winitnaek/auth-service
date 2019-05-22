@@ -9,6 +9,7 @@ import com.bsi.sec.svc.AuditLogger;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 /**
  *
@@ -20,7 +21,7 @@ public final class AuditLogDTO {
     private Long id;
 
     @NotNull
-    private Instant createdDate;
+    private LocalDateTime createdDate;
 
     @NotNull
     private String serverHost;
@@ -65,7 +66,7 @@ public final class AuditLogDTO {
      * @param area
      * @param message
      */
-    public AuditLogDTO(Long id, Instant createdDate, String serverHost, String user, String clientHost, AuditLogger.Ops operation, String account, String product, String dataset, AuditLogger.Areas area, String message) {
+    public AuditLogDTO(Long id, LocalDateTime createdDate, String serverHost, String user, String clientHost, AuditLogger.Ops operation, String account, String product, String dataset, AuditLogger.Areas area, String message) {
         this.id = id;
         this.createdDate = createdDate;
         this.serverHost = serverHost;
@@ -87,11 +88,11 @@ public final class AuditLogDTO {
         this.id = id;
     }
 
-    public Instant getCreatedDate() {
+    public LocalDateTime getCreatedDate() {
         return createdDate;
     }
 
-    public void setCreatedDate(Instant createdDate) {
+    public void setCreatedDate(LocalDateTime createdDate) {
         this.createdDate = createdDate;
     }
 
