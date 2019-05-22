@@ -19,6 +19,7 @@ import com.bsi.sec.util.DateUtils;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -231,8 +232,11 @@ public class SecurityService {
     public List<AuditLogDTO> getAuditLogs(int lastNoDays) {
         List<AuditLogDTO> auditLogs = new ArrayList<>();
         IgniteCache<Long, AuditLog> tenantCache = igniteInstance.cache(AUDIT_LOG_CACHE);
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime then = now.minusDays(lastNoDays);
         SqlQuery sqlQry = new SqlQuery(AuditLog.class, "createdDate > ? ");
-        try (QueryCursor<Cache.Entry<Long, AuditLog>> cursor = tenantCache.query(sqlQry.setArgs("2019-05-14 00:00:00"))) {
+        try (QueryCursor<Cache.Entry<Long, AuditLog>> cursor = tenantCache.query(sqlQry.setArgs(then.format(format)))) {
             for (Cache.Entry<Long, AuditLog> ag : cursor){
                  AuditLogDTO auditLog = new AuditLogDTO();
                 auditLog.setCreatedDate(ag.getValue().getCreatedDate());
