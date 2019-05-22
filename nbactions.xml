@@ -31,6 +31,10 @@
             <goals>
                 <goal>process-classes</goal>
                 <goal>org.codehaus.mojo:exec-maven-plugin:1.2.1:exec</goal>
+                <goal>-e</goal>
+                <goal>-ff</goal>
+                
+                
             </goals>
             <properties>
                 <exec.args>-Xms512m -Xmx2g -classpath %classpath ${packageClassName}</exec.args>
@@ -45,6 +49,9 @@
             <goals>
                 <goal>process-classes</goal>
                 <goal>org.codehaus.mojo:exec-maven-plugin:1.2.1:exec</goal>
+                <goal>-e</goal>
+                <goal>-ff</goal>
+                
             </goals>
             <properties>
                 <exec.args>-Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=${jpda.address} -Xms512m -Xmx2g -classpath %classpath ${packageClassName}</exec.args>
