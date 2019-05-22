@@ -61,7 +61,7 @@ public class Tenant extends AbstractAuditingEntity implements Serializable {
     @Column(name = "enabled", nullable = false)
     @QuerySqlField(name = "enabled")
     private boolean enabled;
-
+    
     @Column(name = "imported", nullable = false)
     @QuerySqlField(name = "imported")
     private boolean imported;
