@@ -145,7 +145,7 @@ public class StoreConfiguration implements WebMvcConfigurer {
             }
         }
 
-        // TODO: Review. Limit discovery to single process within same JVM.
+        // TODO: Testing only! Limit discovery to single process within same JVM.
         TcpDiscoverySpi disco = new TcpDiscoverySpi()
                 .setIpFinder(new TcpDiscoveryVmIpFinder(true));
         cfg.setDiscoverySpi(disco);

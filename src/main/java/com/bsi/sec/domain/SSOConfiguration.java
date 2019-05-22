@@ -1,7 +1,6 @@
 package com.bsi.sec.domain;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -14,6 +13,7 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.Objects;
 
 import org.apache.ignite.cache.query.annotations.QuerySqlField;
 import org.hibernate.envers.Audited;
@@ -104,7 +104,13 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
 
     @NotNull
     @Column(name = "enabled", nullable = false)
+    @QuerySqlField(name = "enabled")
     private Boolean enabled;
+
+    @NotNull
+    @Column(name = "enabled")
+    @QuerySqlField(name = "enabled")
+    private boolean linked;
 
     @OneToOne(mappedBy = "ssoConfig")
     @JsonIgnore
@@ -121,6 +127,14 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public boolean isLinked() {
+        return linked;
+    }
+
+    public void setLinked(boolean linked) {
+        this.linked = linked;
     }
 
     public String getDsplName() {
@@ -385,28 +399,29 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 83 * hash + Objects.hashCode(this.id);
-        hash = 83 * hash + Objects.hashCode(this.dsplName);
-        hash = 83 * hash + Objects.hashCode(this.idpIssuer);
-        hash = 83 * hash + Objects.hashCode(this.idpReqURL);
-        hash = 83 * hash + Objects.hashCode(this.spConsumerURL);
-        hash = 83 * hash + Objects.hashCode(this.spIssuer);
-        hash = 83 * hash + Objects.hashCode(this.attribIndex);
-        hash = 83 * hash + Objects.hashCode(this.validateRespSignature);
-        hash = 83 * hash + Objects.hashCode(this.validateIdpIssuer);
-        hash = 83 * hash + Objects.hashCode(this.signRequests);
-        hash = 83 * hash + Objects.hashCode(this.allowLogout);
-        hash = 83 * hash + Objects.hashCode(this.nonSamlLogoutURL);
-        hash = 83 * hash + Objects.hashCode(this.redirectToApplication);
-        hash = 83 * hash + Objects.hashCode(this.appRedirectURL);
-        hash = 83 * hash + Objects.hashCode(this.certAlias);
-        hash = 83 * hash + Objects.hashCode(this.certPassword);
-        hash = 83 * hash + Objects.hashCode(this.certText);
-        hash = 83 * hash + Objects.hashCode(this.expireRequestSecs);
-        hash = 83 * hash + Objects.hashCode(this.enabled);
-        hash = 83 * hash + Objects.hashCode(this.tenantSSOConf);
-        hash = 83 * hash + Objects.hashCode(this.tenant);
+        int hash = 5;
+        hash = 59 * hash + Objects.hashCode(this.id);
+        hash = 59 * hash + Objects.hashCode(this.dsplName);
+        hash = 59 * hash + Objects.hashCode(this.idpIssuer);
+        hash = 59 * hash + Objects.hashCode(this.idpReqURL);
+        hash = 59 * hash + Objects.hashCode(this.spConsumerURL);
+        hash = 59 * hash + Objects.hashCode(this.spIssuer);
+        hash = 59 * hash + Objects.hashCode(this.attribIndex);
+        hash = 59 * hash + Objects.hashCode(this.validateRespSignature);
+        hash = 59 * hash + Objects.hashCode(this.validateIdpIssuer);
+        hash = 59 * hash + Objects.hashCode(this.signRequests);
+        hash = 59 * hash + Objects.hashCode(this.allowLogout);
+        hash = 59 * hash + Objects.hashCode(this.nonSamlLogoutURL);
+        hash = 59 * hash + Objects.hashCode(this.redirectToApplication);
+        hash = 59 * hash + Objects.hashCode(this.appRedirectURL);
+        hash = 59 * hash + Objects.hashCode(this.certAlias);
+        hash = 59 * hash + Objects.hashCode(this.certPassword);
+        hash = 59 * hash + Objects.hashCode(this.certText);
+        hash = 59 * hash + Objects.hashCode(this.expireRequestSecs);
+        hash = 59 * hash + Objects.hashCode(this.enabled);
+        hash = 59 * hash + (this.linked ? 1 : 0);
+        hash = 59 * hash + Objects.hashCode(this.tenantSSOConf);
+        hash = 59 * hash + Objects.hashCode(this.tenant);
         return hash;
     }
 
@@ -422,6 +437,9 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
             return false;
         }
         final SSOConfiguration other = (SSOConfiguration) obj;
+        if (this.linked != other.linked) {
+            return false;
+        }
         if (!Objects.equals(this.dsplName, other.dsplName)) {
             return false;
         }
@@ -490,26 +508,7 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
 
     @Override
     public String toString() {
-        return "SSOConfiguration{"
-                + "id=" + getId()
-                + ", dsplName='" + getDsplName() + "'"
-                + ", idpIssuer='" + getIdpIssuer() + "'"
-                + ", idpReqURL='" + getIdpReqURL() + "'"
-                + ", spConsumerURL='" + getSpConsumerURL() + "'"
-                + ", spIssuer='" + getSpIssuer() + "'"
-                + ", attribIndex=" + getAttribIndex()
-                + ", validateRespSignature='" + isValidateRespSignature() + "'"
-                + ", validateIdpIssuer='" + isValidateIdpIssuer() + "'"
-                + ", signRequests='" + isSignRequests() + "'"
-                + ", allowLogout='" + isAllowLogout() + "'"
-                + ", nonSamlLogoutURL='" + getNonSamlLogoutURL() + "'"
-                + ", redirectToApplication='" + isRedirectToApplication() + "'"
-                + ", appRedirectURL='" + getAppRedirectURL() + "'"
-                + ", certAlias='" + getCertAlias() + "'"
-                + ", certPassword='" + getCertPassword() + "'"
-                + ", certText='" + getCertText() + "'"
-                + ", expireRequestSecs=" + getExpireRequestSecs()
-                + ", enabled='" + isEnabled() + "'"
-                + "}";
+        return "SSOConfiguration{" + "id=" + id + ", dsplName=" + dsplName + ", idpIssuer=" + idpIssuer + ", idpReqURL=" + idpReqURL + ", spConsumerURL=" + spConsumerURL + ", spIssuer=" + spIssuer + ", attribIndex=" + attribIndex + ", validateRespSignature=" + validateRespSignature + ", validateIdpIssuer=" + validateIdpIssuer + ", signRequests=" + signRequests + ", allowLogout=" + allowLogout + ", nonSamlLogoutURL=" + nonSamlLogoutURL + ", redirectToApplication=" + redirectToApplication + ", appRedirectURL=" + appRedirectURL + ", certAlias=" + certAlias + ", certPassword=" + certPassword + ", certText=" + certText + ", expireRequestSecs=" + expireRequestSecs + ", enabled=" + enabled + ", linked=" + linked + ", tenantSSOConf=" + tenantSSOConf + ", tenant=" + tenant + '}';
     }
+
 }

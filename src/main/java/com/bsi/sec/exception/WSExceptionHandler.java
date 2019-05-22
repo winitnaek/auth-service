@@ -13,11 +13,13 @@ import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpStatus;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseEntity.BodyBuilder;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -53,6 +55,13 @@ public class WSExceptionHandler {
     @ResponseBody
     public ErrorTo handleInvalidUserException(InvalidUserException exception) {
         return new ErrorTo(UNAUTHORIZED.value(), exception.getMessage());
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    @ResponseBody
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorTo handleMethodArgumentNotValidException(MissingServletRequestParameterException exception) {
+        return new ErrorTo(BAD_REQUEST.value(), exception.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -9,10 +9,13 @@ import com.bsi.sec.config.SecurityServiceProperties;
 import com.bsi.sec.config.SecurityServiceProperties.SF;
 import com.bsi.sec.domain.Tenant;
 import com.bsi.sec.exception.ConfigurationException;
+import com.bsi.sec.exception.ProcessingException;
 import com.bsi.sec.exception.RecordNotFoundException;
 import com.bsi.sec.util.DateUtils;
+import com.bsi.sec.util.LogUtils;
 import com.bsi.sec.util.SOQLQueries;
 import com.sforce.soap.enterprise.EnterpriseConnection;
+import com.sforce.soap.enterprise.GetUpdatedResult;
 import com.sforce.soap.enterprise.QueryResult;
 import com.sforce.soap.enterprise.sobject.Entitlement;
 import com.sforce.soap.enterprise.sobject.SObject;
@@ -22,7 +25,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.TimeZone;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,8 +61,8 @@ public class SFDataPuller implements DataPuller {
     }
 
     @Override
-    public List<Object> pullUpdates(LocalDateTime fromDtTm) throws Exception {
-        return null;
+    public List<Tenant> pullUpdates(LocalDateTime fromDtTm) throws Exception {
+        return getUpdatedEntitlements(fromDtTm);
     }
 
     /**
@@ -83,9 +90,15 @@ public class SFDataPuller implements DataPuller {
      * @return
      */
     private List<Tenant> getAllActiveEntitlements(LocalDateTime fromDtTm)
-            throws ConfigurationException, RecordNotFoundException {
+            throws Exception {
         if (connection == null) {
-            throw new ConfigurationException("Salesforce connection must be established!");
+            String errMsg = "Salesforce connection must be established!";
+
+            if (log.isErrorEnabled()) {
+                log.error(errMsg);
+            }
+
+            throw new ConfigurationException(errMsg);
         }
 
         try {
@@ -122,6 +135,7 @@ public class SFDataPuller implements DataPuller {
                     tn.setDataset(ent.getDataset_1__c());
                     tn.setEnabled(true);
                     tn.setImported(true);
+                    tn.setProdId(ent.getProduct__c());
                     tn.setProdName(ent.getProduct_Name__c());
                     tn.setId(idGenerator.generate());
                     tenants.add(tn);
@@ -141,7 +155,93 @@ public class SFDataPuller implements DataPuller {
 
             return tenants;
         } catch (ConnectionException ex) {
-            throw new ConfigurationException("Failed while getting active entitlements!", ex);
+            throw new ConfigurationException("SF connection exception!", ex);
+        } catch (Exception ex) {
+            throw new ProcessingException("Failed while getting active entitlements!", ex);
+        }
+    }
+
+    /**
+     * Fetches updated "SaaS Active" account records from Salesforce.
+     *
+     * @param fromDtTm
+     * @return
+     */
+    private List<Tenant> getUpdatedEntitlements(LocalDateTime fromDtTm)
+            throws Exception {
+        if (connection == null) {
+            String errMsg = "Salesforce connection must be established!";
+
+            if (log.isErrorEnabled()) {
+                log.error(errMsg);
+            }
+
+            throw new ConfigurationException(errMsg);
+        }
+
+        try {
+            Date fromDate = Date.from(fromDtTm.toInstant(ZoneOffset.UTC));
+            GregorianCalendar from = (GregorianCalendar) Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+            from.setTime(fromDate);
+            GregorianCalendar now = (GregorianCalendar) Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+            //
+            GetUpdatedResult ur = connection.getUpdated("Entitlement", from, now);
+            String[] updIDs = ur.getIds();
+
+            if (log.isDebugEnabled()) {
+                log.debug("There are {} updated Entitlement records returned"
+                        + " by SF connection.getUpdated(...) API. Not that"
+                        + " these records (all or some or none) may not be"
+                        + " related to qualified SaaS enabled Tenants!",
+                        updIDs.length);
+            }
+
+            List<Tenant> tenants = new ArrayList<>(updIDs.length);
+
+            for (String id : updIDs) {
+                String queryToUse = getActiveEntitlmentByIdQuery(id, fromDtTm);
+                QueryResult qr = connection.query(queryToUse);
+
+                if (qr.getSize() == 0) {
+                    if (log.isDebugEnabled()) {
+                        log.debug(LogUtils.jsonize("Unrelated updated SF:Entitlement"
+                                + " record found!", "ID", id));
+                    }
+
+                    continue;
+                }
+
+                SObject[] records = qr.getRecords();
+
+                if (records.length > 0) {
+                    Entitlement ent = (Entitlement) records[0];
+                    Tenant tn = new Tenant();
+                    tn.setAcctId(ent.getAccount_18_Digit_ID__c());
+                    tn.setAcctName(ent.getAccount_Name__c());
+                    tn.setDataset(ent.getDataset_1__c());
+                    tn.setEnabled(true);
+                    tn.setImported(true);
+                    tn.setProdName(ent.getProduct_Name__c());
+                    tn.setProdId(ent.getProduct__c());
+                    tn.setId(idGenerator.generate());
+                    tenants.add(tn);
+
+                    if (log.isTraceEnabled()) {
+                        log.trace("Tenant: " + tn.toString());
+                    }
+                }
+            }
+
+            if (log.isInfoEnabled()) {
+                log.info("There are {} updated Qualifying Tenant records found!",
+                        tenants.size());
+            }
+
+            return tenants;
+        } catch (ConnectionException ex) {
+            throw new ConfigurationException("SF connection exception!", ex);
+        } catch (Exception ex) {
+            throw new ProcessingException("Failed while getting updated entitlements!", ex);
         }
     }
 
@@ -205,4 +305,22 @@ public class SFDataPuller implements DataPuller {
                 .replace(":createddate", fromDateAsUTC);
         return queryToUse;
     }
+
+    /**
+     *
+     * @param id
+     * @param fromDtTm
+     * @return
+     */
+    private String getActiveEntitlmentByIdQuery(String id, LocalDateTime fromDtTm) {
+        LocalDateTime fromDateTimeToUse = fromDtTm != null ? fromDtTm
+                : DateUtils.defaultFromSyncTime();
+        String fromDateAsUTC = DateTimeFormatter.ISO_INSTANT
+                .format(fromDateTimeToUse.toInstant(ZoneOffset.UTC));
+        String queryToUse = SOQLQueries.GET_ENTITLEMENTS_BY_ID
+                .replace(":id", id)
+                .replace(":createddate", fromDateAsUTC);
+        return queryToUse;
+    }
+
 }

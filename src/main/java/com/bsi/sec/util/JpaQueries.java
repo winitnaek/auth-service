@@ -10,7 +10,10 @@ package com.bsi.sec.util;
  * @author vnaik
  */
 public class JpaQueries {
+
     public static final String GET_CCOMPS = "from Btocomp c";
     public static final String GET_COMPANY_DATA_FOR_SYNC = "from Btocomp c where c.enabled = 1 and c.createdat > :fromDateTime";
     public static final String GET_TENANT_BY_DATASET_AND_PRODUCT = "select ID from Tenant where dataset = :dataset";
+    public static final String GET_TENANT_ID_BY_DSET_PROD_ACCT = "select id from Tenant"
+            + " where dataset = ? and prodName = ? and acctName = ?";
 }
