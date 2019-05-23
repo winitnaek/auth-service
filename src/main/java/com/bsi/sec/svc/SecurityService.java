@@ -7,6 +7,7 @@ package com.bsi.sec.svc;
 
 import com.bsi.sec.domain.Tenant;
 import com.bsi.sec.domain.AuditLog;
+import com.bsi.sec.domain.SSOConfiguration;
 import com.bsi.sec.dto.AuditLogDTO;
 import com.bsi.sec.dto.DatasetProductDTO;
 import com.bsi.sec.dto.ProductDTO;
@@ -15,8 +16,8 @@ import com.bsi.sec.dto.SyncInfoDTO;
 import com.bsi.sec.dto.TenantDTO;
 import static com.bsi.sec.util.CacheConstants.TENANT_CACHE;
 import static com.bsi.sec.util.CacheConstants.AUDIT_LOG_CACHE;
+import static com.bsi.sec.util.CacheConstants.SSO_CONFIGURATION_CACHE;
 import com.bsi.sec.util.DateUtils;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -238,7 +239,7 @@ public class SecurityService {
         SqlQuery sqlQry = new SqlQuery(AuditLog.class, "createdDate > ? ");
         try (QueryCursor<Cache.Entry<Long, AuditLog>> cursor = tenantCache.query(sqlQry.setArgs(then.format(format)))) {
             for (Cache.Entry<Long, AuditLog> ag : cursor){
-                 AuditLogDTO auditLog = new AuditLogDTO();
+                AuditLogDTO auditLog = new AuditLogDTO();
                 auditLog.setCreatedDate(ag.getValue().getCreatedDate());
                 auditLog.setAccount(ag.getValue().getAccountName());
                 auditLog.setDataset(ag.getValue().getDatasetName());
@@ -272,17 +273,20 @@ public class SecurityService {
      */
     public List<SSOConfigDTO> getSSOConfigs() {
         List<SSOConfigDTO> configs = new ArrayList<>();
-        SSOConfigDTO config = new SSOConfigDTO();
-        config.setAcctName("BSI");
-        config.setId(1L);
-        config.setDsplName("BSI SSO Config 1");
-        configs.add(config);
-
-        SSOConfigDTO config1 = new SSOConfigDTO();
-        config1.setAcctName("Walmart");
-        config1.setId(2L);
-        config1.setDsplName("Walmart SSO Config 1");
-        configs.add(config1);
+        IgniteCache<Long, SSOConfiguration> tenantCache = igniteInstance.cache(SSO_CONFIGURATION_CACHE);
+        final String sql = "select * from SSOConfiguration";
+        SqlQuery sqlQry = new SqlQuery(SSOConfiguration.class,sql);
+        try (QueryCursor<Cache.Entry<Long, SSOConfiguration>> cursor = tenantCache.query(sqlQry)) {
+            for (Cache.Entry<Long, SSOConfiguration> cf : cursor){
+                SSOConfigDTO config = new SSOConfigDTO();
+                if(cf.getValue().getTenant()!=null){
+                    config.setAcctName(cf.getValue().getTenant().getAcctName());
+                }
+                config.setId(cf.getValue().getId());
+                config.setDsplName(cf.getValue().getDsplName());
+                configs.add(config);
+            }
+        }
         return configs;
     }
 
