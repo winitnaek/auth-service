@@ -214,13 +214,8 @@ public class SecurityService {
         sSOConfiguration.setValidateRespSignature(ssoConfig.getValidateRespSignature());
         
         ssoConfigurationRepository.save(sSOConfiguration.getId(), sSOConfiguration);
-        
-        SSOConfigDTO config = new SSOConfigDTO();
-        config.setId(sSOConfiguration.getId());
-        config.setAcctName(ssoConfig.getAcctName());
-        config.setDsplName(ssoConfig.getDsplName());
-        config.setEnabled(ssoConfig.getEnabled());
-        return config;
+        auditLogger.logEntity(sSOConfiguration, AuditLogger.Areas.SSO_CONF, AuditLogger.Ops.INSERT);
+        return prepareConfig(sSOConfiguration);
     }
 
     /**
@@ -229,11 +224,37 @@ public class SecurityService {
      * @return
      */
     public SSOConfigDTO updateSSOConfig(SSOConfigDTO ssoConfig) {
-        SSOConfigDTO config = new SSOConfigDTO();
-        config.setAcctName("BSI");
-        config.setDsplName("BSI SSO Config 2");
-        config.setEnabled(true);
-        return config;
+        SSOConfiguration sSOConfiguration = new SSOConfiguration();
+        
+        sSOConfiguration.setAllowLogout(ssoConfig.getAllowLogout());
+        sSOConfiguration.setAppRedirectURL(ssoConfig.getAppRedirectURL());
+        sSOConfiguration.setAttribIndex(ssoConfig.getAttribIndex());
+        sSOConfiguration.setCertAlias(ssoConfig.getCertAlias());
+        sSOConfiguration.setCertPassword(ssoConfig.getCertPassword());
+        sSOConfiguration.setCertText(ssoConfig.getCertText());
+        sSOConfiguration.setDsplName(ssoConfig.getDsplName());
+        sSOConfiguration.setEnabled(ssoConfig.getEnabled());
+        sSOConfiguration.setExpireRequestSecs(ssoConfig.getExpireRequestSecs());
+        sSOConfiguration.setId(ssoConfig.getId());
+        sSOConfiguration.setIdpIssuer(ssoConfig.getIdpIssuer());
+        sSOConfiguration.setIdpReqURL(ssoConfig.getIdpReqURL());
+        sSOConfiguration.setNonSamlLogoutURL(ssoConfig.getNonSamlLogoutURL());
+        sSOConfiguration.setRedirectToApplication(ssoConfig.getRedirectToApplication());
+        
+        sSOConfiguration.setSignRequests(ssoConfig.getSignRequests());
+        sSOConfiguration.setSpConsumerURL(ssoConfig.getSpConsumerURL());
+        sSOConfiguration.setSpIssuer(ssoConfig.getSpIssuer());
+        
+        Tenant tenant = getTenantByName(ssoConfig.getAcctName());
+        sSOConfiguration.setTenant(tenant);
+        
+        //sSOConfiguration.setTenantSSOConf(tenantSSOConf);
+        sSOConfiguration.setValidateIdpIssuer(ssoConfig.getValidateIdpIssuer());
+        sSOConfiguration.setValidateRespSignature(ssoConfig.getValidateRespSignature());
+        
+        ssoConfigurationRepository.save(sSOConfiguration.getId(), sSOConfiguration);
+        auditLogger.logEntity(sSOConfiguration, AuditLogger.Areas.SSO_CONF, AuditLogger.Ops.UPDATE);
+        return prepareConfig(sSOConfiguration);
     }
 
     /**
@@ -313,10 +334,8 @@ public class SecurityService {
     }
 
     /**
-     * TODO: Add implementation!
-     *
-     * @param accountName
-     * @return
+     * getSSOConfigs
+     * @return 
      */
     public List<SSOConfigDTO> getSSOConfigs() {
         List<SSOConfigDTO> configs = new ArrayList<>();
@@ -325,12 +344,7 @@ public class SecurityService {
         SqlQuery sqlQry = new SqlQuery(SSOConfiguration.class,sql);
         try (QueryCursor<Cache.Entry<Long, SSOConfiguration>> cursor = ssoConfigCache.query(sqlQry)) {
             for (Cache.Entry<Long, SSOConfiguration> cf : cursor){
-                SSOConfigDTO config = new SSOConfigDTO();
-                if(cf.getValue().getTenant()!=null){
-                    config.setAcctName(cf.getValue().getTenant().getAcctName());
-                }
-                config.setId(cf.getValue().getId());
-                config.setDsplName(cf.getValue().getDsplName());
+                SSOConfigDTO config = prepareConfig(cf.getValue());
                 configs.add(config);
             }
         }
@@ -440,6 +454,38 @@ public class SecurityService {
             }
         }
         return ssoConf;
+    }
+    
+    /**
+     * prepareConfig
+     * @param sSOConfiguration
+     * @return 
+     */
+    private SSOConfigDTO prepareConfig(SSOConfiguration sSOConfiguration){
+        SSOConfigDTO config = new SSOConfigDTO();
+        config.setId(sSOConfiguration.getId());
+        if(sSOConfiguration.getTenant()!=null){
+            config.setAcctName(sSOConfiguration.getTenant().getAcctName());
+        }
+        config.setDsplName(sSOConfiguration.getDsplName());
+        config.setEnabled(sSOConfiguration.isEnabled());
+        config.setAllowLogout(sSOConfiguration.isAllowLogout());
+        config.setAppRedirectURL(sSOConfiguration.getAppRedirectURL());
+        config.setAttribIndex(sSOConfiguration.getAttribIndex());
+        config.setCertAlias(sSOConfiguration.getCertAlias());
+        config.setCertPassword(sSOConfiguration.getCertPassword());
+        config.setCertText(sSOConfiguration.getCertText());
+        config.setExpireRequestSecs(sSOConfiguration.getExpireRequestSecs());
+        config.setIdpIssuer(sSOConfiguration.getIdpIssuer());
+        config.setIdpReqURL(sSOConfiguration.getIdpReqURL());
+        config.setNonSamlLogoutURL(sSOConfiguration.getNonSamlLogoutURL());
+        config.setRedirectToApplication(sSOConfiguration.isRedirectToApplication());
+        config.setSignRequests(sSOConfiguration.isSignRequests());
+        config.setSpConsumerURL(sSOConfiguration.getSpConsumerURL());
+        config.setSpIssuer(sSOConfiguration.getSpIssuer());
+        config.setValidateIdpIssuer(sSOConfiguration.isValidateIdpIssuer());
+        config.setValidateRespSignature(sSOConfiguration.isValidateRespSignature());
+        return config;
     }
 
 }
