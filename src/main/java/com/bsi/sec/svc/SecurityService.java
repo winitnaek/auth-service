@@ -5,6 +5,8 @@
  */
 package com.bsi.sec.svc;
 
+import com.bsi.sec.dao.AdminMetadataDao;
+import com.bsi.sec.domain.AdminMetadata;
 import com.bsi.sec.domain.Tenant;
 import com.bsi.sec.domain.AuditLog;
 import com.bsi.sec.domain.SSOConfiguration;
@@ -14,11 +16,14 @@ import com.bsi.sec.dto.ProductDTO;
 import com.bsi.sec.dto.SSOConfigDTO;
 import com.bsi.sec.dto.SyncInfoDTO;
 import com.bsi.sec.dto.TenantDTO;
+import com.bsi.sec.exception.ProcessingException;
+import com.bsi.sec.repository.AdminMetadataRepository;
 import com.bsi.sec.repository.SSOConfigurationRepository;
 import static com.bsi.sec.util.CacheConstants.TENANT_CACHE;
 import static com.bsi.sec.util.CacheConstants.AUDIT_LOG_CACHE;
 import static com.bsi.sec.util.CacheConstants.SSO_CONFIGURATION_CACHE;
 import com.bsi.sec.util.DateUtils;
+import com.bsi.sec.util.LogUtils;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -42,8 +47,6 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Service responsible for serving REST resource/controller requests!
  *
- * //TODO: Add validation, exception handling, comments.
- *
  * @author igorV
  */
 @Service
@@ -57,15 +60,21 @@ public class SecurityService {
 
     @Autowired
     private AsyncPeriodicDataSyncJob periodicDataSyncJob;
-    
+
     @Autowired
     Ignite igniteInstance;
-    
+
     @Autowired
     private EntityIDGenerator idGenerator;
-    
+
     @Autowired
     private SSOConfigurationRepository ssoConfigurationRepository;
+
+    @Autowired
+    private AdminMetadataRepository adminMetaRepo;
+
+    @Autowired
+    private AdminMetadataDao adminMetaDao;
 
     /**
      *
@@ -105,7 +114,7 @@ public class SecurityService {
 
     /**
      * Periodic Data Sync service
-     * 
+     *
      * @param fromDateTime
      * @return
      */
@@ -132,8 +141,20 @@ public class SecurityService {
                     Boolean.valueOf(enabled).toString());
         }
 
-        boolean isSFSyncEnabled = true;
-        return isSFSyncEnabled;
+        AdminMetadata ent = adminMetaDao.get();
+        ent.setIsPerSyncOn(enabled);
+        AdminMetadata updEnt = adminMetaRepo.save(ent.getId(), ent);
+
+        if (updEnt != null) {
+            if (log.isInfoEnabled()) {
+                log.info(LogUtils.jsonize("Periodic Data Sync configuration was updated.",
+                        "rec", updEnt.toString()));
+            }
+
+            return true;
+        } else {
+            throw new ProcessingException("Failed to update Periodic Data Sync flag!");
+        }
     }
 
     /**
@@ -180,9 +201,9 @@ public class SecurityService {
      * @return
      */
     public SSOConfigDTO createSSOConfig(SSOConfigDTO ssoConfig) {
-       
+
         SSOConfiguration sSOConfiguration = new SSOConfiguration();
-        
+
         sSOConfiguration.setAllowLogout(ssoConfig.getAllowLogout());
         sSOConfiguration.setAppRedirectURL(ssoConfig.getAppRedirectURL());
         sSOConfiguration.setAttribIndex(ssoConfig.getAttribIndex());
@@ -197,20 +218,20 @@ public class SecurityService {
         sSOConfiguration.setIdpReqURL(ssoConfig.getIdpReqURL());
         sSOConfiguration.setNonSamlLogoutURL(ssoConfig.getNonSamlLogoutURL());
         sSOConfiguration.setRedirectToApplication(ssoConfig.getRedirectToApplication());
-        
+
         sSOConfiguration.setSignRequests(ssoConfig.getSignRequests());
         sSOConfiguration.setSpConsumerURL(ssoConfig.getSpConsumerURL());
         sSOConfiguration.setSpIssuer(ssoConfig.getSpIssuer());
-        
+
         Tenant tenant = getTenantByName(ssoConfig.getAcctName());
         sSOConfiguration.setTenant(tenant);
-        
+
         //sSOConfiguration.setTenantSSOConf(tenantSSOConf);
         sSOConfiguration.setValidateIdpIssuer(ssoConfig.getValidateIdpIssuer());
         sSOConfiguration.setValidateRespSignature(ssoConfig.getValidateRespSignature());
-        
+
         ssoConfigurationRepository.save(sSOConfiguration.getId(), sSOConfiguration);
-        
+
         SSOConfigDTO config = new SSOConfigDTO();
         config.setId(sSOConfiguration.getId());
         config.setAcctName(ssoConfig.getAcctName());
@@ -279,7 +300,7 @@ public class SecurityService {
         LocalDateTime then = now.minusDays(lastNoDays);
         SqlQuery sqlQry = new SqlQuery(AuditLog.class, "createdDate > ? ");
         try (QueryCursor<Cache.Entry<Long, AuditLog>> cursor = auditLogCache.query(sqlQry.setArgs(then.format(format)))) {
-            for (Cache.Entry<Long, AuditLog> ag : cursor){
+            for (Cache.Entry<Long, AuditLog> ag : cursor) {
                 AuditLogDTO auditLog = new AuditLogDTO();
                 auditLog.setCreatedDate(ag.getValue().getCreatedDate());
                 auditLog.setAccount(ag.getValue().getAccountName());
@@ -316,11 +337,11 @@ public class SecurityService {
         List<SSOConfigDTO> configs = new ArrayList<>();
         IgniteCache<Long, SSOConfiguration> ssoConfigCache = igniteInstance.cache(SSO_CONFIGURATION_CACHE);
         final String sql = "select * from SSOConfiguration";
-        SqlQuery sqlQry = new SqlQuery(SSOConfiguration.class,sql);
+        SqlQuery sqlQry = new SqlQuery(SSOConfiguration.class, sql);
         try (QueryCursor<Cache.Entry<Long, SSOConfiguration>> cursor = ssoConfigCache.query(sqlQry)) {
-            for (Cache.Entry<Long, SSOConfiguration> cf : cursor){
+            for (Cache.Entry<Long, SSOConfiguration> cf : cursor) {
                 SSOConfigDTO config = new SSOConfigDTO();
-                if(cf.getValue().getTenant()!=null){
+                if (cf.getValue().getTenant() != null) {
                     config.setAcctName(cf.getValue().getTenant().getAcctName());
                 }
                 config.setId(cf.getValue().getId());
@@ -342,7 +363,7 @@ public class SecurityService {
         IgniteCache<Long, Tenant> tenantCache = igniteInstance.cache(TENANT_CACHE);
         SqlQuery sqlQry = new SqlQuery(Tenant.class, "imported= ?");
         try (QueryCursor<Cache.Entry<Long, Tenant>> cursor = tenantCache.query(sqlQry.setArgs(includeImported))) {
-            for (Cache.Entry<Long, Tenant> tn : cursor){
+            for (Cache.Entry<Long, Tenant> tn : cursor) {
                 TenantDTO tenant = new TenantDTO();
                 Tenant tnt = tn.getValue();
                 tenant.setId(tnt.getId());
@@ -351,7 +372,7 @@ public class SecurityService {
                 tenant.setProdName(tnt.getProdName());
                 tenant.setEnabled(tnt.isEnabled());
                 tenant.setImported(tnt.isImported());
-                if(tnt.getTenantSSOConf() !=null){
+                if (tnt.getTenantSSOConf() != null) {
                     tenant.setSsoConfId(tnt.getTenantSSOConf().getId());
                     tenant.setSsoConfDsplName(tnt.getTenantSSOConf().getSsoConfDsplName());
                 }
@@ -401,18 +422,19 @@ public class SecurityService {
         return Arrays.asList(dsetsProds).stream().map(dp
                 -> new DatasetProductDTO(1L, dp[2], dp[1], dp[0])).collect(Collectors.toSet());
     }
-    
+
     /**
      * getTenantByName
+     *
      * @param tenantName
-     * @return 
+     * @return
      */
-    private Tenant getTenantByName(String tenantName){
+    private Tenant getTenantByName(String tenantName) {
         IgniteCache<Long, Tenant> tenantCache = igniteInstance.cache(TENANT_CACHE);
         SqlQuery sqlQry = new SqlQuery(Tenant.class, "acctName= ?");
-        Tenant tenant= null;
+        Tenant tenant = null;
         try (QueryCursor<Cache.Entry<Long, Tenant>> cursor = tenantCache.query(sqlQry.setArgs(tenantName))) {
-            for (Cache.Entry<Long, Tenant> tn : cursor){
+            for (Cache.Entry<Long, Tenant> tn : cursor) {
                 tenant = tn.getValue();
             }
         }

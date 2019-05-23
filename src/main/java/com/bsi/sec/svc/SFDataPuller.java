@@ -16,6 +16,7 @@ import com.bsi.sec.util.LogUtils;
 import com.bsi.sec.util.SOQLQueries;
 import com.sforce.soap.enterprise.EnterpriseConnection;
 import com.sforce.soap.enterprise.GetUpdatedResult;
+import com.sforce.soap.enterprise.LoginResult;
 import com.sforce.soap.enterprise.QueryResult;
 import com.sforce.soap.enterprise.sobject.Entitlement;
 import com.sforce.soap.enterprise.sobject.SObject;
@@ -57,11 +58,13 @@ public class SFDataPuller implements DataPuller {
 
     @Override
     public List<Tenant> pullAll(LocalDateTime fromDtTm) throws Exception {
+        refreshSessionCheck();
         return getAllActiveEntitlements(fromDtTm);
     }
 
     @Override
     public List<Tenant> pullUpdates(LocalDateTime fromDtTm) throws Exception {
+        refreshSessionCheck();
         return getUpdatedEntitlements(fromDtTm);
     }
 
@@ -81,6 +84,42 @@ public class SFDataPuller implements DataPuller {
     @Override
     public void postCleanup() throws Exception {
         logout();
+    }
+
+    /**
+     * Checks if current user's session is about to expire and reestablishes the
+     * session.
+     *
+     * @throws Exception
+     */
+    public void refreshSessionCheck() throws Exception {
+        try {
+            if (connection != null) {
+                int secondsSessValid = connection.getUserInfo().getSessionSecondsValid();
+                int secsBeforeSessExpire = 10 * 60; // 10 minutes
+
+                if (secondsSessValid <= secsBeforeSessExpire) {
+                    connection.logout();
+                    SF sf = props.getSf();
+                    LoginResult loginResult = connection.login(sf.getUsername(),
+                            sf.getPassword() + sf.getSecToken());
+
+                    if (loginResult != null) {
+                        String serverUrl = loginResult.getServerUrl();
+                        String sessionId = loginResult.getSessionId();
+                        String userId = loginResult.getUserId();
+
+                        if (log.isInfoEnabled()) {
+                            log.info(LogUtils.jsonize("Session has been refreshed!",
+                                    "url", serverUrl, "sessionid", sessionId, "userid",
+                                    userId));
+                        }
+                    }
+                }
+            }
+        } catch (ConnectionException ex) {
+            throw new ConfigurationException("Failed to refresh SF session!", ex);
+        }
     }
 
     /**
