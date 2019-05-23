@@ -19,6 +19,7 @@ import static com.bsi.sec.util.CacheConstants.TENANT_CACHE;
 import static com.bsi.sec.util.CacheConstants.AUDIT_LOG_CACHE;
 import static com.bsi.sec.util.CacheConstants.SSO_CONFIGURATION_CACHE;
 import com.bsi.sec.util.DateUtils;
+import com.bsi.sec.util.JpaQueries;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -66,6 +67,9 @@ public class SecurityService {
     
     @Autowired
     private SSOConfigurationRepository ssoConfigurationRepository;
+    
+    @Autowired
+    private AuditLogger auditLogger;
 
     /**
      *
@@ -238,8 +242,10 @@ public class SecurityService {
      * @return
      */
     public boolean deleteSSOConfig(long id) {
+        SSOConfiguration ssoConf = getSSOConfById(id);
         IgniteCache<Long, SSOConfiguration> cache = igniteInstance.cache(SSO_CONFIGURATION_CACHE);
-        cache.query(new SqlFieldsQuery("DELETE FROM SSOConfiguration WHERE id = ?").setArgs(id));
+        cache.query(new SqlFieldsQuery(JpaQueries.DELETE_SSO_CONFIG).setArgs(id));
+        auditLogger.logEntity(ssoConf,AuditLogger.Areas.SSO_CONF,AuditLogger.Ops.DELETE);
         return true;
     }
 
@@ -417,6 +423,23 @@ public class SecurityService {
             }
         }
         return tenant;
+    }
+    
+    /**
+     * getSSOConfById
+     * @param id
+     * @return 
+     */
+    private SSOConfiguration getSSOConfById(Long id){
+        IgniteCache<Long, SSOConfiguration> ssoConfCache = igniteInstance.cache(SSO_CONFIGURATION_CACHE);
+        SqlQuery sqlQry = new SqlQuery(SSOConfiguration.class, "id= ?");
+        SSOConfiguration ssoConf= null;
+        try (QueryCursor<Cache.Entry<Long, SSOConfiguration>> cursor = ssoConfCache.query(sqlQry.setArgs(id))) {
+            for (Cache.Entry<Long, SSOConfiguration> cnf : cursor){
+                ssoConf = cnf.getValue();
+            }
+        }
+        return ssoConf;
     }
 
 }
