@@ -14,6 +14,7 @@ import com.bsi.sec.dto.ProductDTO;
 import com.bsi.sec.dto.SSOConfigDTO;
 import com.bsi.sec.dto.SyncInfoDTO;
 import com.bsi.sec.dto.TenantDTO;
+import com.bsi.sec.repository.SSOConfigurationRepository;
 import static com.bsi.sec.util.CacheConstants.TENANT_CACHE;
 import static com.bsi.sec.util.CacheConstants.AUDIT_LOG_CACHE;
 import static com.bsi.sec.util.CacheConstants.SSO_CONFIGURATION_CACHE;
@@ -30,6 +31,7 @@ import javax.cache.Cache;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.cache.query.QueryCursor;
+import org.apache.ignite.cache.query.SqlFieldsQuery;
 import org.apache.ignite.cache.query.SqlQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +60,12 @@ public class SecurityService {
     
     @Autowired
     Ignite igniteInstance;
+    
+    @Autowired
+    private EntityIDGenerator idGenerator;
+    
+    @Autowired
+    private SSOConfigurationRepository ssoConfigurationRepository;
 
     /**
      *
@@ -172,10 +180,42 @@ public class SecurityService {
      * @return
      */
     public SSOConfigDTO createSSOConfig(SSOConfigDTO ssoConfig) {
+       
+        SSOConfiguration sSOConfiguration = new SSOConfiguration();
+        
+        sSOConfiguration.setAllowLogout(ssoConfig.getAllowLogout());
+        sSOConfiguration.setAppRedirectURL(ssoConfig.getAppRedirectURL());
+        sSOConfiguration.setAttribIndex(ssoConfig.getAttribIndex());
+        sSOConfiguration.setCertAlias(ssoConfig.getCertAlias());
+        sSOConfiguration.setCertPassword(ssoConfig.getCertPassword());
+        sSOConfiguration.setCertText(ssoConfig.getCertText());
+        sSOConfiguration.setDsplName(ssoConfig.getDsplName());
+        sSOConfiguration.setEnabled(ssoConfig.getEnabled());
+        sSOConfiguration.setExpireRequestSecs(ssoConfig.getExpireRequestSecs());
+        sSOConfiguration.setId(idGenerator.generate());
+        sSOConfiguration.setIdpIssuer(ssoConfig.getIdpIssuer());
+        sSOConfiguration.setIdpReqURL(ssoConfig.getIdpReqURL());
+        sSOConfiguration.setNonSamlLogoutURL(ssoConfig.getNonSamlLogoutURL());
+        sSOConfiguration.setRedirectToApplication(ssoConfig.getRedirectToApplication());
+        
+        sSOConfiguration.setSignRequests(ssoConfig.getSignRequests());
+        sSOConfiguration.setSpConsumerURL(ssoConfig.getSpConsumerURL());
+        sSOConfiguration.setSpIssuer(ssoConfig.getSpIssuer());
+        
+        Tenant tenant = getTenantByName(ssoConfig.getAcctName());
+        sSOConfiguration.setTenant(tenant);
+        
+        //sSOConfiguration.setTenantSSOConf(tenantSSOConf);
+        sSOConfiguration.setValidateIdpIssuer(ssoConfig.getValidateIdpIssuer());
+        sSOConfiguration.setValidateRespSignature(ssoConfig.getValidateRespSignature());
+        
+        ssoConfigurationRepository.save(sSOConfiguration.getId(), sSOConfiguration);
+        
         SSOConfigDTO config = new SSOConfigDTO();
-        config.setAcctName("BSI");
-        config.setDsplName("BSI SSO Config");
-        config.setEnabled(true);
+        config.setId(sSOConfiguration.getId());
+        config.setAcctName(ssoConfig.getAcctName());
+        config.setDsplName(ssoConfig.getDsplName());
+        config.setEnabled(ssoConfig.getEnabled());
         return config;
     }
 
@@ -198,7 +238,8 @@ public class SecurityService {
      * @return
      */
     public boolean deleteSSOConfig(long id) {
-        //TODO: Add implementation!
+        IgniteCache<Long, SSOConfiguration> cache = igniteInstance.cache(SSO_CONFIGURATION_CACHE);
+        cache.query(new SqlFieldsQuery("DELETE FROM SSOConfiguration WHERE id = ?").setArgs(id));
         return true;
     }
 
@@ -232,12 +273,12 @@ public class SecurityService {
      */
     public List<AuditLogDTO> getAuditLogs(int lastNoDays) {
         List<AuditLogDTO> auditLogs = new ArrayList<>();
-        IgniteCache<Long, AuditLog> tenantCache = igniteInstance.cache(AUDIT_LOG_CACHE);
+        IgniteCache<Long, AuditLog> auditLogCache = igniteInstance.cache(AUDIT_LOG_CACHE);
         DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'");
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime then = now.minusDays(lastNoDays);
         SqlQuery sqlQry = new SqlQuery(AuditLog.class, "createdDate > ? ");
-        try (QueryCursor<Cache.Entry<Long, AuditLog>> cursor = tenantCache.query(sqlQry.setArgs(then.format(format)))) {
+        try (QueryCursor<Cache.Entry<Long, AuditLog>> cursor = auditLogCache.query(sqlQry.setArgs(then.format(format)))) {
             for (Cache.Entry<Long, AuditLog> ag : cursor){
                 AuditLogDTO auditLog = new AuditLogDTO();
                 auditLog.setCreatedDate(ag.getValue().getCreatedDate());
@@ -273,10 +314,10 @@ public class SecurityService {
      */
     public List<SSOConfigDTO> getSSOConfigs() {
         List<SSOConfigDTO> configs = new ArrayList<>();
-        IgniteCache<Long, SSOConfiguration> tenantCache = igniteInstance.cache(SSO_CONFIGURATION_CACHE);
+        IgniteCache<Long, SSOConfiguration> ssoConfigCache = igniteInstance.cache(SSO_CONFIGURATION_CACHE);
         final String sql = "select * from SSOConfiguration";
         SqlQuery sqlQry = new SqlQuery(SSOConfiguration.class,sql);
-        try (QueryCursor<Cache.Entry<Long, SSOConfiguration>> cursor = tenantCache.query(sqlQry)) {
+        try (QueryCursor<Cache.Entry<Long, SSOConfiguration>> cursor = ssoConfigCache.query(sqlQry)) {
             for (Cache.Entry<Long, SSOConfiguration> cf : cursor){
                 SSOConfigDTO config = new SSOConfigDTO();
                 if(cf.getValue().getTenant()!=null){
@@ -359,6 +400,23 @@ public class SecurityService {
             {"DSET3", "CF", "ACCT3"}};
         return Arrays.asList(dsetsProds).stream().map(dp
                 -> new DatasetProductDTO(1L, dp[2], dp[1], dp[0])).collect(Collectors.toSet());
+    }
+    
+    /**
+     * getTenantByName
+     * @param tenantName
+     * @return 
+     */
+    private Tenant getTenantByName(String tenantName){
+        IgniteCache<Long, Tenant> tenantCache = igniteInstance.cache(TENANT_CACHE);
+        SqlQuery sqlQry = new SqlQuery(Tenant.class, "acctName= ?");
+        Tenant tenant= null;
+        try (QueryCursor<Cache.Entry<Long, Tenant>> cursor = tenantCache.query(sqlQry.setArgs(tenantName))) {
+            for (Cache.Entry<Long, Tenant> tn : cursor){
+                tenant = tn.getValue();
+            }
+        }
+        return tenant;
     }
 
 }
