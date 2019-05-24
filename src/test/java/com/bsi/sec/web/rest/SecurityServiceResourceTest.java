@@ -306,7 +306,6 @@ public class SecurityServiceResourceTest extends BaseTest {
         ssoConfigIn.setIdpReqURL("test");
         ssoConfigIn.setNonSamlLogoutURL("test");
         ssoConfigIn.setRedirectToApplication(true);
-        ssoConfigIn.setSignRequests(false);
         ssoConfigIn.setSpConsumerURL("test");
         ssoConfigIn.setSpIssuer("test");
         ssoConfigIn.setValidateIdpIssuer(false);
