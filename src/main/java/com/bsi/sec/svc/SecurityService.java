@@ -255,8 +255,6 @@ public class SecurityService {
         sSOConfiguration.setIdpReqURL(ssoConfig.getIdpReqURL());
         sSOConfiguration.setNonSamlLogoutURL(ssoConfig.getNonSamlLogoutURL());
         sSOConfiguration.setRedirectToApplication(ssoConfig.getRedirectToApplication());
-
-        sSOConfiguration.setSignRequests(ssoConfig.getSignRequests());
         sSOConfiguration.setSpConsumerURL(ssoConfig.getSpConsumerURL());
         sSOConfiguration.setSpIssuer(ssoConfig.getSpIssuer());
 
@@ -295,7 +293,6 @@ public class SecurityService {
         sSOConfiguration.setNonSamlLogoutURL(ssoConfig.getNonSamlLogoutURL());
         sSOConfiguration.setRedirectToApplication(ssoConfig.getRedirectToApplication());
 
-        sSOConfiguration.setSignRequests(ssoConfig.getSignRequests());
         sSOConfiguration.setSpConsumerURL(ssoConfig.getSpConsumerURL());
         sSOConfiguration.setSpIssuer(ssoConfig.getSpIssuer());
 
@@ -538,7 +535,6 @@ public class SecurityService {
         config.setIdpReqURL(sSOConfiguration.getIdpReqURL());
         config.setNonSamlLogoutURL(sSOConfiguration.getNonSamlLogoutURL());
         config.setRedirectToApplication(sSOConfiguration.isRedirectToApplication());
-        config.setSignRequests(sSOConfiguration.isSignRequests());
         config.setSpConsumerURL(sSOConfiguration.getSpConsumerURL());
         config.setSpIssuer(sSOConfiguration.getSpIssuer());
         config.setValidateIdpIssuer(sSOConfiguration.isValidateIdpIssuer());

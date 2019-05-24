@@ -27,7 +27,6 @@ public final class SSOConfigDTO {
     @NotNull
     private String idpReqURL;
 
-    @NotNull
     private String spConsumerURL;
 
     @NotNull
@@ -44,12 +43,8 @@ public final class SSOConfigDTO {
     private Boolean validateIdpIssuer;
 
     @NotNull
-    private Boolean signRequests;
-
-    @NotNull
     private Boolean allowLogout;
 
-    @NotNull
     private String nonSamlLogoutURL;
 
     @NotNull
@@ -165,15 +160,7 @@ public final class SSOConfigDTO {
     public void setValidateIdpIssuer(Boolean validateIdpIssuer) {
         this.validateIdpIssuer = validateIdpIssuer;
     }
-
-    public Boolean getSignRequests() {
-        return signRequests;
-    }
-
-    public void setSignRequests(Boolean signRequests) {
-        this.signRequests = signRequests;
-    }
-
+ 
     public Boolean getAllowLogout() {
         return allowLogout;
     }
@@ -248,7 +235,7 @@ public final class SSOConfigDTO {
 
     @Override
     public String toString() {
-        return "SSOConfigDTO{" + "id=" + id + ", dsplName=" + dsplName + ", idpIssuer=" + idpIssuer + ", idpReqURL=" + idpReqURL + ", spConsumerURL=" + spConsumerURL + ", spIssuer=" + spIssuer + ", attribIndex=" + attribIndex + ", validateRespSignature=" + validateRespSignature + ", validateIdpIssuer=" + validateIdpIssuer + ", signRequests=" + signRequests + ", allowLogout=" + allowLogout + ", nonSamlLogoutURL=" + nonSamlLogoutURL + ", redirectToApplication=" + redirectToApplication + ", appRedirectURL=" + appRedirectURL + ", certAlias=" + certAlias + ", certPassword=" + certPassword + ", certText=" + certText + ", expireRequestSecs=" + expireRequestSecs + ", enabled=" + enabled + ", linked=" + linked + ", acctName=" + acctName + '}';
+        return "SSOConfigDTO{" + "id=" + id + ", dsplName=" + dsplName + ", idpIssuer=" + idpIssuer + ", idpReqURL=" + idpReqURL + ", spConsumerURL=" + spConsumerURL + ", spIssuer=" + spIssuer + ", attribIndex=" + attribIndex + ", validateRespSignature=" + validateRespSignature + ", validateIdpIssuer=" + validateIdpIssuer + ", allowLogout=" + allowLogout + ", nonSamlLogoutURL=" + nonSamlLogoutURL + ", redirectToApplication=" + redirectToApplication + ", appRedirectURL=" + appRedirectURL + ", certAlias=" + certAlias + ", certPassword=" + certPassword + ", certText=" + certText + ", expireRequestSecs=" + expireRequestSecs + ", enabled=" + enabled + ", linked=" + linked + ", acctName=" + acctName + '}';
     }
 
 }

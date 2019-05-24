@@ -44,7 +44,6 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
     @Column(name = "idp_req_url", nullable = false)
     private String idpReqURL;
 
-    @NotNull
     @Column(name = "sp_consumer_url", nullable = false)
     private String spConsumerURL;
 
@@ -66,14 +65,9 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
     private Boolean validateIdpIssuer;
 
     @NotNull
-    @Column(name = "sign_requests", nullable = false)
-    private Boolean signRequests;
-
-    @NotNull
     @Column(name = "allow_logout", nullable = false)
     private Boolean allowLogout;
 
-    @NotNull
     @Column(name = "non_saml_logout_url", nullable = false)
     private String nonSamlLogoutURL;
 
@@ -241,19 +235,6 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
         this.validateIdpIssuer = validateIdpIssuer;
     }
 
-    public Boolean isSignRequests() {
-        return signRequests;
-    }
-
-    public SSOConfiguration signRequests(Boolean signRequests) {
-        this.signRequests = signRequests;
-        return this;
-    }
-
-    public void setSignRequests(Boolean signRequests) {
-        this.signRequests = signRequests;
-    }
-
     public Boolean isAllowLogout() {
         return allowLogout;
     }
@@ -409,7 +390,6 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
         hash = 59 * hash + Objects.hashCode(this.attribIndex);
         hash = 59 * hash + Objects.hashCode(this.validateRespSignature);
         hash = 59 * hash + Objects.hashCode(this.validateIdpIssuer);
-        hash = 59 * hash + Objects.hashCode(this.signRequests);
         hash = 59 * hash + Objects.hashCode(this.allowLogout);
         hash = 59 * hash + Objects.hashCode(this.nonSamlLogoutURL);
         hash = 59 * hash + Objects.hashCode(this.redirectToApplication);
@@ -482,9 +462,6 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
         if (!Objects.equals(this.validateIdpIssuer, other.validateIdpIssuer)) {
             return false;
         }
-        if (!Objects.equals(this.signRequests, other.signRequests)) {
-            return false;
-        }
         if (!Objects.equals(this.allowLogout, other.allowLogout)) {
             return false;
         }
@@ -508,7 +485,7 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
 
     @Override
     public String toString() {
-        return "SSOConfiguration{" + "id=" + id + ", dsplName=" + dsplName + ", idpIssuer=" + idpIssuer + ", idpReqURL=" + idpReqURL + ", spConsumerURL=" + spConsumerURL + ", spIssuer=" + spIssuer + ", attribIndex=" + attribIndex + ", validateRespSignature=" + validateRespSignature + ", validateIdpIssuer=" + validateIdpIssuer + ", signRequests=" + signRequests + ", allowLogout=" + allowLogout + ", nonSamlLogoutURL=" + nonSamlLogoutURL + ", redirectToApplication=" + redirectToApplication + ", appRedirectURL=" + appRedirectURL + ", certAlias=" + certAlias + ", certPassword=" + certPassword + ", certText=" + certText + ", expireRequestSecs=" + expireRequestSecs + ", enabled=" + enabled + ", linked=" + linked + ", tenantSSOConf=" + tenantSSOConf + ", tenant=" + tenant + '}';
+        return "SSOConfiguration{" + "id=" + id + ", dsplName=" + dsplName + ", idpIssuer=" + idpIssuer + ", idpReqURL=" + idpReqURL + ", spConsumerURL=" + spConsumerURL + ", spIssuer=" + spIssuer + ", attribIndex=" + attribIndex + ", validateRespSignature=" + validateRespSignature + ", validateIdpIssuer=" + validateIdpIssuer + ", allowLogout=" + allowLogout + ", nonSamlLogoutURL=" + nonSamlLogoutURL + ", redirectToApplication=" + redirectToApplication + ", appRedirectURL=" + appRedirectURL + ", certAlias=" + certAlias + ", certPassword=" + certPassword + ", certText=" + certText + ", expireRequestSecs=" + expireRequestSecs + ", enabled=" + enabled + ", linked=" + linked + ", tenantSSOConf=" + tenantSSOConf + ", tenant=" + tenant + '}';
     }
 
 }
