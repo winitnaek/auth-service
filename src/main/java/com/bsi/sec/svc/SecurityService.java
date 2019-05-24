@@ -6,9 +6,12 @@
 package com.bsi.sec.svc;
 
 import com.bsi.sec.dao.AdminMetadataDao;
+import com.bsi.sec.dao.CompanyDao;
+import com.bsi.sec.dao.TenantDao;
 import com.bsi.sec.domain.AdminMetadata;
 import com.bsi.sec.domain.Tenant;
 import com.bsi.sec.domain.AuditLog;
+import com.bsi.sec.domain.Company;
 import com.bsi.sec.domain.SSOConfiguration;
 import com.bsi.sec.dto.AuditLogDTO;
 import com.bsi.sec.dto.DatasetProductDTO;
@@ -18,22 +21,28 @@ import com.bsi.sec.dto.SyncInfoDTO;
 import com.bsi.sec.dto.TenantDTO;
 import com.bsi.sec.exception.ProcessingException;
 import com.bsi.sec.repository.AdminMetadataRepository;
+import com.bsi.sec.repository.CompanyRepository;
 import com.bsi.sec.repository.SSOConfigurationRepository;
+import com.bsi.sec.repository.TenantRepository;
 import static com.bsi.sec.util.CacheConstants.TENANT_CACHE;
 import static com.bsi.sec.util.CacheConstants.AUDIT_LOG_CACHE;
 import static com.bsi.sec.util.CacheConstants.SSO_CONFIGURATION_CACHE;
 import com.bsi.sec.util.DateUtils;
 import com.bsi.sec.util.LogUtils;
 import com.bsi.sec.util.JpaQueries;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.cache.Cache;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.cache.query.QueryCursor;
@@ -70,7 +79,7 @@ public class SecurityService {
 
     @Autowired
     private SSOConfigurationRepository ssoConfigurationRepository;
-    
+
     @Autowired
     private AuditLogger auditLogger;
 
@@ -79,6 +88,18 @@ public class SecurityService {
 
     @Autowired
     private AdminMetadataDao adminMetaDao;
+
+    @Autowired
+    private TenantDao tenantDao;
+
+    @Autowired
+    private TenantRepository tenantRepo;
+
+    @Autowired
+    private CompanyDao compDao;
+
+    @Autowired
+    private CompanyRepository compRepo;
 
     /**
      *
@@ -150,6 +171,9 @@ public class SecurityService {
         AdminMetadata updEnt = adminMetaRepo.save(ent.getId(), ent);
 
         if (updEnt != null) {
+            auditLogger.logEntity(ent, AuditLogger.Areas.ADMIN_META_DATA,
+                    AuditLogger.Ops.UPDATE);
+
             if (log.isInfoEnabled()) {
                 log.info(LogUtils.jsonize("Periodic Data Sync configuration was updated.",
                         "rec", updEnt.toString()));
@@ -168,20 +192,29 @@ public class SecurityService {
      * @param datasetName
      * @return
      */
-    public TenantDTO createTenant(String accountName, String productName,
-            String datasetName) throws Exception {
+    public TenantDTO createTenant(String acctName, String prodName,
+            String dset, String companyCID) throws Exception {
         if (log.isDebugEnabled()) {
             log.debug("SERVICE invoked to add new Tenant with Account Name = {}, "
-                    + "Product Name = {}, Dataset Name = {}", accountName,
-                    productName, datasetName);
+                    + "Product Name = {}, Dataset Name = {}, Company CID = {}",
+                    acctName, prodName, dset, companyCID);
         }
 
-        TenantDTO tenant = new TenantDTO(1L, "BSI Inc.",
-                "TPF", "BSI_DSET_1");
-        tenant.setEnabled(true);
-        tenant.setImported(true);
-        tenant.setSsoConfId(1L);
-        tenant.setSsoConfDsplName("SSO Conf 1");
+        Tenant tenantEnt = tenantDao.getTenantByDsetProdAcct(dset, prodName, acctName);
+        Set<Company> companies = new HashSet<>(0);
+
+        if (tenantEnt == null) {
+            if (StringUtils.isNotBlank(companyCID)) {
+                Company company = saveCompany(dset, companyCID);
+                auditLogger.logEntity(company, AuditLogger.Areas.COMPANY, AuditLogger.Ops.INSERT);
+                companies.add(company);
+            }
+
+            tenantEnt = saveTenant(prodName, acctName, dset, companies);
+            auditLogger.logEntity(tenantEnt, AuditLogger.Areas.TENANT, AuditLogger.Ops.INSERT);
+        }
+
+        TenantDTO tenant = populateTenantDTO(tenantEnt);
         return tenant;
     }
 
@@ -246,7 +279,7 @@ public class SecurityService {
      */
     public SSOConfigDTO updateSSOConfig(SSOConfigDTO ssoConfig) {
         SSOConfiguration sSOConfiguration = new SSOConfiguration();
-        
+
         sSOConfiguration.setAllowLogout(ssoConfig.getAllowLogout());
         sSOConfiguration.setAppRedirectURL(ssoConfig.getAppRedirectURL());
         sSOConfiguration.setAttribIndex(ssoConfig.getAttribIndex());
@@ -261,18 +294,18 @@ public class SecurityService {
         sSOConfiguration.setIdpReqURL(ssoConfig.getIdpReqURL());
         sSOConfiguration.setNonSamlLogoutURL(ssoConfig.getNonSamlLogoutURL());
         sSOConfiguration.setRedirectToApplication(ssoConfig.getRedirectToApplication());
-        
+
         sSOConfiguration.setSignRequests(ssoConfig.getSignRequests());
         sSOConfiguration.setSpConsumerURL(ssoConfig.getSpConsumerURL());
         sSOConfiguration.setSpIssuer(ssoConfig.getSpIssuer());
-        
+
         Tenant tenant = getTenantByName(ssoConfig.getAcctName());
         sSOConfiguration.setTenant(tenant);
-        
+
         //sSOConfiguration.setTenantSSOConf(tenantSSOConf);
         sSOConfiguration.setValidateIdpIssuer(ssoConfig.getValidateIdpIssuer());
         sSOConfiguration.setValidateRespSignature(ssoConfig.getValidateRespSignature());
-        
+
         ssoConfigurationRepository.save(sSOConfiguration.getId(), sSOConfiguration);
         auditLogger.logEntity(sSOConfiguration, AuditLogger.Areas.SSO_CONF, AuditLogger.Ops.UPDATE);
         return prepareConfig(sSOConfiguration);
@@ -287,7 +320,7 @@ public class SecurityService {
         SSOConfiguration ssoConf = getSSOConfById(id);
         IgniteCache<Long, SSOConfiguration> cache = igniteInstance.cache(SSO_CONFIGURATION_CACHE);
         cache.query(new SqlFieldsQuery(JpaQueries.DELETE_SSO_CONFIG).setArgs(id));
-        auditLogger.logEntity(ssoConf,AuditLogger.Areas.SSO_CONF,AuditLogger.Ops.DELETE);
+        auditLogger.logEntity(ssoConf, AuditLogger.Areas.SSO_CONF, AuditLogger.Ops.DELETE);
         return true;
     }
 
@@ -356,7 +389,8 @@ public class SecurityService {
 
     /**
      * getSSOConfigs
-     * @return 
+     *
+     * @return
      */
     public List<SSOConfigDTO> getSSOConfigs() {
         List<SSOConfigDTO> configs = new ArrayList<>();
@@ -364,7 +398,7 @@ public class SecurityService {
         final String sql = "select * from SSOConfiguration";
         SqlQuery sqlQry = new SqlQuery(SSOConfiguration.class, sql);
         try (QueryCursor<Cache.Entry<Long, SSOConfiguration>> cursor = ssoConfigCache.query(sqlQry)) {
-            for (Cache.Entry<Long, SSOConfiguration> cf : cursor){
+            for (Cache.Entry<Long, SSOConfiguration> cf : cursor) {
                 SSOConfigDTO config = prepareConfig(cf.getValue());
                 configs.add(config);
             }
@@ -460,33 +494,35 @@ public class SecurityService {
         }
         return tenant;
     }
-    
+
     /**
      * getSSOConfById
+     *
      * @param id
-     * @return 
+     * @return
      */
-    private SSOConfiguration getSSOConfById(Long id){
+    private SSOConfiguration getSSOConfById(Long id) {
         IgniteCache<Long, SSOConfiguration> ssoConfCache = igniteInstance.cache(SSO_CONFIGURATION_CACHE);
         SqlQuery sqlQry = new SqlQuery(SSOConfiguration.class, "id= ?");
-        SSOConfiguration ssoConf= null;
+        SSOConfiguration ssoConf = null;
         try (QueryCursor<Cache.Entry<Long, SSOConfiguration>> cursor = ssoConfCache.query(sqlQry.setArgs(id))) {
-            for (Cache.Entry<Long, SSOConfiguration> cnf : cursor){
+            for (Cache.Entry<Long, SSOConfiguration> cnf : cursor) {
                 ssoConf = cnf.getValue();
             }
         }
         return ssoConf;
     }
-    
+
     /**
      * prepareConfig
+     *
      * @param sSOConfiguration
-     * @return 
+     * @return
      */
-    private SSOConfigDTO prepareConfig(SSOConfiguration sSOConfiguration){
+    private SSOConfigDTO prepareConfig(SSOConfiguration sSOConfiguration) {
         SSOConfigDTO config = new SSOConfigDTO();
         config.setId(sSOConfiguration.getId());
-        if(sSOConfiguration.getTenant()!=null){
+        if (sSOConfiguration.getTenant() != null) {
             config.setAcctName(sSOConfiguration.getTenant().getAcctName());
         }
         config.setDsplName(sSOConfiguration.getDsplName());
@@ -510,4 +546,70 @@ public class SecurityService {
         return config;
     }
 
+    /**
+     *
+     * @param tenantEnt
+     * @param acctName
+     * @param companies
+     * @return
+     */
+    private Tenant saveTenant(String prodName, String acctName,
+            String dataset, Set<Company> companies) {
+        Tenant tenantEnt = new Tenant();
+        tenantEnt.setId(idGenerator.generate());
+        tenantEnt.setAcctId(String.valueOf(idGenerator.generate()));
+        tenantEnt.setAcctName(acctName);
+        tenantEnt.setCompanies(companies);
+        tenantEnt.setCreatedDate(LocalDateTime.now(ZoneOffset.UTC));
+        tenantEnt.setDataset(dataset);
+        tenantEnt.setEnabled(true);
+        tenantEnt.setImported(false);
+        tenantEnt.setLastModifiedDate(tenantEnt.getCreatedDate()
+                .toInstant(ZoneOffset.UTC));
+        tenantEnt.setProdId(String.valueOf(idGenerator.generate()));
+        tenantEnt.setProdName(prodName);
+        return tenantRepo.save(tenantEnt.getId(), tenantEnt);
+    }
+
+    /**
+     *
+     * @param dset
+     * @param companyCID
+     * @return
+     */
+    private Company saveCompany(String dset, String companyCID) {
+        Company company = compDao.getCompByDsetCompCID(dset, companyCID);
+
+        if (company != null) {
+            return company;
+        }
+
+        company = new Company();
+        company.setId(idGenerator.generate());
+        company.setDataset(dset);
+        company.setEnabled(true);
+        company.setImported(false);
+        company.setImportedDate(Instant.now(Clock.systemUTC()));
+        company.setName(dset + " Internal Company");
+        company.setSamlCid(companyCID);
+        return compRepo.save(company.getId(), company);
+    }
+
+    /**
+     *
+     * @param tenantEnt
+     * @return
+     */
+    private TenantDTO populateTenantDTO(Tenant ent) {
+        TenantDTO dto = new TenantDTO();
+        dto.setAcctId(ent.getAcctId());
+        dto.setAcctName(ent.getAcctName());
+        dto.setDataset(ent.getDataset());
+        dto.setEnabled(ent.isEnabled());
+        dto.setId(ent.getId());
+        dto.setImported(ent.isImported());
+        dto.setProdId(ent.getProdId());
+        dto.setProdName(ent.getProdName());
+        return dto;
+    }
 }

@@ -7,8 +7,6 @@ package com.bsi.sec.dto;
 
 import com.bsi.sec.svc.AuditLogger;
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
-import java.time.Instant;
 import java.time.LocalDateTime;
 
 /**
@@ -20,30 +18,22 @@ public final class AuditLogDTO {
     @Min(1)
     private Long id;
 
-    @NotNull
     private LocalDateTime createdDate;
 
-    @NotNull
     private String serverHost;
 
-    @NotNull
     private String user;
 
     private String clientHost;
 
-    @NotNull
     private AuditLogger.Ops operation;
 
-    @NotNull
     private String account;
 
-    @NotNull
     private String product;
 
-    @NotNull
     private String dataset;
 
-    @NotNull
     private AuditLogger.Areas area;
 
     private String message;

@@ -49,8 +49,8 @@ public class SecurityServiceResource {
     @GetMapping("/getProductsByDataset")
     public ResponseEntity<Set<DatasetProductDTO>> getProductsByDataset(
             @Valid @NotNull @RequestParam(required = true) String datasetName) throws Exception {
-        if (log.isDebugEnabled()) {
-            log.debug("REST request to get all Products for the specfied Dataset.");
+        if (log.isInfoEnabled()) {
+            log.info("REST request to get all Products for the specfied Dataset.");
         }
 
         Set<DatasetProductDTO> productsToRet = securityService.getProductsByDataset(datasetName);
@@ -63,8 +63,8 @@ public class SecurityServiceResource {
      */
     @PostMapping("/runInitialDataSync")
     public ResponseEntity<Boolean> runInitialDataSync() throws Exception {
-        if (log.isDebugEnabled()) {
-            log.debug("REST request to run Full Salesforce sync.");
+        if (log.isInfoEnabled()) {
+            log.info("REST request to run Full Salesforce sync.");
         }
 
         boolean status = securityService.runFullSFSync();
@@ -80,8 +80,8 @@ public class SecurityServiceResource {
     @PostMapping("/runPeriodicDataSync")
     public ResponseEntity<Boolean> runPeriodicDataSync(@Valid @NotNull @RequestParam(required = true)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDateTime) throws Exception {
-        if (log.isDebugEnabled()) {
-            log.debug("REST request to run Periodic Salesforce sync.");
+        if (log.isInfoEnabled()) {
+            log.info("REST request to run Periodic Salesforce sync.");
         }
 
         boolean status = securityService.runPeriodicDataSync(fromDateTime);
@@ -97,8 +97,8 @@ public class SecurityServiceResource {
     @PostMapping("/enablePeriodicDataSync")
     public ResponseEntity<Boolean> enablePeriodicDataSync(
             @RequestParam boolean enabled) throws Exception {
-        if (log.isDebugEnabled()) {
-            log.debug("REST request to enable/disable Periodic Data Sync.");
+        if (log.isInfoEnabled()) {
+            log.info("REST request to enable/disable Periodic Data Sync.");
         }
 
         boolean status = securityService.enablePeriodicDataSync(enabled);
@@ -117,15 +117,16 @@ public class SecurityServiceResource {
     public ResponseEntity<TenantDTO> addTenant(
             @Valid @NotNull @RequestParam(required = true) String accountName,
             @Valid @NotNull @RequestParam(required = true) String productName,
-            @Valid @NotNull @RequestParam(required = true) String datasetName) throws Exception {
-        if (log.isDebugEnabled()) {
-            log.debug("REST request to add new Tenant with Account Name = {}, "
-                    + "Product Name = {}, Dataset Name = {}", accountName,
-                    productName, datasetName);
+            @Valid @NotNull @RequestParam(required = true) String datasetName,
+            @RequestParam(required = false) String companyCID) throws Exception {
+        if (log.isInfoEnabled()) {
+            log.info("REST request to add new Tenant with Account Name = {}, "
+                    + "Product Name = {}, Dataset Name = {}, Company CID = {}", 
+                    accountName, productName, datasetName, companyCID);
         }
 
         TenantDTO tenant = securityService.createTenant(accountName,
-                productName, datasetName);
+                productName, datasetName, companyCID);
         return new ResponseEntity<>(tenant, HttpStatus.OK);
     }
 
@@ -138,8 +139,8 @@ public class SecurityServiceResource {
     @PostMapping("/deleteTenant")
     public ResponseEntity<Boolean> deleteTenant(
             @Valid @Min(1L) @RequestParam(required = true) Long id) throws Exception {
-        if (log.isDebugEnabled()) {
-            log.debug("REST request to delete Tenant with ID = {}", id);
+        if (log.isInfoEnabled()) {
+            log.info("REST request to delete Tenant with ID = {}", id);
         }
 
         boolean isDeleted = securityService.deleteTenant(id);
@@ -155,8 +156,8 @@ public class SecurityServiceResource {
     @PostMapping("/addSSOConfig")
     public ResponseEntity<SSOConfigDTO> addSSOConfig(
             @Valid @NotNull @RequestBody(required = true) SSOConfigDTO ssoConfig) throws Exception {
-        if (log.isDebugEnabled()) {
-            log.debug("REST request to add new SSO Configuration = {}",
+        if (log.isInfoEnabled()) {
+            log.info("REST request to add new SSO Configuration = {}",
                     ssoConfig.toString());
         }
 
@@ -173,8 +174,8 @@ public class SecurityServiceResource {
     @PostMapping("/updateSSOConfig")
     public ResponseEntity<SSOConfigDTO> updateSSOConfig(
             @Valid @NotNull @RequestBody(required = true) SSOConfigDTO ssoConfig) throws Exception {
-        if (log.isDebugEnabled()) {
-            log.debug("REST request to update existing SSO Configuration = {}",
+        if (log.isInfoEnabled()) {
+            log.info("REST request to update existing SSO Configuration = {}",
                     ssoConfig.toString());
         }
 
@@ -191,8 +192,8 @@ public class SecurityServiceResource {
     @PostMapping("/deleteSSOConfig")
     public ResponseEntity<Boolean> deleteSSOConfig(
             @Valid @Min(1L) @RequestParam(required = true) long id) throws Exception {
-        if (log.isDebugEnabled()) {
-            log.debug("REST request to delete existing SSO Configuration "
+        if (log.isInfoEnabled()) {
+            log.info("REST request to delete existing SSO Configuration "
                     + "with ID = {}", id);
         }
 
@@ -213,8 +214,8 @@ public class SecurityServiceResource {
             @Valid @NotNull @RequestParam(required = true) String accountName,
             @Valid @Min(1L) @RequestParam(required = true) long ssoConfigId,
             @RequestParam boolean toUnlink) throws Exception {
-        if (log.isDebugEnabled()) {
-            log.debug("REST request to link existing SSO Configuration to Tenant"
+        if (log.isInfoEnabled()) {
+            log.info("REST request to link existing SSO Configuration to Tenant"
                     + "with Account Name = {}, SSO Config Id = {}, Unlink flag = {}",
                     accountName, ssoConfigId, toUnlink);
         }
@@ -236,8 +237,8 @@ public class SecurityServiceResource {
             @Valid @NotNull @RequestParam(required = true) String accountName,
             @Valid @Min(1L) @RequestParam(required = true) long ssoConfigId)
             throws Exception {
-        if (log.isDebugEnabled()) {
-            log.debug("REST request to test existing SSO Configuration"
+        if (log.isInfoEnabled()) {
+            log.info("REST request to test existing SSO Configuration"
                     + "with Account Name = {}, SSO Config Id = {}",
                     accountName, ssoConfigId);
         }
@@ -257,8 +258,8 @@ public class SecurityServiceResource {
     public ResponseEntity<List<AuditLogDTO>> getAuditLogs(
             @Valid @Min(1L) @RequestParam(required = true) int lastNoDays)
             throws Exception {
-        if (log.isDebugEnabled()) {
-            log.debug("REST request to get Audit Logs "
+        if (log.isInfoEnabled()) {
+            log.info("REST request to get Audit Logs "
                     + "for last {} days",
                     lastNoDays);
         }
@@ -277,8 +278,8 @@ public class SecurityServiceResource {
     public ResponseEntity<SSOConfigDTO> getSSOConfigsByTenant(
             @Valid @NotNull @RequestParam(required = true) String accountName)
             throws Exception {
-        if (log.isDebugEnabled()) {
-            log.debug("REST request to get SSO Configuration by Tenant "
+        if (log.isInfoEnabled()) {
+            log.info("REST request to get SSO Configuration by Tenant "
                     + "with Account Name = {}", accountName);
         }
 
@@ -296,8 +297,8 @@ public class SecurityServiceResource {
     @GetMapping("/getSSOConfigs")
     public ResponseEntity<List<SSOConfigDTO>> getSSOConfigs()
             throws Exception {
-        if (log.isDebugEnabled()) {
-            log.debug("REST request to get All the SSO Configuration ");
+        if (log.isInfoEnabled()) {
+            log.info("REST request to get All the SSO Configuration ");
         }
 
         List<SSOConfigDTO> ssoConfigDTO = securityService.getSSOConfigs();
@@ -313,8 +314,8 @@ public class SecurityServiceResource {
     @GetMapping("/getTenants")
     public ResponseEntity<List<TenantDTO>> getTenants(boolean includeImported)
             throws Exception {
-        if (log.isDebugEnabled()) {
-            log.debug("REST request to get Tenants "
+        if (log.isInfoEnabled()) {
+            log.info("REST request to get Tenants "
                     + "with Include Imported flag = {}", includeImported);
         }
 
@@ -330,8 +331,8 @@ public class SecurityServiceResource {
     @GetMapping("/getLastSyncInfo")
     public ResponseEntity<SyncInfoDTO> getLastSyncInfo()
             throws Exception {
-        if (log.isDebugEnabled()) {
-            log.debug("REST request to get Last Data Sync Info.");
+        if (log.isInfoEnabled()) {
+            log.info("REST request to get Last Data Sync Info.");
         }
 
         SyncInfoDTO syncInfoDTO = securityService.getLastSyncInfo();
@@ -345,8 +346,8 @@ public class SecurityServiceResource {
     @GetMapping("/getProductsByTenants")
     public ResponseEntity<ProductDTO> getProductsByTenants()
             throws Exception {
-        if (log.isDebugEnabled()) {
-            log.debug("REST request to get Last Data Sync Info.");
+        if (log.isInfoEnabled()) {
+            log.info("REST request to get Last Data Sync Info.");
         }
 
         ProductDTO prodInfoDTO = securityService.getProductsByTenants();

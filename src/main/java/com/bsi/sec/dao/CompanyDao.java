@@ -5,8 +5,8 @@
  */
 package com.bsi.sec.dao;
 
-import com.bsi.sec.domain.Tenant;
-import static com.bsi.sec.util.CacheConstants.TENANT_CACHE;
+import com.bsi.sec.domain.Company;
+import static com.bsi.sec.util.CacheConstants.COMPANY_CACHE;
 import com.bsi.sec.util.JpaQueries;
 import com.bsi.sec.util.LogUtils;
 import java.util.List;
@@ -24,9 +24,9 @@ import org.springframework.stereotype.Component;
  * @author igorV
  */
 @Component
-public class TenantDao {
+public class CompanyDao {
 
-    private final static Logger log = LoggerFactory.getLogger(TenantDao.class);
+    private final static Logger log = LoggerFactory.getLogger(CompanyDao.class);
 
     @Autowired
     private Ignite ignite;
@@ -34,34 +34,34 @@ public class TenantDao {
     /**
      *
      * @param dset
-     * @param prodName
-     * @param acctName
+     * @param companyCID
      * @return
      */
-    public Tenant getTenantByDsetProdAcct(String dset, String prodName, String acctName) {
-        SqlFieldsQuery sql = new SqlFieldsQuery(JpaQueries.GET_TENANT_ID_BY_DSET_PROD_ACCT);
-        IgniteCache<Long, Tenant> cache = ignite.cache(TENANT_CACHE);
-        Long tenId = null;
+    public Company getCompByDsetCompCID(String dset, String companyCID) {
+        SqlFieldsQuery sql = new SqlFieldsQuery(JpaQueries.GET_COMP_ID_BY_DSET_COMPANYCID);
+        IgniteCache<Long, Company> cache = ignite.cache(COMPANY_CACHE);
+        Long compId = null;
 
-        try (QueryCursor<List<?>> cursor = cache.query(sql.setArgs(dset, prodName, acctName))) {
+        try (QueryCursor<List<?>> cursor = cache.query(sql.setArgs(dset, companyCID))) {
             for (List<?> row : cursor) {
-                tenId = (Long) row.get(0);
+                compId = (Long) row.get(0);
 
                 if (log.isTraceEnabled()) {
-                    log.trace(LogUtils.jsonize("getTenantByDsetProdAcct(...)", "dataset", dset,
-                            "prodname", prodName, "acctname", acctName, "tenantId", tenId));
+                    log.trace(LogUtils.jsonize("getCompByDsetCompCID(...)", "dataset", dset,
+                            "companyCID", companyCID));
                 }
 
                 break;
             }
         }
 
-        Tenant tenant = null;
+        Company company = null;
 
-        if (tenId != null) {
-            tenant = cache.get(tenId);
+        if (compId != null) {
+            company = cache.get(compId);
         }
 
-        return tenant;
+        return company;
     }
+
 }

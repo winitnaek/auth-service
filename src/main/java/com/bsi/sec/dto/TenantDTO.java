@@ -19,7 +19,13 @@ public final class TenantDTO {
     private Long id;
 
     @NotNull
+    private String acctId;
+
+    @NotNull
     private String acctName;
+
+    @NotNull
+    private String prodId;
 
     @NotNull
     private String prodName;
@@ -52,6 +58,22 @@ public final class TenantDTO {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getAcctId() {
+        return acctId;
+    }
+
+    public void setAcctId(String acctId) {
+        this.acctId = acctId;
+    }
+
+    public String getProdId() {
+        return prodId;
+    }
+
+    public void setProdId(String prodId) {
+        this.prodId = prodId;
     }
 
     public String getAcctName() {
@@ -112,7 +134,7 @@ public final class TenantDTO {
 
     @Override
     public String toString() {
-        return "TenantDTO{" + "id=" + id + ", acctName=" + acctName + ", prodName=" + prodName + ", dataset=" + dataset + ", ssoConfId=" + ssoConfId + ", ssoConfDsplName=" + ssoConfDsplName + ", enabled=" + enabled + ", imported=" + imported + '}';
+        return "TenantDTO{" + "id=" + id + ", acctId=" + acctId + ", acctName=" + acctName + ", prodId=" + prodId + ", prodName=" + prodName + ", dataset=" + dataset + ", ssoConfId=" + ssoConfId + ", ssoConfDsplName=" + ssoConfDsplName + ", enabled=" + enabled + ", imported=" + imported + '}';
     }
 
 }

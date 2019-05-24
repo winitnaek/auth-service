@@ -7,11 +7,11 @@ package com.bsi.sec.svc;
 
 import com.bsi.sec.domain.AdminMetadata;
 import com.bsi.sec.domain.AuditLog;
+import com.bsi.sec.domain.Company;
 import com.bsi.sec.domain.SSOConfiguration;
 import com.bsi.sec.domain.Tenant;
 import com.bsi.sec.dto.AuditLogDTO;
 import com.bsi.sec.repository.AuditLogRepository;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.slf4j.Logger;
@@ -98,6 +98,29 @@ public class AuditLogger {
         return log(logInput);
     }
 
+    /**
+     *
+     * @param tenUpd,
+     */
+    @Transactional
+    public boolean logEntity(Company ent, Areas area, Ops op) {
+        AuditLogDTO logInput = new AuditLogDTO();
+        logInput.setAccount(" ");
+        logInput.setArea(area);
+        logInput.setDataset(ent.getDataset());
+        logInput.setOperation(op);
+        logInput.setProduct(" ");
+        logInput.setServerHost(ignConf.getLocalHost());
+        logInput.setId(idGen.generate());
+        logInput.setUser("USER");
+
+        if (log.isDebugEnabled()) {
+            log.debug("Candidate to be logged {}.", logInput.toString());
+        }
+
+        return log(logInput);
+    }
+    
     /**
      *
      * @param ent
