@@ -20,6 +20,7 @@ import com.bsi.sec.dto.SSOConfigDTO;
 import com.bsi.sec.dto.SyncInfoDTO;
 import com.bsi.sec.dto.TenantDTO;
 import com.bsi.sec.exception.ProcessingException;
+import com.bsi.sec.exception.RecordNotFoundException;
 import com.bsi.sec.repository.AdminMetadataRepository;
 import com.bsi.sec.repository.CompanyRepository;
 import com.bsi.sec.repository.SSOConfigurationRepository;
@@ -39,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.cache.Cache;
@@ -200,7 +202,8 @@ public class SecurityService {
                     acctName, prodName, dset, companyCID);
         }
 
-        Tenant tenantEnt = tenantDao.getTenantByDsetProdAcct(dset, prodName, acctName);
+        Tenant tenantEnt = tenantDao.getTenantByDsetProdAcct(dset, prodName,
+                acctName, true);
         Set<Company> companies = new HashSet<>(0);
 
         if (tenantEnt == null) {
@@ -223,13 +226,24 @@ public class SecurityService {
      * @param id
      * @return
      */
-    public boolean deleteTenant(Long id) {
+    public boolean deleteTenant(Long id) throws RecordNotFoundException {
         if (log.isDebugEnabled()) {
             log.debug("SERVICE invoked to delete Tenant with ID = {}", id);
         }
 
-        boolean isDeleted = true;
-        return isDeleted;
+        Optional<Tenant> tenEntOpt = tenantRepo.findById(id);
+
+        if (!tenEntOpt.isPresent()) {
+            throw new RecordNotFoundException(
+                    LogUtils.jsonize("", "id", id));
+        }
+
+        Tenant tenant = tenEntOpt.get();
+        compDao.deleteCompByDset(tenant.getDataset());
+        tenantRepo.deleteById(id);
+        auditLogger.logEntity(tenant, AuditLogger.Areas.TENANT, AuditLogger.Ops.DELETE);
+
+        return true;
     }
 
     /**

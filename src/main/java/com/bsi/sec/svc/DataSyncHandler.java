@@ -552,7 +552,8 @@ public class DataSyncHandler implements DataSyncResponseBuilder,
         String acctName = tenIn.getAcctName();
         String prodName = tenIn.getProdName();
         String dset = tenIn.getDataset();
-        Tenant exstTenant = tenantDao.getTenantByDsetProdAcct(dset, prodName, acctName);
+        Tenant exstTenant = tenantDao.getTenantByDsetProdAcct(dset, prodName,
+                acctName, false);
 
         if (exstTenant != null) {
             // Mark Tenant with existing ID!

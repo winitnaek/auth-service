@@ -38,8 +38,10 @@ public class TenantDao {
      * @param acctName
      * @return
      */
-    public Tenant getTenantByDsetProdAcct(String dset, String prodName, String acctName) {
-        SqlFieldsQuery sql = new SqlFieldsQuery(JpaQueries.GET_TENANT_ID_BY_DSET_PROD_ACCT);
+    public Tenant getTenantByDsetProdAcct(String dset, String prodName, String acctName, boolean intUser) {
+        SqlFieldsQuery sql = new SqlFieldsQuery(!intUser
+                ? JpaQueries.GET_TENANT_ID_BY_DSET_PROD_ACCT_FOR_SYNC
+                : JpaQueries.GET_TENANT_ID_BY_DSET_PROD_ACCT_FOR_INT_USER);
         IgniteCache<Long, Tenant> cache = ignite.cache(TENANT_CACHE);
         Long tenId = null;
 

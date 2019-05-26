@@ -64,4 +64,30 @@ public class CompanyDao {
         return company;
     }
 
+    /**
+     *
+     * @param dset
+     * @param companyCID
+     */
+    public boolean deleteCompByDset(String dset) {
+        SqlFieldsQuery sql = new SqlFieldsQuery(JpaQueries.DELETE_COMP_ID_BY_DSET);
+        IgniteCache<Long, Company> cache = ignite.cache(COMPANY_CACHE);
+        boolean result = false;
+
+        try (QueryCursor<List<?>> cursor = cache.query(sql.setArgs(dset))) {
+            List<?> rows = cursor.getAll();
+
+            if (rows != null && rows.size() > 0) {
+                if (log.isDebugEnabled()) {
+                    log.debug(LogUtils.jsonize("Deleted Company record(s).",
+                            "norecs", rows.size(), "dset", dset));
+                }
+
+                result = true;
+            }
+        }
+
+        return result;
+    }
+
 }
