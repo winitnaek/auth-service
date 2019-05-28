@@ -24,5 +24,5 @@ public class JpaQueries {
     public static final String DELETE_COMP_ID_BY_DSET = "delete from Company"
             + " where dataset = ? and imported = false";
     public static final String DELETE_SSO_CONFIG = "DELETE FROM SSOConfiguration WHERE id = ?";
-    public static final String SELECT_CONFIGS_BY_TENANT = "select * FROM SSOConfiguration";
+    public static final String SELECT_CONFIGS = "select * FROM SSOConfiguration";
 }

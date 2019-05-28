@@ -13,10 +13,12 @@ import com.bsi.sec.util.JpaQueries;
 import com.bsi.sec.util.LogUtils;
 import java.util.ArrayList;
 import java.util.List;
+import javax.cache.Cache;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.cache.query.QueryCursor;
 import org.apache.ignite.cache.query.SqlFieldsQuery;
+import org.apache.ignite.cache.query.SqlQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,5 +101,23 @@ public class TenantDao {
         }
 
         return products;
+    }
+    
+    /**
+     * getTenantByName
+     *
+     * @param tenantName
+     * @return
+     */
+    public Tenant getTenantByName(String tenantName) {
+        IgniteCache<Long, Tenant> tenantCache = ignite.cache(TENANT_CACHE);
+        SqlQuery sqlQry = new SqlQuery(Tenant.class, "acctName= ?");
+        Tenant tenant = null;
+        try (QueryCursor<Cache.Entry<Long, Tenant>> cursor = tenantCache.query(sqlQry.setArgs(tenantName))) {
+            for (Cache.Entry<Long, Tenant> tn : cursor) {
+                tenant = tn.getValue();
+            }
+        }
+        return tenant;
     }
 }

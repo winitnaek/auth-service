@@ -256,37 +256,9 @@ public class SecurityService {
      * @param ssoConfig
      * @return
      */
-    public SSOConfigDTO createSSOConfig(SSOConfigDTO ssoConfig) {
-
-        SSOConfiguration sSOConfiguration = new SSOConfiguration();
-
-        sSOConfiguration.setAllowLogout(ssoConfig.getAllowLogout());
-        sSOConfiguration.setAppRedirectURL(ssoConfig.getAppRedirectURL());
-        sSOConfiguration.setAttribIndex(ssoConfig.getAttribIndex());
-        sSOConfiguration.setCertAlias(ssoConfig.getCertAlias());
-        sSOConfiguration.setCertPassword(ssoConfig.getCertPassword());
-        sSOConfiguration.setCertText(ssoConfig.getCertText());
-        sSOConfiguration.setDsplName(ssoConfig.getDsplName());
-        sSOConfiguration.setEnabled(ssoConfig.getEnabled());
-        sSOConfiguration.setExpireRequestSecs(ssoConfig.getExpireRequestSecs());
-        sSOConfiguration.setId(idGenerator.generate());
-        sSOConfiguration.setIdpIssuer(ssoConfig.getIdpIssuer());
-        sSOConfiguration.setIdpReqURL(ssoConfig.getIdpReqURL());
-        sSOConfiguration.setNonSamlLogoutURL(ssoConfig.getNonSamlLogoutURL());
-        sSOConfiguration.setRedirectToApplication(ssoConfig.getRedirectToApplication());
-        sSOConfiguration.setSpConsumerURL(ssoConfig.getSpConsumerURL());
-        sSOConfiguration.setSpIssuer(ssoConfig.getSpIssuer());
-
-        Tenant tenant = getTenantByName(ssoConfig.getAcctName());
-        sSOConfiguration.setTenant(tenant);
-
-        //sSOConfiguration.setTenantSSOConf(tenantSSOConf);
-        sSOConfiguration.setValidateIdpIssuer(ssoConfig.getValidateIdpIssuer());
-        sSOConfiguration.setValidateRespSignature(ssoConfig.getValidateRespSignature());
-
-        ssoConfigurationRepository.save(sSOConfiguration.getId(), sSOConfiguration);
-        auditLogger.logEntity(sSOConfiguration, AuditLogger.Areas.SSO_CONF, AuditLogger.Ops.INSERT);
-        return prepareConfig(sSOConfiguration);
+    public SSOConfigDTO createSSOConfig(SSOConfigDTO ssoConfig) throws Exception{
+        SSOConfigDTO ssoconfig = sSOConfigurationDao.createSSOConfig(ssoConfig);
+        return ssoconfig;
     }
 
     /**
@@ -294,37 +266,9 @@ public class SecurityService {
      * @param ssoConfig
      * @return
      */
-    public SSOConfigDTO updateSSOConfig(SSOConfigDTO ssoConfig) {
-        SSOConfiguration sSOConfiguration = new SSOConfiguration();
-
-        sSOConfiguration.setAllowLogout(ssoConfig.getAllowLogout());
-        sSOConfiguration.setAppRedirectURL(ssoConfig.getAppRedirectURL());
-        sSOConfiguration.setAttribIndex(ssoConfig.getAttribIndex());
-        sSOConfiguration.setCertAlias(ssoConfig.getCertAlias());
-        sSOConfiguration.setCertPassword(ssoConfig.getCertPassword());
-        sSOConfiguration.setCertText(ssoConfig.getCertText());
-        sSOConfiguration.setDsplName(ssoConfig.getDsplName());
-        sSOConfiguration.setEnabled(ssoConfig.getEnabled());
-        sSOConfiguration.setExpireRequestSecs(ssoConfig.getExpireRequestSecs());
-        sSOConfiguration.setId(ssoConfig.getId());
-        sSOConfiguration.setIdpIssuer(ssoConfig.getIdpIssuer());
-        sSOConfiguration.setIdpReqURL(ssoConfig.getIdpReqURL());
-        sSOConfiguration.setNonSamlLogoutURL(ssoConfig.getNonSamlLogoutURL());
-        sSOConfiguration.setRedirectToApplication(ssoConfig.getRedirectToApplication());
-
-        sSOConfiguration.setSpConsumerURL(ssoConfig.getSpConsumerURL());
-        sSOConfiguration.setSpIssuer(ssoConfig.getSpIssuer());
-
-        Tenant tenant = getTenantByName(ssoConfig.getAcctName());
-        sSOConfiguration.setTenant(tenant);
-
-        //sSOConfiguration.setTenantSSOConf(tenantSSOConf);
-        sSOConfiguration.setValidateIdpIssuer(ssoConfig.getValidateIdpIssuer());
-        sSOConfiguration.setValidateRespSignature(ssoConfig.getValidateRespSignature());
-
-        ssoConfigurationRepository.save(sSOConfiguration.getId(), sSOConfiguration);
-        auditLogger.logEntity(sSOConfiguration, AuditLogger.Areas.SSO_CONF, AuditLogger.Ops.UPDATE);
-        return prepareConfig(sSOConfiguration);
+    public SSOConfigDTO updateSSOConfig(SSOConfigDTO ssoConfig) throws Exception{
+        SSOConfigDTO ssoconfig = sSOConfigurationDao.updateSSOConfig(ssoConfig);
+        return ssoconfig;
     }
 
     /**
@@ -332,12 +276,11 @@ public class SecurityService {
      * @param id
      * @return
      */
-    public boolean deleteSSOConfig(long id) {
-        SSOConfiguration ssoConf = getSSOConfById(id);
-        IgniteCache<Long, SSOConfiguration> cache = igniteInstance.cache(SSO_CONFIGURATION_CACHE);
-        cache.query(new SqlFieldsQuery(JpaQueries.DELETE_SSO_CONFIG).setArgs(id));
+    public boolean deleteSSOConfig(long id) throws Exception{
+        SSOConfiguration ssoConf = sSOConfigurationDao.getSSOConfById(id);
+        boolean isDeleted = sSOConfigurationDao.deleteSSOConfById(id);
         auditLogger.logEntity(ssoConf, AuditLogger.Areas.SSO_CONF, AuditLogger.Ops.DELETE);
-        return true;
+        return isDeleted;
     }
 
     /**
@@ -408,17 +351,8 @@ public class SecurityService {
      *
      * @return
      */
-    public List<SSOConfigDTO> getSSOConfigs() {
-        List<SSOConfigDTO> configs = new ArrayList<>();
-        IgniteCache<Long, SSOConfiguration> ssoConfigCache = igniteInstance.cache(SSO_CONFIGURATION_CACHE);
-        final String sql = "select * from SSOConfiguration";
-        SqlQuery sqlQry = new SqlQuery(SSOConfiguration.class, sql);
-        try (QueryCursor<Cache.Entry<Long, SSOConfiguration>> cursor = ssoConfigCache.query(sqlQry)) {
-            for (Cache.Entry<Long, SSOConfiguration> cf : cursor) {
-                SSOConfigDTO config = prepareConfig(cf.getValue());
-                configs.add(config);
-            }
-        }
+    public List<SSOConfigDTO> getSSOConfigs() throws Exception{
+        List<SSOConfigDTO>  configs = sSOConfigurationDao.getSSOConfigs();
         return configs;
     }
 
@@ -507,73 +441,11 @@ public class SecurityService {
                 -> new DatasetProductDTO(1L, dp[2], dp[1], dp[0])).collect(Collectors.toSet());
     }
 
-    /**
-     * getTenantByName
-     *
-     * @param tenantName
-     * @return
-     */
-    private Tenant getTenantByName(String tenantName) {
-        IgniteCache<Long, Tenant> tenantCache = igniteInstance.cache(TENANT_CACHE);
-        SqlQuery sqlQry = new SqlQuery(Tenant.class, "acctName= ?");
-        Tenant tenant = null;
-        try (QueryCursor<Cache.Entry<Long, Tenant>> cursor = tenantCache.query(sqlQry.setArgs(tenantName))) {
-            for (Cache.Entry<Long, Tenant> tn : cursor) {
-                tenant = tn.getValue();
-            }
-        }
-        return tenant;
-    }
 
-    /**
-     * getSSOConfById
-     *
-     * @param id
-     * @return
-     */
-    private SSOConfiguration getSSOConfById(Long id) {
-        IgniteCache<Long, SSOConfiguration> ssoConfCache = igniteInstance.cache(SSO_CONFIGURATION_CACHE);
-        SqlQuery sqlQry = new SqlQuery(SSOConfiguration.class, "id= ?");
-        SSOConfiguration ssoConf = null;
-        try (QueryCursor<Cache.Entry<Long, SSOConfiguration>> cursor = ssoConfCache.query(sqlQry.setArgs(id))) {
-            for (Cache.Entry<Long, SSOConfiguration> cnf : cursor) {
-                ssoConf = cnf.getValue();
-            }
-        }
-        return ssoConf;
-    }
 
-    /**
-     * prepareConfig
-     *
-     * @param sSOConfiguration
-     * @return
-     */
-    private SSOConfigDTO prepareConfig(SSOConfiguration sSOConfiguration) {
-        SSOConfigDTO config = new SSOConfigDTO();
-        config.setId(sSOConfiguration.getId());
-        if (sSOConfiguration.getTenant() != null) {
-            config.setAcctName(sSOConfiguration.getTenant().getAcctName());
-        }
-        config.setDsplName(sSOConfiguration.getDsplName());
-        config.setEnabled(sSOConfiguration.isEnabled());
-        config.setAllowLogout(sSOConfiguration.isAllowLogout());
-        config.setAppRedirectURL(sSOConfiguration.getAppRedirectURL());
-        config.setAttribIndex(sSOConfiguration.getAttribIndex());
-        config.setCertAlias(sSOConfiguration.getCertAlias());
-        config.setCertPassword(sSOConfiguration.getCertPassword());
-        config.setCertText(sSOConfiguration.getCertText());
-        config.setExpireRequestSecs(sSOConfiguration.getExpireRequestSecs());
-        config.setIdpIssuer(sSOConfiguration.getIdpIssuer());
-        config.setIdpReqURL(sSOConfiguration.getIdpReqURL());
-        config.setNonSamlLogoutURL(sSOConfiguration.getNonSamlLogoutURL());
-        config.setRedirectToApplication(sSOConfiguration.isRedirectToApplication());
-        config.setSpConsumerURL(sSOConfiguration.getSpConsumerURL());
-        config.setSpIssuer(sSOConfiguration.getSpIssuer());
-        config.setValidateIdpIssuer(sSOConfiguration.isValidateIdpIssuer());
-        config.setValidateRespSignature(sSOConfiguration.isValidateRespSignature());
-        return config;
-    }
+
+
+    
 
     /**
      *
