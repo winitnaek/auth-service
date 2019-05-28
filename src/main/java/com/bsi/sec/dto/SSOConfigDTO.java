@@ -71,6 +71,8 @@ public final class SSOConfigDTO {
 
     private boolean linked;
 
+    private Long acctId;
+    
     private String acctName;
 
     public Long getId() {
@@ -95,6 +97,14 @@ public final class SSOConfigDTO {
 
     public void setAcctName(String acctName) {
         this.acctName = acctName;
+    }
+
+    public Long getAcctId() {
+        return acctId;
+    }
+
+    public void setAcctId(Long acctId) {
+        this.acctId = acctId;
     }
 
     public String getDsplName() {

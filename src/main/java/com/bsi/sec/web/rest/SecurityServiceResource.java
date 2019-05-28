@@ -275,7 +275,7 @@ public class SecurityServiceResource {
      * @throws Exception
      */
     @GetMapping("/getSSOConfigsByTenant")
-    public ResponseEntity<SSOConfigDTO> getSSOConfigsByTenant(
+    public ResponseEntity<List<SSOConfigDTO>> getSSOConfigsByTenant(
             @Valid @NotNull @RequestParam(required = true) String accountName)
             throws Exception {
         if (log.isInfoEnabled()) {
@@ -283,7 +283,7 @@ public class SecurityServiceResource {
                     + "with Account Name = {}", accountName);
         }
 
-        SSOConfigDTO ssoConfigDTO = securityService
+        List<SSOConfigDTO> ssoConfigDTO = securityService
                 .getSSOConfigsByTenant(accountName);
         return new ResponseEntity<>(ssoConfigDTO, HttpStatus.OK);
     }

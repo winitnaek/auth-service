@@ -7,6 +7,7 @@ package com.bsi.sec.svc;
 
 import com.bsi.sec.dao.AdminMetadataDao;
 import com.bsi.sec.dao.CompanyDao;
+import com.bsi.sec.dao.SSOConfigurationDao;
 import com.bsi.sec.dao.TenantDao;
 import com.bsi.sec.domain.AdminMetadata;
 import com.bsi.sec.domain.Tenant;
@@ -103,6 +104,9 @@ public class SecurityService {
 
     @Autowired
     private CompanyRepository compRepo;
+    
+    @Autowired
+    private SSOConfigurationDao sSOConfigurationDao;
 
     /**
      *
@@ -386,17 +390,17 @@ public class SecurityService {
     }
 
     /**
-     * TODO: Add implementation!
-     *
+     * getSSOConfigsByTenant
      * @param accountName
      * @return
+     * @throws Exception 
      */
-    public SSOConfigDTO getSSOConfigsByTenant(String accountName) {
-        SSOConfigDTO config = new SSOConfigDTO();
-        config.setAcctName("BSI");
-        config.setId(1L);
-        config.setDsplName("BSI SSO Config 1");
-        return config;
+    public List<SSOConfigDTO> getSSOConfigsByTenant(String accountName) throws Exception{
+        if (log.isDebugEnabled()) {
+            log.debug("SERVICE invoked to get SSO configs by Tenant with args: accountName -> {}", accountName);
+        }
+        List<SSOConfigDTO> configs = sSOConfigurationDao.getSSOConfigsByTenant(accountName);
+        return configs;
     }
 
     /**
