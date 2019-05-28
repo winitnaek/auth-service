@@ -343,14 +343,14 @@ public class SecurityServiceResource {
      *
      * @return @throws Exception
      */
-    @GetMapping("/getProductsByTenants")
-    public ResponseEntity<ProductDTO> getProductsByTenants()
+    @GetMapping("/getProductsByTenant")
+    public ResponseEntity<ProductDTO> getProductsByTenant()
             throws Exception {
         if (log.isInfoEnabled()) {
             log.info("REST request to get Last Data Sync Info.");
         }
 
-        ProductDTO prodInfoDTO = securityService.getProductsByTenants();
+        ProductDTO prodInfoDTO = securityService.getProductsByTenant();
         return new ResponseEntity<>(prodInfoDTO, HttpStatus.OK);
     }
 

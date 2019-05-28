@@ -470,7 +470,7 @@ public class SecurityService {
      *
      * @return
      */
-    public ProductDTO getProductsByTenants() {
+    public ProductDTO getProductsByTenant() {
         ProductDTO prod = new ProductDTO();
         prod.setAcctName("BSI");
         prod.setId(1L);

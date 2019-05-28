@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import com.bsi.sec.base.BaseTest;
 import com.bsi.sec.dto.SSOConfigDTO;
+import com.bsi.sec.exception.WSExceptionHandler;
 import com.bsi.sec.startup.ApplicationInitializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
@@ -50,7 +51,8 @@ public class SecurityServiceResourceTest extends BaseTest {
 
     @Before
     public void setup() {
-        mockmvc = MockMvcBuilders.standaloneSetup(secServiceResource).build();
+        mockmvc = MockMvcBuilders.standaloneSetup(secServiceResource)
+                .setControllerAdvice(new WSExceptionHandler()).build();
     }
 
     @Test
@@ -134,7 +136,7 @@ public class SecurityServiceResourceTest extends BaseTest {
         MockHttpServletResponse response = mockmvc
                 .perform(post("/v1/SecurityService/deleteTenant")
                         .param("id", id.toString()))
-                .andExpect(status().isOk())
+                .andExpect(status().isNotFound())
                 .andReturn()
                 .getResponse();
 
@@ -278,7 +280,7 @@ public class SecurityServiceResourceTest extends BaseTest {
     @Test
     public void getProductsByTenantsSuccessTest() throws Exception {
         MockHttpServletResponse response = mockmvc
-                .perform(get("/v1/SecurityService/getProductsByTenants")
+                .perform(get("/v1/SecurityService/getProductsByTenant")
                         .param("accountName", acctname)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
