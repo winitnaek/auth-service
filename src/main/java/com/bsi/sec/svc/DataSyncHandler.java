@@ -47,43 +47,43 @@ import org.springframework.util.CollectionUtils;
 @Transactional(transactionManager = BEAN_IGNITE_TX_MGR)
 public class DataSyncHandler implements DataSyncResponseBuilder,
         DataSyncJobStateChecker {
-
+    
     private final static Logger log = LoggerFactory.getLogger(DataSyncHandler.class);
 
     //Using this as limitation of TPF data availability in SF. SF#00130002
     private final static String BSI_eFormsFactory_SaaS_ID = "01tU0000000HOybIAG";
     private final static String BSI_eFormsFactory_SaaS = "BSI eFormsFactory SaaS";
-
+    
     @Autowired
     private TenantRepository tenantRepo;
-
+    
     @Autowired
     private TenantSSOConfRepository tenantSSOConfRepo;
-
+    
     @Autowired
     private CompanyRepository companyRepo;
-
+    
     @Autowired
     private AdminMetadataRepository adminMetaDataRepo;
-
+    
     @Autowired
     private EntityIDGenerator idGenerator;
-
+    
     @Autowired
     private SFDataPuller sfDataPuller;
-
+    
     @Autowired
     private TPFDataPuller tpfDataPuller;
-
+    
     @Autowired
     private AuditLogger auditLogger;
-
+    
     @Autowired
     private TenantDao tenantDao;
-
+    
     @Autowired
     private AdminMetadataDao adminMetaDataDao;
-
+    
     @Autowired
     Ignite igniteInstance;
 
@@ -101,25 +101,25 @@ public class DataSyncHandler implements DataSyncResponseBuilder,
             log.info("Starting Initial Data Sync starting from {}.",
                     fromDtTm.toString());
         }
-
+        
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
-
+        
         try {
             if (onDemandRequest) {
                 checkIfSyncAlreadyRunning(adminMetaDataDao);
             }
-
+            
             markAsInprogress();
-
+            
             if (!onDemandRequest) {
                 LocalDateTime lastInitSyncDateTime = getLastInitSyncDateTime();
-
+                
                 if (lastInitSyncDateTime != null) {
                     markAsDone();
                     return buildResponse(lastInitSyncDateTime, true);
                 }
             }
-
+            
             clearCustomDataFromCache();
 
             // Sync Tenants
@@ -132,24 +132,24 @@ public class DataSyncHandler implements DataSyncResponseBuilder,
 
             // Update Latest Sync Date in Metadata
             updateLastSyncDateTime(now, true);
-
+            
             markAsDone();
-
+            
             if (log.isInfoEnabled()) {
                 log.info("Finished initial data sync.");
             }
-
+            
             return buildResponse(now, true);
         } catch (Exception ex) {
             // Reset In-Prog indicator as Done in  case of exception!
             markAsDone();
-
+            
             String errMsg = "Failed while running Initial Data Sync process!";
-
+            
             if (log.isErrorEnabled()) {
                 log.error(errMsg, ex);
             }
-
+            
             throw new ProcessingException(errMsg, ex);
         }
     }
@@ -166,18 +166,18 @@ public class DataSyncHandler implements DataSyncResponseBuilder,
         if (log.isInfoEnabled()) {
             log.info("Starting Periodic Data Sync process...");
         }
-
+        
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
-
+        
         try {
             checkIfPerSyncIsEnabled();
             checkIfSyncAlreadyRunning(adminMetaDataDao);
-
+            
             if (log.isInfoEnabled()) {
                 log.info("Starting periodic data sync starting from {}.",
                         fromDtTm.toString());
             }
-
+            
             markAsInprogress();
 
             // Sync Tenants
@@ -190,24 +190,24 @@ public class DataSyncHandler implements DataSyncResponseBuilder,
 
             // Update Latest Sync Date in Metadata
             updateLastSyncDateTime(now, false);
-
+            
             markAsDone();
-
+            
             if (log.isInfoEnabled()) {
                 log.info("Finished periodic data sync.");
             }
-
+            
             return buildResponse(now, false);
         } catch (Exception ex) {
             // Reset In-Prog indicator as Done in  case of exception!
             markAsDone();
-
+            
             String errMsg = "Failed while running Periodic Data Sync process!";
-
+            
             if (log.isErrorEnabled()) {
                 log.error(errMsg, ex);
             }
-
+            
             throw new ProcessingException(errMsg, ex);
         }
     }
@@ -220,11 +220,11 @@ public class DataSyncHandler implements DataSyncResponseBuilder,
     @Transactional(readOnly = true)
     public LocalDateTime getLastInitSyncDateTime() {
         AdminMetadata admMeta = adminMetaDataDao.get();
-
+        
         if (admMeta == null) {
             return null;
         }
-
+        
         LocalDateTime lastSync = admMeta.getLastFullSync();
         return lastSync != null ? lastSync : null;
     }
@@ -240,7 +240,7 @@ public class DataSyncHandler implements DataSyncResponseBuilder,
             throws Exception {
         return sfDataPuller.pullAll(fromDtTm);
     }
-
+    
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public List<Tenant> getUpdatedTenants(LocalDateTime fromDtTm) throws Exception {
         return sfDataPuller.pullUpdates(fromDtTm);
@@ -294,7 +294,7 @@ public class DataSyncHandler implements DataSyncResponseBuilder,
     public void checkIfPerSyncIsEnabled()
             throws BadStateException {
         AdminMetadata metaData = adminMetaDataDao.get();
-
+        
         if (metaData != null && !metaData.isIsPerSyncOn()) {
             throw new BadStateException("Periodic Sync is turned off!");
         }
@@ -308,24 +308,25 @@ public class DataSyncHandler implements DataSyncResponseBuilder,
     private void updateMetadataInprogFlag(boolean isInprog) {
         AdminMetadata ent = adminMetaDataDao.get();
         boolean metaDataExists = true;
-
+        
         if (ent == null) {
             // Initially, create new record if not exists.
             ent = new AdminMetadata();
             ent.setId(idGenerator.generate());
+            ent.setCreatedDate(LocalDateTime.now(ZoneOffset.UTC));
             metaDataExists = false;
         }
-
+        
         ent.setIsSyncInProgress(isInprog);
         AdminMetadata savedEnt = adminMetaDataRepo.save(ent.getId(), ent);
-
+        
         if (savedEnt != null) {
             if (log.isDebugEnabled()) {
                 log.debug("Entity {} has been updated as Sync "
                         + (isInprog ? " In-Progress." : " Done."),
                         savedEnt.toString());
             }
-
+            
             AuditLogger.Ops op = metaDataExists ? AuditLogger.Ops.UPDATE
                     : AuditLogger.Ops.INSERT;
             auditLogger.logEntity(savedEnt, AuditLogger.Areas.ADMIN_META_DATA,
@@ -346,28 +347,28 @@ public class DataSyncHandler implements DataSyncResponseBuilder,
         if (CollectionUtils.isEmpty(tenants)) {
             return;
         }
-
+        
         if (log.isTraceEnabled()) {
             log.trace("Saving {} Tenants to store...", tenants.size());
         }
-
+        
         tenants.forEach(t -> {
             if (log.isTraceEnabled()) {
                 log.trace("\nSaving Tenant {}...", t.toString());
             }
-
+            
             if (!isInit) {
                 // Periodic Sync
                 markExistingTenantForUpdate(t);
             }
-
+            
             Tenant tenUpd = tenantRepo.save(t.getId(), t);
-
+            
             if (log.isTraceEnabled()) {
                 log.trace("Tenant {} is saved.\n", tenUpd.toString());
             }
         });
-
+        
         if (isInit) {
             auditLogger.logAll(AuditLogger.Areas.TENANT, AuditLogger.Ops.INSERT);
         } else {
@@ -383,18 +384,18 @@ public class DataSyncHandler implements DataSyncResponseBuilder,
         if (CollectionUtils.isEmpty(companyList)) {
             return;
         }
-
+        
         if (log.isDebugEnabled()) {
             log.debug("Saving {} Companies to store...", companyList.size());
         }
-
+        
         List<Tenant> tenantList = new ArrayList<>();
         tenantList = getAllTenantsByProductId(BSI_eFormsFactory_SaaS_ID);
         log.debug(BSI_eFormsFactory_SaaS + " Tenants size before Company Save  : " + tenantList.size());
-
+        
         List<Tenant> tenantSaveList = new ArrayList<>();
         List<Company> companySaveList = new ArrayList<>();
-
+        
         for (Company company : companyList) {
             boolean companyTenantDsetAvailable = false;
             for (Tenant tenant : tenantList) {
@@ -436,7 +437,7 @@ public class DataSyncHandler implements DataSyncResponseBuilder,
             companyRepo.save(companies);
         }
         log.debug("Tenant count after Company Save : " + tenantRepo.count());
-
+        
         if (isInit) {
             auditLogger.logAll(AuditLogger.Areas.COMPANY,
                     AuditLogger.Ops.INSERT);
@@ -444,7 +445,7 @@ public class DataSyncHandler implements DataSyncResponseBuilder,
             auditLogger.logAll(AuditLogger.Areas.COMPANY,
                     AuditLogger.Ops.UPSERT);
         }
-
+        
         if (log.isDebugEnabled()) {
             log.debug("{} Companies are saved.\n", companies.size());
         }
@@ -475,19 +476,19 @@ public class DataSyncHandler implements DataSyncResponseBuilder,
         if (log.isTraceEnabled()) {
             log.trace("Deleting all custom data from cache store...");
         }
-
+        
         tenantSSOConfRepo.deleteAll();
         auditLogger.logAll(AuditLogger.Areas.TENANT_SSO_CONF,
                 AuditLogger.Ops.DELETE);
-
+        
         companyRepo.deleteAll();
         auditLogger.logAll(AuditLogger.Areas.COMPANY,
                 AuditLogger.Ops.DELETE);
-
+        
         tenantRepo.deleteAll();
         auditLogger.logAll(AuditLogger.Areas.TENANT,
                 AuditLogger.Ops.DELETE);
-
+        
         if (log.isTraceEnabled()) {
             log.trace("Done deleting all custom data from cache store!");
         }
@@ -500,31 +501,31 @@ public class DataSyncHandler implements DataSyncResponseBuilder,
      */
     private void updateLastSyncDateTime(LocalDateTime dateTime, boolean fullSync) {
         AdminMetadata ent = adminMetaDataDao.get();
-
+        
         if (ent == null) {
             // Initially, create new record if not exists.
             ent = new AdminMetadata();
             ent.setId(idGenerator.generate());
         }
-
+        
         if (fullSync) {
             ent.setLastFullSync(dateTime);
         } else {
             ent.setLastPerSync(dateTime);
         }
-
+        
         AdminMetadata savedEnt = adminMetaDataRepo.save(ent.getId(), ent);
-
+        
         if (savedEnt != null) {
             if (log.isDebugEnabled()) {
                 log.debug("Last " + (fullSync ? "Full" : "Periodic")
                         + " Sync Date/Time has been updated to {}",
                         dateTime.toString());
             }
-
+            
             auditLogger.logEntity(savedEnt, AuditLogger.Areas.ADMIN_META_DATA,
                     AuditLogger.Ops.UPDATE);
-
+            
         } else {
             if (log.isErrorEnabled()) {
                 log.error("Failed to update Last " + (fullSync ? "Full" : "Periodic")
@@ -548,17 +549,17 @@ public class DataSyncHandler implements DataSyncResponseBuilder,
             log.debug("As a part of Periodic Sync process, marking applicable"
                     + " Tenant records as existing records...");
         }
-
+        
         String acctName = tenIn.getAcctName();
         String prodName = tenIn.getProdName();
         String dset = tenIn.getDataset();
         Tenant exstTenant = tenantDao.getTenantByDsetProdAcct(dset, prodName,
                 acctName, false);
-
+        
         if (exstTenant != null) {
             // Mark Tenant with existing ID!
             tenIn.setId(exstTenant.getId());
-
+            
             if (log.isDebugEnabled()) {
                 log.debug("Existing Tenant => {}", tenIn.toString());
             }
@@ -568,5 +569,5 @@ public class DataSyncHandler implements DataSyncResponseBuilder,
             }
         }
     }
-
+    
 }
