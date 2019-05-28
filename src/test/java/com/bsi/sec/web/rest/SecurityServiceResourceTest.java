@@ -278,13 +278,13 @@ public class SecurityServiceResourceTest extends BaseTest {
     }
 
     @Test
-    public void getProductsByTenantsSuccessTest() throws Exception {
+    public void getProductsByTenantsNotFoundTest() throws Exception {
         MockHttpServletResponse response = mockmvc
                 .perform(get("/v1/SecurityService/getProductsByTenant")
                         .param("accountName", acctname)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
-                .andExpect(status().isOk())
+                .andExpect(status().isNotFound())
                 .andReturn()
                 .getResponse();
 

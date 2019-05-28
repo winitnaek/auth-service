@@ -6,9 +6,12 @@
 package com.bsi.sec.dao;
 
 import com.bsi.sec.domain.Tenant;
+import com.bsi.sec.dto.ProductDTO;
+import com.bsi.sec.svc.EntityIDGenerator;
 import static com.bsi.sec.util.CacheConstants.TENANT_CACHE;
 import com.bsi.sec.util.JpaQueries;
 import com.bsi.sec.util.LogUtils;
+import java.util.ArrayList;
 import java.util.List;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
@@ -30,6 +33,9 @@ public class TenantDao {
 
     @Autowired
     private Ignite ignite;
+
+    @Autowired
+    private EntityIDGenerator idGen;
 
     /**
      *
@@ -65,5 +71,33 @@ public class TenantDao {
         }
 
         return tenant;
+    }
+
+    /**
+     *
+     * @param acctName
+     * @return
+     */
+    public List<ProductDTO> getProductsByAcctname(String acctName) {
+        SqlFieldsQuery sql = new SqlFieldsQuery(
+                JpaQueries.GET_PROD_NAME_BY_ACCT_NAME);
+        IgniteCache<Long, Tenant> cache = ignite.cache(TENANT_CACHE);
+        List<ProductDTO> products = new ArrayList<>(0);
+
+        try (QueryCursor<List<?>> cursor = cache.query(sql.setArgs(acctName))) {
+            for (List<?> row : cursor) {
+                String prodName = (String) row.get(0);
+
+                if (log.isTraceEnabled()) {
+                    log.trace(LogUtils.jsonize("getProductsByAcctname(...)",
+                            "prodname", prodName, "acctname", acctName));
+                }
+
+                ProductDTO prod = new ProductDTO(idGen.generate(), acctName, prodName);
+                products.add(prod);
+            }
+        }
+
+        return products;
     }
 }

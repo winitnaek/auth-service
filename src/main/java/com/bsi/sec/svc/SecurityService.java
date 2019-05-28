@@ -55,6 +55,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Service responsible for serving REST resource/controller requests!
@@ -64,42 +65,42 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 public class SecurityService {
-    
+
     private final static Logger log = LoggerFactory.getLogger(SecurityService.class);
-    
+
     @Autowired
     private AsyncInitialDataSyncJob initialDataSyncJob;
-    
+
     @Autowired
     private AsyncPeriodicDataSyncJob periodicDataSyncJob;
-    
+
     @Autowired
     Ignite igniteInstance;
-    
+
     @Autowired
     private EntityIDGenerator idGenerator;
-    
+
     @Autowired
     private SSOConfigurationRepository ssoConfigurationRepository;
-    
+
     @Autowired
     private AuditLogger auditLogger;
-    
+
     @Autowired
     private AdminMetadataRepository adminMetaRepo;
-    
+
     @Autowired
     private AdminMetadataDao adminMetaDao;
-    
+
     @Autowired
     private TenantDao tenantDao;
-    
+
     @Autowired
     private TenantRepository tenantRepo;
-    
+
     @Autowired
     private CompanyDao compDao;
-    
+
     @Autowired
     private CompanyRepository compRepo;
 
@@ -118,7 +119,7 @@ public class SecurityService {
         if (log.isDebugEnabled()) {
             log.debug("This is a service stub!!! Provide actual implementation!!!");
         }
-        
+
         Set<DatasetProductDTO> productsToRet = getTestProducts();
         return productsToRet;
     }
@@ -132,9 +133,9 @@ public class SecurityService {
         if (log.isDebugEnabled()) {
             log.debug("SERVICE invoked to run Full Salesforce sync.");
         }
-        
+
         initialDataSyncJob.run(DateUtils.defaultFromSyncTime(), true);
-        
+
         boolean isFullSFSyncSuccess = true;
         return isFullSFSyncSuccess;
     }
@@ -150,9 +151,9 @@ public class SecurityService {
             log.debug("SERVICE invoked to run Periodic Salesforce sync with args: fromDateTime -> {}",
                     fromDateTime.toInstant(ZoneOffset.UTC).toString());
         }
-        
+
         periodicDataSyncJob.run(fromDateTime, true);
-        
+
         boolean isPerSFSyncSuccess = true;
         return isPerSFSyncSuccess;
     }
@@ -167,20 +168,20 @@ public class SecurityService {
             log.debug("SERVICE invoked to enable/disable Periodic Data Sync with args: enabled -> {}",
                     Boolean.valueOf(enabled).toString());
         }
-        
+
         AdminMetadata ent = adminMetaDao.get();
         ent.setIsPerSyncOn(enabled);
         AdminMetadata updEnt = adminMetaRepo.save(ent.getId(), ent);
-        
+
         if (updEnt != null) {
             auditLogger.logEntity(ent, AuditLogger.Areas.ADMIN_META_DATA,
                     AuditLogger.Ops.UPDATE);
-            
+
             if (log.isInfoEnabled()) {
                 log.info(LogUtils.jsonize("Periodic Data Sync configuration was updated.",
                         "rec", updEnt.toString()));
             }
-            
+
             return true;
         } else {
             throw new ProcessingException("Failed to update Periodic Data Sync flag!");
@@ -201,22 +202,22 @@ public class SecurityService {
                     + "Product Name = {}, Dataset Name = {}, Company CID = {}",
                     acctName, prodName, dset, companyCID);
         }
-        
+
         Tenant tenantEnt = tenantDao.getTenantByDsetProdAcct(dset, prodName,
                 acctName, true);
         Set<Company> companies = new HashSet<>(0);
-        
+
         if (tenantEnt == null) {
             if (StringUtils.isNotBlank(companyCID)) {
                 Company company = saveCompany(dset, companyCID);
                 auditLogger.logEntity(company, AuditLogger.Areas.COMPANY, AuditLogger.Ops.INSERT);
                 companies.add(company);
             }
-            
+
             tenantEnt = saveTenant(prodName, acctName, dset, companies);
             auditLogger.logEntity(tenantEnt, AuditLogger.Areas.TENANT, AuditLogger.Ops.INSERT);
         }
-        
+
         TenantDTO tenant = populateTenantDTO(tenantEnt);
         return tenant;
     }
@@ -230,19 +231,19 @@ public class SecurityService {
         if (log.isDebugEnabled()) {
             log.debug("SERVICE invoked to delete Tenant with ID = {}", id);
         }
-        
+
         Optional<Tenant> tenEntOpt = tenantRepo.findById(id);
-        
+
         if (!tenEntOpt.isPresent()) {
             throw new RecordNotFoundException(
                     LogUtils.jsonize("", "id", id));
         }
-        
+
         Tenant tenant = tenEntOpt.get();
         compDao.deleteCompByDset(tenant.getDataset());
         tenantRepo.deleteById(id);
         auditLogger.logEntity(tenant, AuditLogger.Areas.TENANT, AuditLogger.Ops.DELETE);
-        
+
         return true;
     }
 
@@ -252,9 +253,9 @@ public class SecurityService {
      * @return
      */
     public SSOConfigDTO createSSOConfig(SSOConfigDTO ssoConfig) {
-        
+
         SSOConfiguration sSOConfiguration = new SSOConfiguration();
-        
+
         sSOConfiguration.setAllowLogout(ssoConfig.getAllowLogout());
         sSOConfiguration.setAppRedirectURL(ssoConfig.getAppRedirectURL());
         sSOConfiguration.setAttribIndex(ssoConfig.getAttribIndex());
@@ -271,14 +272,14 @@ public class SecurityService {
         sSOConfiguration.setRedirectToApplication(ssoConfig.getRedirectToApplication());
         sSOConfiguration.setSpConsumerURL(ssoConfig.getSpConsumerURL());
         sSOConfiguration.setSpIssuer(ssoConfig.getSpIssuer());
-        
+
         Tenant tenant = getTenantByName(ssoConfig.getAcctName());
         sSOConfiguration.setTenant(tenant);
 
         //sSOConfiguration.setTenantSSOConf(tenantSSOConf);
         sSOConfiguration.setValidateIdpIssuer(ssoConfig.getValidateIdpIssuer());
         sSOConfiguration.setValidateRespSignature(ssoConfig.getValidateRespSignature());
-        
+
         ssoConfigurationRepository.save(sSOConfiguration.getId(), sSOConfiguration);
         auditLogger.logEntity(sSOConfiguration, AuditLogger.Areas.SSO_CONF, AuditLogger.Ops.INSERT);
         return prepareConfig(sSOConfiguration);
@@ -291,7 +292,7 @@ public class SecurityService {
      */
     public SSOConfigDTO updateSSOConfig(SSOConfigDTO ssoConfig) {
         SSOConfiguration sSOConfiguration = new SSOConfiguration();
-        
+
         sSOConfiguration.setAllowLogout(ssoConfig.getAllowLogout());
         sSOConfiguration.setAppRedirectURL(ssoConfig.getAppRedirectURL());
         sSOConfiguration.setAttribIndex(ssoConfig.getAttribIndex());
@@ -306,17 +307,17 @@ public class SecurityService {
         sSOConfiguration.setIdpReqURL(ssoConfig.getIdpReqURL());
         sSOConfiguration.setNonSamlLogoutURL(ssoConfig.getNonSamlLogoutURL());
         sSOConfiguration.setRedirectToApplication(ssoConfig.getRedirectToApplication());
-        
+
         sSOConfiguration.setSpConsumerURL(ssoConfig.getSpConsumerURL());
         sSOConfiguration.setSpIssuer(ssoConfig.getSpIssuer());
-        
+
         Tenant tenant = getTenantByName(ssoConfig.getAcctName());
         sSOConfiguration.setTenant(tenant);
 
         //sSOConfiguration.setTenantSSOConf(tenantSSOConf);
         sSOConfiguration.setValidateIdpIssuer(ssoConfig.getValidateIdpIssuer());
         sSOConfiguration.setValidateRespSignature(ssoConfig.getValidateRespSignature());
-        
+
         ssoConfigurationRepository.save(sSOConfiguration.getId(), sSOConfiguration);
         auditLogger.logEntity(sSOConfiguration, AuditLogger.Areas.SSO_CONF, AuditLogger.Ops.UPDATE);
         return prepareConfig(sSOConfiguration);
@@ -451,11 +452,11 @@ public class SecurityService {
      */
     public SyncInfoDTO getLastSyncInfo() throws RecordNotFoundException {
         AdminMetadata adminMeta = adminMetaDao.get();
-        
+
         if (adminMeta == null) {
             throw new RecordNotFoundException("Last Sync Info record is not found!");
         }
-        
+
         SyncInfoDTO syncInfo = new SyncInfoDTO();
         syncInfo.setId(adminMeta.getId());
         syncInfo.setLastFullSync(adminMeta.getLastFullSync());
@@ -466,16 +467,26 @@ public class SecurityService {
     }
 
     /**
-     * TODO: Add implementation!
+     * Collects and returns product info for the specified tenant.
      *
+     * @param accountName
      * @return
      */
-    public ProductDTO getProductsByTenant() {
-        ProductDTO prod = new ProductDTO();
-        prod.setAcctName("BSI");
-        prod.setId(1L);
-        prod.setProdName("TPF");
-        return prod;
+    public List<ProductDTO> getProductsByTenant(String accountName)
+            throws RecordNotFoundException {
+        List<ProductDTO> products = tenantDao.getProductsByAcctname(accountName);
+
+        if (CollectionUtils.isEmpty(products)) {
+            if (log.isErrorEnabled()) {
+                log.error(LogUtils.jsonize(null, "msg", "No products found!",
+                        "accountName", accountName));
+            }
+
+            throw new RecordNotFoundException("No products found for"
+                    + " Account: " + accountName);
+        }
+
+        return products;
     }
 
     /**
@@ -593,11 +604,11 @@ public class SecurityService {
      */
     private Company saveCompany(String dset, String companyCID) {
         Company company = compDao.getCompByDsetCompCID(dset, companyCID);
-        
+
         if (company != null) {
             return company;
         }
-        
+
         company = new Company();
         company.setId(idGenerator.generate());
         company.setDataset(dset);

@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
  * @author igorV
  */
 public class LogUtils {
-
+    
     private final static Logger log = LoggerFactory.getLogger(LogUtils.class);
 
     /**
@@ -49,10 +49,10 @@ public class LogUtils {
             Pair pair = new Pair();
             List<Object> vals = Arrays.asList(valsIn);
             List<Pair> pairs = new ArrayList<Pair>(vals.size() / 2);
-
+            
             for (Object val : vals) {
                 int idx = vals.indexOf(val);
-
+                
                 if ((idx + 1) % 2 == 1) {
                     pair.setKey(StringUtils.trimToEmpty(val != null ? val
                             .toString() : null));
@@ -63,20 +63,24 @@ public class LogUtils {
                     pair = new Pair();
                 }
             }
-
+            
             StringBuilder msgOut = new StringBuilder();
-            msgOut.append(msg);
-            msgOut.append(" -> ");
+            
+            if (StringUtils.isNotBlank(msg)) {
+                msgOut.append(msg);
+                msgOut.append(" -> ");
+            }
+            
             ObjectMapper mapper = new ObjectMapper();
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             mapper.writeValue(out, pairs);
             msgOut.append(new String(out.toByteArray()));
             String msgToRet = msgOut.toString();
-
+            
             if (log.isTraceEnabled()) {
                 log.trace("Message as JSON -> " + msgToRet);
             }
-
+            
             return msgToRet;
         } catch (Exception e) {
             if (log.isErrorEnabled()) {
@@ -91,7 +95,7 @@ public class LogUtils {
      *
      */
     private static class Pair {
-
+        
         @JsonProperty
         private String key;
         @JsonProperty

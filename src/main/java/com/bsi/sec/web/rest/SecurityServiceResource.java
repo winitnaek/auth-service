@@ -121,7 +121,7 @@ public class SecurityServiceResource {
             @RequestParam(required = false) String companyCID) throws Exception {
         if (log.isInfoEnabled()) {
             log.info("REST request to add new Tenant with Account Name = {}, "
-                    + "Product Name = {}, Dataset Name = {}, Company CID = {}", 
+                    + "Product Name = {}, Dataset Name = {}, Company CID = {}",
                     accountName, productName, datasetName, companyCID);
         }
 
@@ -287,7 +287,7 @@ public class SecurityServiceResource {
                 .getSSOConfigsByTenant(accountName);
         return new ResponseEntity<>(ssoConfigDTO, HttpStatus.OK);
     }
-    
+
     /**
      *
      * @param accountName
@@ -344,14 +344,15 @@ public class SecurityServiceResource {
      * @return @throws Exception
      */
     @GetMapping("/getProductsByTenant")
-    public ResponseEntity<ProductDTO> getProductsByTenant()
+    public ResponseEntity<List<ProductDTO>> getProductsByTenant(
+            @Valid @NotNull @RequestParam(required = true) String accountName)
             throws Exception {
         if (log.isInfoEnabled()) {
-            log.info("REST request to get Last Data Sync Info.");
+            log.info("REST request to get Products info for the given Tenant.");
         }
 
-        ProductDTO prodInfoDTO = securityService.getProductsByTenant();
-        return new ResponseEntity<>(prodInfoDTO, HttpStatus.OK);
+        List<ProductDTO> products = securityService.getProductsByTenant(accountName);
+        return new ResponseEntity<>(products, HttpStatus.OK);
     }
 
 }

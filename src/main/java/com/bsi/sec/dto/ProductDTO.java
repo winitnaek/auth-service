@@ -6,7 +6,6 @@
 package com.bsi.sec.dto;
 
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
 
 /**
  *
@@ -14,14 +13,11 @@ import javax.validation.constraints.NotNull;
  */
 public final class ProductDTO {
 
-    @NotNull
     @Min(1L)
-    private Long id;
+    private long id;
 
-    @NotNull
     private String acctName;
 
-    @NotNull
     private String prodName;
 
     public ProductDTO() {
@@ -34,11 +30,11 @@ public final class ProductDTO {
         this.prodName = prodName;
     }
 
-    public Long getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(long id) {
         this.id = id;
     }
 
