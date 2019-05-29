@@ -33,6 +33,10 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
     private Long id;
 
     @NotNull
+    @QuerySqlField(index = true)
+    private String acctName;
+
+    @NotNull
     @Column(name = "dspl_name", nullable = false)
     private String dsplName;
 
@@ -121,6 +125,14 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getAcctName() {
+        return acctName;
+    }
+
+    public void setAcctName(String acctName) {
+        this.acctName = acctName;
     }
 
     public boolean isLinked() {
@@ -380,28 +392,29 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
 
     @Override
     public int hashCode() {
-        int hash = 5;
-        hash = 59 * hash + Objects.hashCode(this.id);
-        hash = 59 * hash + Objects.hashCode(this.dsplName);
-        hash = 59 * hash + Objects.hashCode(this.idpIssuer);
-        hash = 59 * hash + Objects.hashCode(this.idpReqURL);
-        hash = 59 * hash + Objects.hashCode(this.spConsumerURL);
-        hash = 59 * hash + Objects.hashCode(this.spIssuer);
-        hash = 59 * hash + Objects.hashCode(this.attribIndex);
-        hash = 59 * hash + Objects.hashCode(this.validateRespSignature);
-        hash = 59 * hash + Objects.hashCode(this.validateIdpIssuer);
-        hash = 59 * hash + Objects.hashCode(this.allowLogout);
-        hash = 59 * hash + Objects.hashCode(this.nonSamlLogoutURL);
-        hash = 59 * hash + Objects.hashCode(this.redirectToApplication);
-        hash = 59 * hash + Objects.hashCode(this.appRedirectURL);
-        hash = 59 * hash + Objects.hashCode(this.certAlias);
-        hash = 59 * hash + Objects.hashCode(this.certPassword);
-        hash = 59 * hash + Objects.hashCode(this.certText);
-        hash = 59 * hash + Objects.hashCode(this.expireRequestSecs);
-        hash = 59 * hash + Objects.hashCode(this.enabled);
-        hash = 59 * hash + (this.linked ? 1 : 0);
-        hash = 59 * hash + Objects.hashCode(this.tenantSSOConf);
-        hash = 59 * hash + Objects.hashCode(this.tenant);
+        int hash = 3;
+        hash = 37 * hash + Objects.hashCode(this.id);
+        hash = 37 * hash + Objects.hashCode(this.acctName);
+        hash = 37 * hash + Objects.hashCode(this.dsplName);
+        hash = 37 * hash + Objects.hashCode(this.idpIssuer);
+        hash = 37 * hash + Objects.hashCode(this.idpReqURL);
+        hash = 37 * hash + Objects.hashCode(this.spConsumerURL);
+        hash = 37 * hash + Objects.hashCode(this.spIssuer);
+        hash = 37 * hash + Objects.hashCode(this.attribIndex);
+        hash = 37 * hash + Objects.hashCode(this.validateRespSignature);
+        hash = 37 * hash + Objects.hashCode(this.validateIdpIssuer);
+        hash = 37 * hash + Objects.hashCode(this.allowLogout);
+        hash = 37 * hash + Objects.hashCode(this.nonSamlLogoutURL);
+        hash = 37 * hash + Objects.hashCode(this.redirectToApplication);
+        hash = 37 * hash + Objects.hashCode(this.appRedirectURL);
+        hash = 37 * hash + Objects.hashCode(this.certAlias);
+        hash = 37 * hash + Objects.hashCode(this.certPassword);
+        hash = 37 * hash + Objects.hashCode(this.certText);
+        hash = 37 * hash + Objects.hashCode(this.expireRequestSecs);
+        hash = 37 * hash + Objects.hashCode(this.enabled);
+        hash = 37 * hash + (this.linked ? 1 : 0);
+        hash = 37 * hash + Objects.hashCode(this.tenantSSOConf);
+        hash = 37 * hash + Objects.hashCode(this.tenant);
         return hash;
     }
 
@@ -418,6 +431,9 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
         }
         final SSOConfiguration other = (SSOConfiguration) obj;
         if (this.linked != other.linked) {
+            return false;
+        }
+        if (!Objects.equals(this.acctName, other.acctName)) {
             return false;
         }
         if (!Objects.equals(this.dsplName, other.dsplName)) {
@@ -485,7 +501,7 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
 
     @Override
     public String toString() {
-        return "SSOConfiguration{" + "id=" + id + ", dsplName=" + dsplName + ", idpIssuer=" + idpIssuer + ", idpReqURL=" + idpReqURL + ", spConsumerURL=" + spConsumerURL + ", spIssuer=" + spIssuer + ", attribIndex=" + attribIndex + ", validateRespSignature=" + validateRespSignature + ", validateIdpIssuer=" + validateIdpIssuer + ", allowLogout=" + allowLogout + ", nonSamlLogoutURL=" + nonSamlLogoutURL + ", redirectToApplication=" + redirectToApplication + ", appRedirectURL=" + appRedirectURL + ", certAlias=" + certAlias + ", certPassword=" + certPassword + ", certText=" + certText + ", expireRequestSecs=" + expireRequestSecs + ", enabled=" + enabled + ", linked=" + linked + ", tenantSSOConf=" + tenantSSOConf + ", tenant=" + tenant + '}';
+        return "SSOConfiguration{" + "id=" + id + ", acctName=" + acctName + ", dsplName=" + dsplName + ", idpIssuer=" + idpIssuer + ", idpReqURL=" + idpReqURL + ", spConsumerURL=" + spConsumerURL + ", spIssuer=" + spIssuer + ", attribIndex=" + attribIndex + ", validateRespSignature=" + validateRespSignature + ", validateIdpIssuer=" + validateIdpIssuer + ", allowLogout=" + allowLogout + ", nonSamlLogoutURL=" + nonSamlLogoutURL + ", redirectToApplication=" + redirectToApplication + ", appRedirectURL=" + appRedirectURL + ", certAlias=" + certAlias + ", certPassword=" + certPassword + ", certText=" + certText + ", expireRequestSecs=" + expireRequestSecs + ", enabled=" + enabled + ", linked=" + linked + ", tenantSSOConf=" + tenantSSOConf + ", tenant=" + tenant + '}';
     }
 
 }

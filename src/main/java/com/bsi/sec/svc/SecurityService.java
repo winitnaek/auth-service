@@ -7,6 +7,7 @@ package com.bsi.sec.svc;
 
 import com.bsi.sec.dao.AdminMetadataDao;
 import com.bsi.sec.dao.CompanyDao;
+import com.bsi.sec.dao.SSOConfigDAO;
 import com.bsi.sec.dao.TenantDao;
 import com.bsi.sec.domain.AdminMetadata;
 import com.bsi.sec.domain.Tenant;
@@ -103,6 +104,9 @@ public class SecurityService {
 
     @Autowired
     private CompanyRepository compRepo;
+
+    @Autowired
+    private SSOConfigDAO ssoConfDao;
 
     /**
      *
@@ -275,6 +279,7 @@ public class SecurityService {
 
         Tenant tenant = getTenantByName(ssoConfig.getAcctName());
         sSOConfiguration.setTenant(tenant);
+        sSOConfiguration.setAcctName(tenant.getAcctName());
 
         //sSOConfiguration.setTenantSSOConf(tenantSSOConf);
         sSOConfiguration.setValidateIdpIssuer(ssoConfig.getValidateIdpIssuer());
@@ -313,6 +318,7 @@ public class SecurityService {
 
         Tenant tenant = getTenantByName(ssoConfig.getAcctName());
         sSOConfiguration.setTenant(tenant);
+        sSOConfiguration.setAcctName(tenant.getAcctName());
 
         //sSOConfiguration.setTenantSSOConf(tenantSSOConf);
         sSOConfiguration.setValidateIdpIssuer(ssoConfig.getValidateIdpIssuer());
@@ -343,9 +349,28 @@ public class SecurityService {
      * @param toUnlink
      * @return
      */
-    public boolean linkSSOConfigToTenant(String accountName, long ssoConfigId, boolean toUnlink) {
-        //TODO: Add implementation!
-        return true;
+    public SSOConfigDTO linkSSOConfigToTenant(String accountName, long ssoConfigId,
+            boolean toUnlink) throws RecordNotFoundException {
+        List<SSOConfiguration> confsOut = new ArrayList<>(0);
+        SSOConfiguration targetSSOConf = ssoConfDao.markSSOConfigAsLinked(accountName,
+                ssoConfigId, toUnlink, confsOut);
+
+        if (targetSSOConf == null) {
+            if (log.isErrorEnabled()) {
+                log.error(LogUtils.jsonize(null, "msg", "No SSO Configuration found!",
+                        "accountName", accountName, "ssoConfigId", ssoConfigId));
+            }
+
+            throw new RecordNotFoundException("No SSO Configuration found for"
+                    + " Account: " + accountName + ", SSO Config ID: " + ssoConfigId);
+        }
+
+        confsOut.forEach(c -> {
+            ssoConfigurationRepository.save(c.getId(), c);
+            auditLogger.logEntity(c, AuditLogger.Areas.SSO_CONF,
+                    AuditLogger.Ops.UPDATE);
+        });
+        return prepareConfig(targetSSOConf);
     }
 
     /**

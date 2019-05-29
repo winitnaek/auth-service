@@ -23,5 +23,7 @@ public class JpaQueries {
             + " where dataset = ? and samlCid = ?";
     public static final String DELETE_COMP_ID_BY_DSET = "delete from Company"
             + " where dataset = ? and imported = false";
+    public static final String GET_SSOCONFIGIDS_BY_ACCTNAME = "select id from SSOConfiguration c"
+            + " where c.acctName = ?";
     public static final String DELETE_SSO_CONFIG = "DELETE FROM SSOConfiguration WHERE id = ?";
 }

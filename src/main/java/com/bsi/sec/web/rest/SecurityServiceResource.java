@@ -210,7 +210,7 @@ public class SecurityServiceResource {
      * @throws Exception
      */
     @PostMapping("/linkSSOConfigToTenant")
-    public ResponseEntity<Boolean> linkSSOConfigToTenant(
+    public ResponseEntity<SSOConfigDTO> linkSSOConfigToTenant(
             @Valid @NotNull @RequestParam(required = true) String accountName,
             @Valid @Min(1L) @RequestParam(required = true) long ssoConfigId,
             @RequestParam boolean toUnlink) throws Exception {
@@ -220,9 +220,9 @@ public class SecurityServiceResource {
                     accountName, ssoConfigId, toUnlink);
         }
 
-        boolean isDeleted = securityService.linkSSOConfigToTenant(accountName,
+        SSOConfigDTO ssoConfig = securityService.linkSSOConfigToTenant(accountName,
                 ssoConfigId, toUnlink);
-        return new ResponseEntity<>(isDeleted, HttpStatus.OK);
+        return new ResponseEntity<>(ssoConfig, HttpStatus.OK);
     }
 
     /**
