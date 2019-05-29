@@ -26,4 +26,5 @@ public class JpaQueries {
     public static final String GET_SSOCONFIGIDS_BY_ACCTNAME = "select id from SSOConfiguration c"
             + " where c.acctName = ?";
     public static final String DELETE_SSO_CONFIG = "DELETE FROM SSOConfiguration WHERE id = ?";
+    public static final String SELECT_CONFIGS = "select * FROM SSOConfiguration";
 }
