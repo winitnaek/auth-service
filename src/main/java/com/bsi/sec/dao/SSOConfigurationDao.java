@@ -237,6 +237,11 @@ public class SSOConfigurationDao {
      * @throws Exception
      */
     public SSOConfigDTO updateSSOConfig(SSOConfigDTO ssoConfig) throws Exception {
+        
+        IgniteCache<Long, SSOConfiguration> cache = ignite.cache(SSO_CONFIGURATION_CACHE);
+        
+        SSOConfiguration conf = cache.get(ssoConfig.getId());
+          
         SSOConfiguration sSOConfiguration = new SSOConfiguration();
         sSOConfiguration.setAllowLogout(ssoConfig.getAllowLogout());
         sSOConfiguration.setAppRedirectURL(ssoConfig.getAppRedirectURL());
@@ -259,7 +264,9 @@ public class SSOConfigurationDao {
         Tenant tenant = tenantDao.getTenantByName(ssoConfig.getAcctName());
         sSOConfiguration.setTenant(tenant);
         sSOConfiguration.setAcctName(ssoConfig.getAcctName());
-        
+        if(conf.isLinked()){
+            sSOConfiguration.setLinked(true);
+        }
         sSOConfiguration.setValidateIdpIssuer(ssoConfig.getValidateIdpIssuer());
         sSOConfiguration.setValidateRespSignature(ssoConfig.getValidateRespSignature());
         ssoConfigurationRepository.save(sSOConfiguration.getId(), sSOConfiguration);
