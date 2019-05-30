@@ -9,13 +9,16 @@ import com.bsi.sec.domain.SSOConfiguration;
 import com.bsi.sec.domain.Tenant;
 import com.bsi.sec.dto.SSOConfigDTO;
 import com.bsi.sec.repository.SSOConfigurationRepository;
+import com.bsi.sec.repository.TenantRepository;
 import com.bsi.sec.svc.AuditLogger;
 import com.bsi.sec.svc.EntityIDGenerator;
 import static com.bsi.sec.util.CacheConstants.SSO_CONFIGURATION_CACHE;
 import com.bsi.sec.util.JpaQueries;
 import com.bsi.sec.util.LogUtils;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.cache.Cache;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
@@ -50,6 +53,9 @@ public class SSOConfigurationDao {
 
     @Autowired
     private AuditLogger auditLogger;
+    
+    @Autowired
+    private TenantRepository tenantRepository;
 
     /**
      * getSSOConfigsByTenant
@@ -68,7 +74,9 @@ public class SSOConfigurationDao {
                     SSOConfigDTO cfg = new SSOConfigDTO();
                     cfg.setAcctName(config.getTenant().getAcctName());
                     cfg.setAcctId(config.getTenant().getId());
+                    cfg.setId(config.getId());
                     cfg.setDsplName(config.getDsplName());
+                    cfg.setLinked(config.isLinked());
                     configs.add(cfg);
                 }
             }
@@ -155,6 +163,7 @@ public class SSOConfigurationDao {
         config.setSpIssuer(sSOConfiguration.getSpIssuer());
         config.setValidateIdpIssuer(sSOConfiguration.isValidateIdpIssuer());
         config.setValidateRespSignature(sSOConfiguration.isValidateRespSignature());
+        config.setLinked(sSOConfiguration.isLinked());
         return config;
     }
 
@@ -193,7 +202,17 @@ public class SSOConfigurationDao {
         //sSOConfiguration.setTenantSSOConf(tenantSSOConf);
         sSOConfiguration.setValidateIdpIssuer(ssoConfig.getValidateIdpIssuer());
         sSOConfiguration.setValidateRespSignature(ssoConfig.getValidateRespSignature());
-
+        
+        
+        Set<SSOConfiguration> sscfg =  tenant.getSsoConfigs();
+        
+        if(ssoConfig==null){
+            sscfg = new HashSet<>();
+        }
+        sscfg.add(sSOConfiguration);
+                
+        tenant.setSsoConfigs(sscfg);
+        tenantRepository.save(tenant.getId(),tenant);
         ssoConfigurationRepository.save(sSOConfiguration.getId(), sSOConfiguration);
         auditLogger.logEntity(sSOConfiguration, AuditLogger.Areas.SSO_CONF, AuditLogger.Ops.INSERT);
         return prepareConfig(sSOConfiguration);
@@ -229,11 +248,18 @@ public class SSOConfigurationDao {
         Tenant tenant = tenantDao.getTenantByName(ssoConfig.getAcctName());
         sSOConfiguration.setTenant(tenant);
         sSOConfiguration.setAcctName(ssoConfig.getAcctName());
+        
+        Set<SSOConfiguration> sscfg =  tenant.getSsoConfigs();
+        
+        if(ssoConfig==null){
+            sscfg = new HashSet<>();
+        }
+        sscfg.add(sSOConfiguration);
 
         //sSOConfiguration.setTenantSSOConf(tenantSSOConf);
         sSOConfiguration.setValidateIdpIssuer(ssoConfig.getValidateIdpIssuer());
         sSOConfiguration.setValidateRespSignature(ssoConfig.getValidateRespSignature());
-
+        tenantRepository.save(tenant.getId(),tenant);
         ssoConfigurationRepository.save(sSOConfiguration.getId(), sSOConfiguration);
         auditLogger.logEntity(sSOConfiguration, AuditLogger.Areas.SSO_CONF, AuditLogger.Ops.UPDATE);
         return prepareConfig(sSOConfiguration);
