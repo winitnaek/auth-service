@@ -200,7 +200,7 @@ public class SecurityServiceResourceTest extends BaseTest {
                         .param("accountName", acctname)
                         .param("ssoConfigId", String.valueOf(1L))
                         .param("toUnlink", String.valueOf(true)))
-                .andExpect(status().isOk())
+                .andExpect(status().isNotFound())
                 .andReturn()
                 .getResponse();
 
