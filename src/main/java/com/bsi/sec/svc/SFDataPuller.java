@@ -29,8 +29,11 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TimeZone;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -162,12 +165,18 @@ public class SFDataPuller implements DataPuller {
             }
 
             List<Tenant> tenants = new ArrayList<>(qr.getSize());
+            Set<String> recKeys = new HashSet<String>(tenants.size());
 
             while (!done) {
                 SObject[] records = qr.getRecords();
 
                 for (SObject rec : records) {
                     Entitlement ent = (Entitlement) rec;
+
+                    if (dupTenantKeyFound(recKeys, ent)) {
+                        continue;
+                    }
+
                     Tenant tn = new Tenant();
                     tn.setAcctId(ent.getAccount_18_Digit_ID__c());
                     tn.setAcctName(ent.getAccount_Name__c());
@@ -178,6 +187,7 @@ public class SFDataPuller implements DataPuller {
                     tn.setProdName(ent.getProduct_Name__c());
                     tn.setId(idGenerator.generate());
                     tenants.add(tn);
+                    addTenantKey(recKeys, ent);
 
                     if (log.isTraceEnabled()) {
                         log.trace("Tenant: " + tn.toString());
@@ -360,6 +370,40 @@ public class SFDataPuller implements DataPuller {
                 .replace(":id", id)
                 .replace(":createddate", fromDateAsUTC);
         return queryToUse;
+    }
+
+    /**
+     * Adds given Entitlement <source>ent</scource> key to the sets of keys.
+     *
+     * @param recKeys
+     * @param ent
+     */
+    private void addTenantKey(Set<String> recKeys, Entitlement ent) {
+        recKeys.add(buildTenantKey(ent));
+    }
+
+    /**
+     * Builds key string.
+     *
+     * @param ent
+     * @return
+     */
+    private String buildTenantKey(Entitlement ent) {
+        return StringUtils.trimToEmpty(ent.getDataset_1__c())
+                + StringUtils.trimToEmpty(ent.getProduct_Name__c())
+                + StringUtils.trimToEmpty(ent.getAccount_Name__c());
+    }
+
+    /**
+     * Checks if incoming tenant's key already found in
+     * <source>recKeys</source>.
+     *
+     * @param recKeys
+     * @param ent
+     * @return
+     */
+    private boolean dupTenantKeyFound(Set<String> recKeys, Entitlement ent) {
+        return recKeys.contains(buildTenantKey(ent));
     }
 
 }

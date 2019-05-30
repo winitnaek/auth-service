@@ -17,7 +17,7 @@ public final class WSConstants {
     public static final String REST_PREFIX = "/r";
     public static final String ECHO_SERVICE = "/" + SVC_VERSION + "/EchoService";
     public static final String SECURITY_SERVICE = "/" + SVC_VERSION + "/SecurityService";
-
+    public static final String SSO_SERVICE = "/" + SVC_VERSION + "/SSOService";
     //
     public static final String PROP_PREFIX = "sws";
     public static final String DEPLOY_ECHO_SERVICE = "echo.service.deploy";
