@@ -1,6 +1,5 @@
 package com.bsi.sec.web.rest;
 
-import com.bsi.sec.dto.DatasetProductDTO;
 import com.bsi.sec.dto.SSOResult;
 import static com.bsi.sec.util.WSConstants.SSO_SERVICE;
 import org.slf4j.Logger;
@@ -8,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Set;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
