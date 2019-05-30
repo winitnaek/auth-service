@@ -38,6 +38,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -358,7 +359,7 @@ public class SecurityService {
      * @param includeImported
      * @return
      */
-    public List<TenantDTO> getTenants(boolean includeImported) {
+    public List<TenantDTO> getTenants(boolean includeImported) throws Exception{
         List<TenantDTO> tenants = new ArrayList<>();
         IgniteCache<Long, Tenant> tenantCache = igniteInstance.cache(TENANT_CACHE);
         SqlQuery sqlQry = new SqlQuery(Tenant.class, "imported= ?");
@@ -372,9 +373,14 @@ public class SecurityService {
                 tenant.setProdName(tnt.getProdName());
                 tenant.setEnabled(tnt.isEnabled());
                 tenant.setImported(tnt.isImported());
-                if (tnt.getTenantSSOConf() != null) {
-                    tenant.setSsoConfId(tnt.getTenantSSOConf().getId());
-                    tenant.setSsoConfDsplName(tnt.getTenantSSOConf().getSsoConfDsplName());
+                List<SSOConfigDTO> ssoConf  = getSSOConfigsByTenant(tnt.getAcctName());
+                if(ssoConf !=null && ssoConf.size() >0){
+                    for (SSOConfigDTO sSOConfigDTO : ssoConf) {
+                        if(sSOConfigDTO.isLinked()){
+                                tenant.setSsoConfId(sSOConfigDTO.getId());
+                                tenant.setSsoConfDsplName(sSOConfigDTO.getDsplName());
+                            }
+                    }
                 }
                 tenants.add(tenant);
             }
