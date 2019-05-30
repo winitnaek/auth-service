@@ -83,6 +83,27 @@ public class SSOConfigurationDao {
         }
         return configs;
     }
+    
+   /**
+    * getLinkedSSOConfigsForTenant
+    * @param accountName
+    * @return 
+    */
+    public SSOConfigDTO getLinkedSSOConfigsForTenant(String accountName) {
+        SqlFieldsQuery sql = new SqlFieldsQuery(JpaQueries.GET_LINKED_SSOCONFIGIDS_BY_ACCTNAME);
+        IgniteCache<Long, SSOConfiguration> cache = ignite.cache(SSO_CONFIGURATION_CACHE);
+        SSOConfigDTO configDTO = null;
+        try (QueryCursor<List<?>> cursor = cache.query(sql.setArgs(accountName))) {
+            for (List<?> row : cursor) {
+                Long confId   = (Long) row.get(0);
+                String dispName = (String) row.get(1);
+                configDTO= new SSOConfigDTO();
+                configDTO.setId(confId);
+                configDTO.setDsplName(dispName);;
+            }
+        }
+        return configDTO;
+    }
 
     /**
      * getSSOConfById

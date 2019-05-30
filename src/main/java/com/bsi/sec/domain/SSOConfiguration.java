@@ -38,6 +38,7 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
 
     @NotNull
     @Column(name = "dspl_name", nullable = false)
+    @QuerySqlField(name = "dsplName")
     private String dsplName;
 
     @NotNull
@@ -106,8 +107,8 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
     private Boolean enabled;
 
     @NotNull
-    @Column(name = "enabled")
-    @QuerySqlField(name = "enabled")
+    @Column(name = "linked")
+    @QuerySqlField(name = "linked")
     private boolean linked;
 
     @OneToOne(mappedBy = "ssoConfig")
