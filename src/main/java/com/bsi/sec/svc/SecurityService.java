@@ -38,7 +38,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -359,7 +358,7 @@ public class SecurityService {
      * @param includeImported
      * @return
      */
-    public List<TenantDTO> getTenants(boolean includeImported) throws Exception{
+    public List<TenantDTO> getTenants(boolean includeImported) throws Exception {
         List<TenantDTO> tenants = new ArrayList<>();
         IgniteCache<Long, Tenant> tenantCache = igniteInstance.cache(TENANT_CACHE);
         SqlQuery sqlQry = new SqlQuery(Tenant.class, "imported= ?");
@@ -376,7 +375,7 @@ public class SecurityService {
                 SSOConfigDTO configDTO = ssoConfDao.getLinkedSSOConfigsForTenant(tnt.getAcctName());
                 //log.info("configDTO : "+configDTO);
                 //List<SSOConfigDTO> ssoConf  = getSSOConfigsByTenant(tnt.getAcctName());
-                if(configDTO !=null){
+                if (configDTO != null) {
                     tenant.setSsoConfId(configDTO.getId());
                     tenant.setSsoConfDsplName(configDTO.getDsplName());
                 }
@@ -411,18 +410,20 @@ public class SecurityService {
      * @param accountName
      * @return
      */
-    public List<ProductDTO> getProductsByTenant(String accountName)
+    public List<ProductDTO> getProductsByTenant(String accountNameIn)
             throws RecordNotFoundException {
-        List<ProductDTO> products = tenantDao.getProductsByAcctname(accountName);
+        List<ProductDTO> products = tenantDao.getProductsByAcctname(accountNameIn);
+        String accountNameToUse = StringUtils.isNotBlank(accountNameIn)
+                ? accountNameIn : "ALL";
 
         if (CollectionUtils.isEmpty(products)) {
             if (log.isErrorEnabled()) {
                 log.error(LogUtils.jsonize(null, "msg", "No products found!",
-                        "accountName", accountName));
+                        "accountName", accountNameToUse));
             }
 
             throw new RecordNotFoundException("No products found for"
-                    + " Account: " + accountName);
+                    + " Account: " + accountNameToUse);
         }
 
         return products;

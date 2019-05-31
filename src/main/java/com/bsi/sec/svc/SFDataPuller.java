@@ -16,7 +16,6 @@ import com.bsi.sec.util.LogUtils;
 import com.bsi.sec.util.SOQLQueries;
 import com.sforce.soap.enterprise.EnterpriseConnection;
 import com.sforce.soap.enterprise.GetUpdatedResult;
-import com.sforce.soap.enterprise.LoginResult;
 import com.sforce.soap.enterprise.QueryResult;
 import com.sforce.soap.enterprise.sobject.Entitlement;
 import com.sforce.soap.enterprise.sobject.SObject;
@@ -102,21 +101,15 @@ public class SFDataPuller implements DataPuller {
                 int secsBeforeSessExpire = 10 * 60; // 10 minutes
 
                 if (secondsSessValid <= secsBeforeSessExpire) {
-                    connection.logout();
-                    SF sf = props.getSf();
-                    LoginResult loginResult = connection.login(sf.getUsername(),
-                            sf.getPassword() + sf.getSecToken());
+                    logout();
+                    login();
 
-                    if (loginResult != null) {
-                        String serverUrl = loginResult.getServerUrl();
-                        String sessionId = loginResult.getSessionId();
-                        String userId = loginResult.getUserId();
-
-                        if (log.isInfoEnabled()) {
-                            log.info(LogUtils.jsonize("Session has been refreshed!",
-                                    "url", serverUrl, "sessionid", sessionId, "userid",
-                                    userId));
-                        }
+                    if (log.isInfoEnabled()) {
+                        log.info(LogUtils.jsonize(null,
+                                "msg", "Session has been refreshed!",
+                                "url", connection.getConfig().getAuthEndpoint(),
+                                "sessionid", connection.getConfig().getSessionId(),
+                                "userid", connection.getUserInfo().getUserId()));
                     }
                 }
             }

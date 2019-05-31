@@ -292,6 +292,20 @@ public class SecurityServiceResourceTest extends BaseTest {
                 response.getStatus(), response.getContentAsString(), response.getErrorMessage());
     }
 
+    @Test
+    public void getAllProductsTest() throws Exception {
+        MockHttpServletResponse response = mockmvc
+                .perform(get("/v1/SecurityService/getProductsByTenant")
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse();
+
+        log.info("Status -> {}, Response Content -> {}, Error Message -> {}",
+                response.getStatus(), response.getContentAsString(), response.getErrorMessage());
+    }
+    
     private SSOConfigDTO populateSSOConfig() {
         SSOConfigDTO ssoConfigIn = new SSOConfigDTO();
         ssoConfigIn.setAcctName(acctname);

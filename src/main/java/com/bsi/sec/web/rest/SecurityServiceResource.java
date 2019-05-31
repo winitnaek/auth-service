@@ -345,7 +345,7 @@ public class SecurityServiceResource {
      */
     @GetMapping("/getProductsByTenant")
     public ResponseEntity<List<ProductDTO>> getProductsByTenant(
-            @Valid @NotNull @RequestParam(required = true) String accountName)
+            @RequestParam(required = false) String accountName)
             throws Exception {
         if (log.isInfoEnabled()) {
             log.info("REST request to get Products info for the given Tenant.");
