@@ -287,6 +287,7 @@ public class SecurityService {
             ssoConfigurationRepository.save(c.getId(), c);
             auditLogger.logEntity(c, AuditLogger.Areas.SSO_CONF,
                     AuditLogger.Ops.UPDATE);
+            adjustTenantSSOConfiguration(c);
         });
         return ssoConfDao.prepareConfig(targetSSOConf);
     }
@@ -430,6 +431,26 @@ public class SecurityService {
     }
 
     /**
+     *
+     * @param ssoConfig
+     * @return
+     */
+    public SSOConfigDTO createSSOConfig(SSOConfigDTO ssoConfig)
+            throws Exception {
+        return ssoConfDao.createSSOConfig(ssoConfig);
+    }
+
+    /**
+     *
+     * @param ssoConfig
+     * @return
+     */
+    public SSOConfigDTO updateSSOConfig(SSOConfigDTO ssoConfig)
+            throws Exception {
+        return ssoConfDao.updateSSOConfig(ssoConfig);
+    }
+
+    /**
      * TODO: Test-only stub! Add implementation!
      *
      * @param productsToRet
@@ -512,21 +533,21 @@ public class SecurityService {
 
     /**
      *
-     * @param ssoConfig
-     * @return
+     * @param conf
      */
-    public SSOConfigDTO createSSOConfig(SSOConfigDTO ssoConfig)
-            throws Exception {
-        return ssoConfDao.createSSOConfig(ssoConfig);
-    }
+    private void adjustTenantSSOConfiguration(SSOConfiguration confEnt) {
+        String acctName = confEnt.getAcctName();
+        Tenant tenEnt = tenantDao.getTenantByName(acctName);
+        //
+        boolean isLinked = confEnt.isLinked();
+        tenEnt.setConfId(isLinked ? confEnt.getId() : null);
+        tenEnt.setConfIdDsplName(isLinked ? confEnt.getDsplName() : null);
+        //
+        Tenant updTenEnt = tenantRepo.save(tenEnt.getId(), tenEnt);
 
-    /**
-     *
-     * @param ssoConfig
-     * @return
-     */
-    public SSOConfigDTO updateSSOConfig(SSOConfigDTO ssoConfig)
-            throws Exception {
-        return ssoConfDao.updateSSOConfig(ssoConfig);
+        if (updTenEnt != null) {
+            auditLogger.logEntity(updTenEnt, AuditLogger.Areas.TENANT,
+                    AuditLogger.Ops.UPDATE);
+        }
     }
 }
