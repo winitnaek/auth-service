@@ -97,10 +97,29 @@ public class SFDataPuller implements DataPuller {
     public void refreshSessionCheck() throws Exception {
         try {
             if (connection != null) {
-                int secondsSessValid = connection.getUserInfo().getSessionSecondsValid();
+                int secondsSessValid = 0;
+
+                try {
+                    secondsSessValid = connection.getUserInfo().getSessionSecondsValid();
+                } catch (ConnectionException ex) {
+                    // Attempt logging in to SF!
+                    login();
+                    secondsSessValid = connection.getUserInfo().getSessionSecondsValid();
+                }
+
                 int secsBeforeSessExpire = 10 * 60; // 10 minutes
 
                 if (secondsSessValid <= secsBeforeSessExpire) {
+                    if (log.isInfoEnabled()) {
+                        log.info(LogUtils.jsonize(null,
+                                "msg", "Session must be refreshed!",
+                                "secsBeforeSessExpireTresholdInSecs", secsBeforeSessExpire,
+                                "sessStillValidForInSecs", secondsSessValid,
+                                "url", connection.getConfig().getAuthEndpoint(),
+                                "sessionid", connection.getConfig().getSessionId(),
+                                "userid", connection.getUserInfo().getUserId()));
+                    }
+
                     logout();
                     login();
 

@@ -50,9 +50,12 @@ public class SecurityServiceInitializer implements Closeable {
      */
     @Override
     public void close() throws IOException {
-        Ignition.stopAll(true);
+        if (log.isDebugEnabled()) {
+            log.debug("Resource close() triggered!");
+        }
 
         try {
+            Ignition.stopAll(true);
             sfDataPuller.postCleanup();
         } catch (Exception ex) {
             if (log.isErrorEnabled()) {

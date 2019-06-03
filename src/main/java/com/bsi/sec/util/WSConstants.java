@@ -25,4 +25,9 @@ public final class WSConstants {
 
     public static final String ENDPOINT_ECHO = "echoEndpoint";
     public static final String ENDPOINT_SECURITY_SERVICE = "securityServiceEndpoint";
+
+    public static final String MGMTUI_LOGIN_URL = REST_PREFIX + SECURITY_SERVICE + "/mgmtui_login";
+    public static final String MGMTUI_LOGOUT_URL = REST_PREFIX + SECURITY_SERVICE + "/mgmtui_logout";
+
+    public static final String SESS_COOKIE = "JSESSIONID";
 }
