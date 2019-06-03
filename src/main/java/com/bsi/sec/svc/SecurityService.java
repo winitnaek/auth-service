@@ -373,13 +373,15 @@ public class SecurityService {
                 tenant.setProdName(tnt.getProdName());
                 tenant.setEnabled(tnt.isEnabled());
                 tenant.setImported(tnt.isImported());
-                SSOConfigDTO configDTO = ssoConfDao.getLinkedSSOConfigsForTenant(tnt.getAcctName());
+                tenant.setSsoConfId(tnt.getConfId());
+                tenant.setSsoConfDsplName(tnt.getConfIdDsplName());
+                //SSOConfigDTO configDTO = ssoConfDao.getLinkedSSOConfigsForTenant(tnt.getAcctName());
                 //log.info("configDTO : "+configDTO);
                 //List<SSOConfigDTO> ssoConf  = getSSOConfigsByTenant(tnt.getAcctName());
-                if (configDTO != null) {
-                    tenant.setSsoConfId(configDTO.getId());
-                    tenant.setSsoConfDsplName(configDTO.getDsplName());
-                }
+                //if (configDTO != null) {
+//                    tenant.setSsoConfId(configDTO.getId());
+//                    tenant.setSsoConfDsplName(configDTO.getDsplName());
+//                }
                 tenants.add(tenant);
             }
         }
