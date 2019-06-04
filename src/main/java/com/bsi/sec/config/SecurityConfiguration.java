@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.ServletException;
@@ -26,7 +27,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AuthenticationDetailsSource;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -35,6 +36,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -52,11 +55,13 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     private String mgmntEndpWebBsePath;
 
     @Autowired
-    private RestfulAuthProvider authProvider;
+    private MgmtUIRestfulAuthProvider mgmtUIauthProvider;
 
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.authenticationProvider(authProvider);
+    @Autowired
+    public void configureGlobal(AuthenticationManagerBuilder authMgrBldr) throws Exception {
+        ProviderManager authMgr = new ProviderManager(Arrays.asList(mgmtUIauthProvider));
+        authMgr.setEraseCredentialsAfterAuthentication(false);
+        authMgrBldr.parentAuthenticationManager(authMgr);
     }
 
     /**
@@ -67,14 +72,17 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
      */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.authorizeRequests()
+        http
+                .csrf().disable()
+                .cors().disable()
+                .exceptionHandling()
+                .authenticationEntryPoint(authFailureEntryPoint())
+                .and()
+                .authorizeRequests()
                 .anyRequest().permitAll()
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .antMatchers(mgmntEndpWebBsePath + "/**").denyAll() // deny actuator access at root level!
                 .anyRequest().fullyAuthenticated()
-                .and()
-                .httpBasic().authenticationEntryPoint(authFailureEntryPoint())
-                .authenticationDetailsSource(authenticationDetailsSource())
                 .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 .and()
@@ -83,10 +91,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .successHandler(authenticationSuccessHandler())
                 .and()
                 .logout().logoutUrl(MGMTUI_LOGOUT_URL).clearAuthentication(true)
-                .deleteCookies(SESS_COOKIE).invalidateHttpSession(true)
-                .and()
-                .csrf().disable()
-                .cors().disable();
+                .deleteCookies(SESS_COOKIE).invalidateHttpSession(true);
     }
 
     /**
@@ -109,29 +114,25 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             private final Logger log = LoggerFactory.getLogger(this.getClass());
 
             @Override
-            public void commence(HttpServletRequest hsr, HttpServletResponse hsr1, org.springframework.security.core.AuthenticationException ae) throws IOException, ServletException {
+            public void commence(HttpServletRequest request, HttpServletResponse response,
+                    org.springframework.security.core.AuthenticationException ae) throws IOException, ServletException {
                 if (log.isInfoEnabled()) {
                     log.info(LogUtils.jsonize(null,
                             "msg", "Called Pre-Authentication entry point! Access is rejected for!",
-                            "requestURL", hsr.getRequestURL().toString()));
+                            "requestURL", request.getRequestURL().toString()));
                 }
-                hsr1.sendError(HttpStatus.UNAUTHORIZED.value(), "Invalid Credentials! Access is denied!");
+                response.sendError(HttpStatus.UNAUTHORIZED.value(), "Invalid Credentials! Access is denied!");
             }
         };
     }
 
     /**
-     * Returns authentication details representation.
      *
      * @return
      */
-    private AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource() {
-        return new AuthenticationDetailsSource<HttpServletRequest, AuthenticationDetails>() {
-            @Override
-            public AuthenticationDetails buildDetails(HttpServletRequest request) {
-                return new AuthenticationDetails(request);
-            }
-        };
+    @Bean
+    public PasswordEncoder encoder() {
+        return new BCryptPasswordEncoder();
     }
 
     /**
@@ -207,18 +208,13 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                     Authentication authentication) throws IOException, ServletException {
                 response.setStatus(HttpStatus.OK.value());
                 Map<String, Object> data = new HashMap<>();
+
                 data.put(
                         "timestamp",
                         LocalDateTime.now(ZoneOffset.UTC).toString());
                 data.put(
                         "name",
                         authentication.getName());
-                data.put(
-                        "principal",
-                        authentication.getPrincipal());
-                data.put(
-                        "isAuthenticated",
-                        authentication.isAuthenticated());
                 //
                 ObjectMapper objectMapper = new ObjectMapper();
                 response.getOutputStream()

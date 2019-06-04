@@ -64,7 +64,7 @@ public class LdapAuthenticationManager {
                         + userName + ". Error msg: " + e.getMessage()), e);
             }
 
-            throw new InvalidUserException("Invalid user!!", e);
+            throw new InvalidUserException("Invalid credentials!!", e);
         } finally {
             if (ctx != null) {
                 try {

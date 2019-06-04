@@ -26,9 +26,6 @@ import org.springframework.validation.annotation.Validated;
 
 /**
  * REST controller for managing Tenant.
- *
- * //TODO: Add JSR-303 validation, exception handling, comments.
- *
  */
 @RestController
 @Validated
