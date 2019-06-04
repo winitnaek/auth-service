@@ -59,7 +59,7 @@ public class LdapAuthenticationManager {
             return hasRole(ctx, roleCN, userName);
         } catch (Exception e) {
             if (log.isErrorEnabled()) {
-                log.error(LogUtils.jsonize(ERR_CODE_AUTH
+                log.error(LogUtils.jsonize("msg", ERR_CODE_AUTH
                         + ": Unable to authenticate/authorize user: "
                         + userName + ". Error msg: " + e.getMessage()), e);
             }
@@ -71,7 +71,8 @@ public class LdapAuthenticationManager {
                     ctx.close();
                 } catch (NamingException ex) {
                     if (log.isWarnEnabled()) {
-                        log.warn(LogUtils.jsonize("Unable to close dir ctx!", ex));
+                        log.warn(LogUtils.jsonize(
+                                "msg", "Unable to close dir ctx!"), ex);
                     }
                 }
             }

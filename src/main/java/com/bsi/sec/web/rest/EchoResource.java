@@ -32,12 +32,12 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping(ECHO_SERVICE)
 @ConditionalOnBean(name = ENDPOINT_ECHO)
-public class EchoResource implements SecureResource{
+public class EchoResource implements SecureResource {
+
     private static final Logger log = LoggerFactory.getLogger(EchoResource.class);
 
     @Autowired
     private EchoService svc;
-
 
     @RequestMapping("/echo") //get
     public String echo(@RequestParam(value = "name", defaultValue = "HI") String name) {
@@ -62,7 +62,9 @@ public class EchoResource implements SecureResource{
         MediaType.MULTIPART_FORM_DATA_VALUE}) //post
     public String echoPart(@RequestPart(value = "input", required = true) @Valid EchoInput input, @RequestPart(value = "input2", required = true) @Valid MultipartFile file) {
         if (log.isDebugEnabled()) {
-            log.debug(LogUtils.jsonize("slf4jlog -  say hi with input object called", file.toString()));
+            log.debug(LogUtils.jsonize(
+                    "msg", "slf4jlog -  say hi with input object called",
+                    "file", file.toString()));
 
         }
         return svc.echo(input.getName());
@@ -76,5 +78,5 @@ public class EchoResource implements SecureResource{
         }
         return svc.echo(file.getName());
 
-    }  
+    }
 }

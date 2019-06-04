@@ -39,7 +39,10 @@ public class FileUtils {
             return Optional.empty();
         } catch (Exception e) {
             if (log.isErrorEnabled()) {
-                log.error(LogUtils.jsonize("Failed to create temp directory {}. " + ExceptionUtils.getRootCauseMessage(e), "Directory", pathIn));
+                log.error(LogUtils.jsonize(
+                        "msg", "Failed to create temp directory {}. "
+                        + ExceptionUtils.getRootCauseMessage(e),
+                        "Directory", pathIn));
             }
             throw new ConfigurationException(Errors.FAILED_TO_CREATE_TEMPDIR, pathIn);
         }

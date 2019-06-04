@@ -111,7 +111,7 @@ public class SFDataPuller implements DataPuller {
 
                 if (secondsSessValid <= secsBeforeSessExpire) {
                     if (log.isInfoEnabled()) {
-                        log.info(LogUtils.jsonize(null,
+                        log.info(LogUtils.jsonize(
                                 "msg", "Session must be refreshed!",
                                 "secsBeforeSessExpireTresholdInSecs", secsBeforeSessExpire,
                                 "sessStillValidForInSecs", secondsSessValid,
@@ -124,7 +124,7 @@ public class SFDataPuller implements DataPuller {
                     login();
 
                     if (log.isInfoEnabled()) {
-                        log.info(LogUtils.jsonize(null,
+                        log.info(LogUtils.jsonize(
                                 "msg", "Session has been refreshed!",
                                 "url", connection.getConfig().getAuthEndpoint(),
                                 "sessionid", connection.getConfig().getSessionId(),
@@ -265,8 +265,9 @@ public class SFDataPuller implements DataPuller {
 
                 if (qr.getSize() == 0) {
                     if (log.isDebugEnabled()) {
-                        log.debug(LogUtils.jsonize("Unrelated updated SF:Entitlement"
-                                + " record found!", "ID", id));
+                        log.debug(LogUtils.jsonize(
+                                "msg", "Unrelated updated SF:Entitlement" + " record found!",
+                                "ID", id));
                     }
 
                     continue;

@@ -179,7 +179,8 @@ public class SecurityService {
                     AuditLogger.Ops.UPDATE);
 
             if (log.isInfoEnabled()) {
-                log.info(LogUtils.jsonize("Periodic Data Sync configuration was updated.",
+                log.info(LogUtils.jsonize(
+                        "msg", "Periodic Data Sync configuration was updated.",
                         "rec", updEnt.toString()));
             }
 
@@ -237,7 +238,7 @@ public class SecurityService {
 
         if (!tenEntOpt.isPresent()) {
             throw new RecordNotFoundException(
-                    LogUtils.jsonize("", "id", id));
+                    LogUtils.jsonize("id", id));
         }
 
         Tenant tenant = tenEntOpt.get();
@@ -275,8 +276,10 @@ public class SecurityService {
 
         if (targetSSOConf == null) {
             if (log.isErrorEnabled()) {
-                log.error(LogUtils.jsonize(null, "msg", "No SSO Configuration found!",
-                        "accountName", accountName, "ssoConfigId", ssoConfigId));
+                log.error(LogUtils.jsonize(
+                        "msg", "No SSO Configuration found!",
+                        "accountName", accountName, 
+                        "ssoConfigId", ssoConfigId));
             }
 
             throw new RecordNotFoundException("No SSO Configuration found for"
@@ -421,7 +424,8 @@ public class SecurityService {
 
         if (CollectionUtils.isEmpty(products)) {
             if (log.isErrorEnabled()) {
-                log.error(LogUtils.jsonize(null, "msg", "No products found!",
+                log.error(LogUtils.jsonize(
+                        "msg", "No products found!",
                         "accountName", accountNameToUse));
             }
 

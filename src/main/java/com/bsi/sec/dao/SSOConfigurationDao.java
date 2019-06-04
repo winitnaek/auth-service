@@ -297,8 +297,10 @@ public class SSOConfigurationDao {
                 SSOConfiguration conf = cache.get(confId);
 
                 if (log.isTraceEnabled()) {
-                    log.trace(LogUtils.jsonize(null, "acctName", acctName,
-                            "id", id), "conf", conf.toString());
+                    log.trace(LogUtils.jsonize(
+                            "acctName", acctName,
+                            "id", id,
+                            "conf", conf.toString()));
                 }
 
                 conf.setLinked(id == conf.getId() ? !toUnlink : false);

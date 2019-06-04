@@ -133,7 +133,7 @@ public class MgmtUISecurityConfiguration extends WebSecurityConfigurerAdapter {
             public void commence(HttpServletRequest request, HttpServletResponse response,
                     org.springframework.security.core.AuthenticationException ae) throws IOException, ServletException {
                 if (log.isInfoEnabled()) {
-                    log.info(LogUtils.jsonize(null,
+                    log.info(LogUtils.jsonize(
                             "msg", "Called Pre-Authentication entry point! Access is rejected for!",
                             "requestURL", request.getRequestURL().toString()));
                 }
@@ -289,7 +289,7 @@ public class MgmtUISecurityConfiguration extends WebSecurityConfigurerAdapter {
             respOut.println(objectMapper.writeValueAsString(data));
         } catch (IOException ex) {
             if (log.isErrorEnabled()) {
-                log.error(LogUtils.jsonize(null,
+                log.error(LogUtils.jsonize(
                         "msg", "Logout Handler failed!!",
                         "error", ex.getMessage()
                 ), ex);

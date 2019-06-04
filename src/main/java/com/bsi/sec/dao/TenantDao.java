@@ -59,8 +59,11 @@ public class TenantDao {
                 tenId = (Long) row.get(0);
 
                 if (log.isTraceEnabled()) {
-                    log.trace(LogUtils.jsonize("getTenantByDsetProdAcct(...)", "dataset", dset,
-                            "prodname", prodName, "acctname", acctName, "tenantId", tenId));
+                    log.trace(LogUtils.jsonize(
+                            "dataset", dset,
+                            "prodname", prodName,
+                            "acctname", acctName,
+                            "tenantId", tenId));
                 }
 
                 break;
@@ -97,8 +100,9 @@ public class TenantDao {
                 String prodName = (String) row.get(0);
 
                 if (log.isTraceEnabled()) {
-                    log.trace(LogUtils.jsonize("getProductsByAcctname(...)",
-                            "prodname", prodName, "acctname", accountNameToUse));
+                    log.trace(LogUtils.jsonize(
+                            "prodname", prodName,
+                            "acctname", accountNameToUse));
                 }
 
                 ProductDTO prod = new ProductDTO(idGen.generate(), accountNameToUse,

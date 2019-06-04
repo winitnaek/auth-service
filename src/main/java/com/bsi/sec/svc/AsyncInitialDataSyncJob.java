@@ -57,7 +57,9 @@ public class AsyncInitialDataSyncJob implements AsyncDataSyncJob, DataSyncRespon
                 if (log.isInfoEnabled()) {
                     log.info("Full Data Sync job with From Date/Time {} "
                             + "completed! {}", fromDtTm,
-                            LogUtils.jsonize("Full Data Sync", "response", response));
+                            LogUtils.jsonize(
+                                    "msg", "Full Data Sync",
+                                    "response", response));
                 }
             } else {
                 String errMsg = "Failed while running Full Data Sync job!";

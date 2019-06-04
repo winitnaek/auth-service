@@ -65,7 +65,7 @@ public class AsyncPeriodicDataSyncJob implements AsyncDataSyncJob, DataSyncRespo
                 if (log.isInfoEnabled()) {
                     log.info("Periodic Data Sync job with From Date/Time {} "
                             + "completed! {}", fromDtTm,
-                            LogUtils.jsonize("", "response", response));
+                            LogUtils.jsonize("response", response));
                 }
             } else {
                 String errMsg = "Failed while running Periodic Data Sync job!";

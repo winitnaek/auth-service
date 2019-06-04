@@ -45,8 +45,9 @@ public class PeriodicDataSyncJobScheduler {
                     try {
                         perDataSyncJob.run();
                     } catch (Exception ex) {
-                        String errMsg = LogUtils.jsonize("Scheduled Periodic"
-                                + " Job error!", "exception", ex);
+                        String errMsg = LogUtils.jsonize(
+                                "msg", "Scheduled Periodic" + " Job error!",
+                                "exception", ex);
 
                         if (log.isErrorEnabled()) {
                             log.error(errMsg);
@@ -57,8 +58,9 @@ public class PeriodicDataSyncJobScheduler {
 
             if (log.isDebugEnabled()) {
                 if (!fut.isCancelled() && fut.isDone()) {
-                    log.debug(LogUtils.jsonize("Average Exec Time", "time",
-                            fut.averageIdleTime()));
+                    log.debug(LogUtils.jsonize(
+                            "msg", "Average Exec Time",
+                            "time", fut.averageIdleTime()));
                 }
             }
         } catch (Exception ex) {
@@ -66,8 +68,9 @@ public class PeriodicDataSyncJobScheduler {
                 fut.cancel();
             }
 
-            String errMsg = LogUtils.jsonize("Scheduled Periodic"
-                    + " Job error!", "exception", ex);
+            String errMsg = LogUtils.jsonize(
+                    "msg", "Scheduled Periodic" + " Job error!",
+                    "exception", ex);
 
             if (log.isErrorEnabled()) {
                 log.error(errMsg);

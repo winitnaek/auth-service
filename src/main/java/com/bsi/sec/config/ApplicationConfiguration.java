@@ -52,7 +52,7 @@ public class ApplicationConfiguration {
     private void createDirectory(String dir) throws com.bsi.sec.exception.ConfigurationException {
         if (Files.notExists(FileSystems.getDefault().getPath(dir))) {
             if (log.isWarnEnabled()) {
-                log.warn(LogUtils.jsonize("Missing directory", "dir", dir));
+                log.warn(LogUtils.jsonize("msg", "Missing directory", "dir", dir));
             }
 
             Optional<Path> path = FileUtils.createDirectoryIfNotExists(dir);
@@ -61,7 +61,8 @@ public class ApplicationConfiguration {
                 String newdir = path.get().toString();
 
                 if (log.isInfoEnabled()) {
-                    log.info(LogUtils.jsonize("Created directory", "new directory", newdir));
+                    log.info(LogUtils.jsonize("msg", "Created directory", 
+                            "new directory", newdir));
                 }
             }
         }
