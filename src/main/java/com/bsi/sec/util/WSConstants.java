@@ -30,4 +30,8 @@ public final class WSConstants {
     public static final String MGMTUI_LOGOUT_URL = REST_PREFIX + SECURITY_SERVICE + "/mgmtui_logout";
 
     public static final String SESS_COOKIE = "JSESSIONID";
+    
+    public static final String STATIC_RESOURCES_HNDL = "/**/*";
+    public static final String STATIC_RESOURCES_PATH = "classpath:/static/";
+    public static final String STATIC_RESOURCES_INDX = "/static/index.html";
 }
