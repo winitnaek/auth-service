@@ -115,6 +115,36 @@ public class TenantDao {
     }
 
     /**
+     *
+     * @param dataset
+     * @return
+     */
+    public List<ProductDTO> getProductsByDataset(String dataset) {
+        SqlFieldsQuery sql = new SqlFieldsQuery(JpaQueries.GET_PROD_NAME_BY_DATASET);
+        IgniteCache<Long, Tenant> cache = ignite.cache(TENANT_CACHE);
+        List<ProductDTO> products = new ArrayList<>(0);
+
+        try (QueryCursor<List<?>> cursor = cache.query(sql.setArgs(dataset))) {
+            for (List<?> row : cursor) {
+                String prodName = (String) row.get(0);
+
+                if (log.isTraceEnabled()) {
+                    log.trace(LogUtils.jsonize(
+                            "prodname", prodName,
+                            "dataset", dataset));
+                }
+
+                ProductDTO prod = new ProductDTO(idGen.generate(), "",
+                        prodName);
+                prod.setDataset(dataset);
+                products.add(prod);
+            }
+        }
+
+        return products;
+    }
+
+    /**
      * getTenantByName
      *
      * @param tenantName

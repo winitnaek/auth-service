@@ -19,6 +19,8 @@ public class JpaQueries {
             + " where dataset = ? and prodName = ? and acctName = ? and imported = false";
     public static final String GET_PROD_NAME_BY_ACCT_NAME = "select prodName from Tenant"
             + " where acctName = ? group by prodName";
+    public static final String GET_PROD_NAME_BY_DATASET = "select prodName from Tenant"
+            + " where dataset = ? group by prodName";
     public static final String GET_PRODUCTS = "select prodName from Tenant"
             + " group by prodName";
     public static final String GET_COMP_ID_BY_DSET_COMPANYCID = "select id from Company"

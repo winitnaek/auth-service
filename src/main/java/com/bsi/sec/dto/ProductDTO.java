@@ -20,6 +20,8 @@ public final class ProductDTO {
 
     private String prodName;
 
+    private String dataset;
+
     public ProductDTO() {
 
     }
@@ -54,9 +56,17 @@ public final class ProductDTO {
         this.prodName = prodName;
     }
 
+    public String getDataset() {
+        return dataset;
+    }
+
+    public void setDataset(String dataset) {
+        this.dataset = dataset;
+    }
+
     @Override
     public String toString() {
-        return "ProductDTO{" + "id=" + id + ", acctName=" + acctName + ", prodName=" + prodName + '}';
+        return "ProductDTO{" + "id=" + id + ", acctName=" + acctName + ", prodName=" + prodName + ", dataset=" + dataset + '}';
     }
 
 }

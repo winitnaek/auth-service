@@ -15,7 +15,6 @@ import com.bsi.sec.domain.AuditLog;
 import com.bsi.sec.domain.Company;
 import com.bsi.sec.domain.SSOConfiguration;
 import com.bsi.sec.dto.AuditLogDTO;
-import com.bsi.sec.dto.DatasetProductDTO;
 import com.bsi.sec.dto.ProductDTO;
 import com.bsi.sec.dto.SSOConfigDTO;
 import com.bsi.sec.dto.SyncInfoDTO;
@@ -36,12 +35,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.cache.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ignite.Ignite;
@@ -104,26 +101,6 @@ public class SecurityService {
 
     @Autowired
     private SSOConfigurationDao ssoConfDao;
-
-    /**
-     *
-     * @param dataset
-     * @return
-     * @throws Exception
-     */
-    public Set<DatasetProductDTO> getProductsByDataset(String dataset) throws Exception {
-        if (log.isDebugEnabled()) {
-            log.debug("SERVICE invoked to get all Products for the specfied Dataset.");
-        }
-
-        // TODO: This is a service stub!!! Provide actual implementation!!!
-        if (log.isDebugEnabled()) {
-            log.debug("This is a service stub!!! Provide actual implementation!!!");
-        }
-
-        Set<DatasetProductDTO> productsToRet = getTestProducts();
-        return productsToRet;
-    }
 
     /**
      * Full Data Sync service
@@ -278,7 +255,7 @@ public class SecurityService {
             if (log.isErrorEnabled()) {
                 log.error(LogUtils.jsonize(
                         "msg", "No SSO Configuration found!",
-                        "accountName", accountName, 
+                        "accountName", accountName,
                         "ssoConfigId", ssoConfigId));
             }
 
@@ -437,6 +414,34 @@ public class SecurityService {
     }
 
     /**
+     * Collects and returns product info for the specified dataset.
+     *
+     * @param accountName
+     * @return
+     */
+    public List<ProductDTO> getProductsByDataset(String dataset)
+            throws RecordNotFoundException {
+        if (log.isDebugEnabled()) {
+            log.debug("SERVICE invoked to get all Products for the specfied Dataset.");
+        }
+
+        List<ProductDTO> products = tenantDao.getProductsByDataset(dataset);
+
+        if (CollectionUtils.isEmpty(products)) {
+            if (log.isErrorEnabled()) {
+                log.error(LogUtils.jsonize(
+                        "msg", "No products found!",
+                        "dataset", dataset));
+            }
+
+            throw new RecordNotFoundException("No products found for"
+                    + " Dataset: " + dataset);
+        }
+
+        return products;
+    }
+
+    /**
      *
      * @param ssoConfig
      * @return
@@ -454,20 +459,6 @@ public class SecurityService {
     public SSOConfigDTO updateSSOConfig(SSOConfigDTO ssoConfig)
             throws Exception {
         return ssoConfDao.updateSSOConfig(ssoConfig);
-    }
-
-    /**
-     * TODO: Test-only stub! Add implementation!
-     *
-     * @param productsToRet
-     */
-    private Set<DatasetProductDTO> getTestProducts() throws Exception {
-        String[][] dsetsProds = new String[][]{
-            {"DSET1", "TPF", "ACCT1"},
-            {"DSET2", "TF", "ACCT2"},
-            {"DSET3", "CF", "ACCT3"}};
-        return Arrays.asList(dsetsProds).stream().map(dp
-                -> new DatasetProductDTO(1L, dp[2], dp[1], dp[0])).collect(Collectors.toSet());
     }
 
     /**
