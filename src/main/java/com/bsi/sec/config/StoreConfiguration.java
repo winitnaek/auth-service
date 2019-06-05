@@ -16,6 +16,8 @@ import static com.bsi.sec.util.AppConstants.BEAN_IGNITE_TX_MGR;
 import static com.bsi.sec.util.CacheConstants.ADMIN_METADATA_CACHE;
 import static com.bsi.sec.util.CacheConstants.AUDIT_LOG_CACHE;
 import static com.bsi.sec.util.CacheConstants.COMPANY_CACHE;
+import static com.bsi.sec.util.CacheConstants.SEC_CACHE;
+import static com.bsi.sec.util.CacheConstants.SEC_CACHE_MGR_BEAN;
 import static com.bsi.sec.util.CacheConstants.SSO_CONFIGURATION_CACHE;
 import static com.bsi.sec.util.CacheConstants.TENANT_CACHE;
 import static com.bsi.sec.util.CacheConstants.TENANT_SSO_CONF_CACHE;
@@ -31,12 +33,25 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import static com.bsi.sec.util.CacheConstants.SEC_SVC_DATA_NODE;
+import javax.cache.expiry.CreatedExpiryPolicy;
+import javax.cache.expiry.Duration;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.Ignition;
+import static org.apache.ignite.cache.CacheAtomicityMode.TRANSACTIONAL;
+import org.apache.ignite.cache.spring.SpringCacheManager;
 import org.apache.ignite.configuration.DataStorageConfiguration;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 import org.apache.ignite.transactions.spring.SpringTransactionManager;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CachingConfigurer;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.interceptor.CacheErrorHandler;
+import org.springframework.cache.interceptor.CacheResolver;
+import org.springframework.cache.interceptor.KeyGenerator;
+import org.springframework.cache.interceptor.SimpleCacheErrorHandler;
+import org.springframework.cache.interceptor.SimpleCacheResolver;
+import org.springframework.cache.interceptor.SimpleKeyGenerator;
 import org.springframework.context.annotation.Primary;
 
 /**
@@ -45,7 +60,8 @@ import org.springframework.context.annotation.Primary;
  */
 @Configuration
 @EnableIgniteRepositories(basePackages = {"com.bsi.sec.repository"})
-public class StoreConfiguration implements WebMvcConfigurer {
+@EnableCaching
+public class StoreConfiguration implements WebMvcConfigurer, CachingConfigurer {
 
     private final static Logger log = LoggerFactory.getLogger(StoreConfiguration.class);
 
@@ -102,6 +118,7 @@ public class StoreConfiguration implements WebMvcConfigurer {
         CacheConfiguration<Long, Tenant> ccfgTenant = new CacheConfiguration<>(TENANT_CACHE);
         CacheConfiguration<Long, SSOConfiguration> ccfgSSOConf = new CacheConfiguration<>(SSO_CONFIGURATION_CACHE);
         CacheConfiguration<Long, TenantSSOConf> ccfgTenantSSOConf = new CacheConfiguration<>(TENANT_SSO_CONF_CACHE);
+        CacheConfiguration<Long, String> ccfgSecConf = new CacheConfiguration<>(SEC_CACHE);
         // Setting SQL schema for the cache.
         ccfgMetadta
                 .setAtomicityMode(CacheAtomicityMode.TRANSACTIONAL)
@@ -121,10 +138,17 @@ public class StoreConfiguration implements WebMvcConfigurer {
         ccfgTenantSSOConf
                 .setAtomicityMode(CacheAtomicityMode.TRANSACTIONAL)
                 .setIndexedTypes(Long.class, TenantSSOConf.class);
+        ccfgSecConf
+                .setAtomicityMode(TRANSACTIONAL)
+                .setIndexedTypes(Long.class, String.class)
+                .setExpiryPolicyFactory(CreatedExpiryPolicy.factoryOf(Duration.ONE_MINUTE))
+                .setEagerTtl(true)
+                .setOnheapCacheEnabled(true);
 
         cfg.setCacheConfiguration(new CacheConfiguration[]{
             ccfgMetadta, ccfgAuditLog, ccfgCompany,
-            ccfgTenantSSOConf, ccfgTenant, ccfgSSOConf
+            ccfgTenantSSOConf, ccfgTenant, ccfgSSOConf,
+            ccfgSecConf
         });
 
         DataStorageConfiguration dataStoreConf = cfg.getDataStorageConfiguration();
@@ -151,6 +175,38 @@ public class StoreConfiguration implements WebMvcConfigurer {
         cfg.setDiscoverySpi(disco);
 
         return cfg;
+    }
+
+    /**
+     *
+     *
+     * @return
+     */
+    @Bean(SEC_CACHE_MGR_BEAN)
+    public SpringCacheManager igniteCacheManager() {
+        SpringCacheManager cm = new SpringCacheManager();
+        cm.setIgniteInstanceName(SEC_SVC_DATA_NODE);
+        return cm;
+    }
+
+    @Override
+    public CacheManager cacheManager() {
+        return igniteCacheManager();
+    }
+
+    @Override
+    public CacheResolver cacheResolver() {
+        return new SimpleCacheResolver(cacheManager());
+    }
+
+    @Override
+    public KeyGenerator keyGenerator() {
+        return new SimpleKeyGenerator();
+    }
+
+    @Override
+    public CacheErrorHandler errorHandler() {
+        return new SimpleCacheErrorHandler();
     }
 
 }

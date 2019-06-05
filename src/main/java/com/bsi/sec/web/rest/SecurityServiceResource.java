@@ -1,7 +1,6 @@
 package com.bsi.sec.web.rest;
 
 import com.bsi.sec.dto.AuditLogDTO;
-import com.bsi.sec.dto.DatasetProductDTO;
 import com.bsi.sec.dto.ProductDTO;
 import com.bsi.sec.dto.SSOConfigDTO;
 import com.bsi.sec.dto.SyncInfoDTO;
@@ -15,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Set;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -26,9 +24,6 @@ import org.springframework.validation.annotation.Validated;
 
 /**
  * REST controller for managing Tenant.
- *
- * //TODO: Add JSR-303 validation, exception handling, comments.
- *
  */
 @RestController
 @Validated
@@ -47,13 +42,13 @@ public class SecurityServiceResource {
      * @return
      */
     @GetMapping("/getProductsByDataset")
-    public ResponseEntity<Set<DatasetProductDTO>> getProductsByDataset(
+    public ResponseEntity<List<ProductDTO>> getProductsByDataset(
             @Valid @NotNull @RequestParam(required = true) String datasetName) throws Exception {
         if (log.isInfoEnabled()) {
             log.info("REST request to get all Products for the specfied Dataset.");
         }
 
-        Set<DatasetProductDTO> productsToRet = securityService.getProductsByDataset(datasetName);
+        List<ProductDTO> productsToRet = securityService.getProductsByDataset(datasetName);
         return new ResponseEntity<>(productsToRet, HttpStatus.OK);
     }
 
@@ -345,7 +340,7 @@ public class SecurityServiceResource {
      */
     @GetMapping("/getProductsByTenant")
     public ResponseEntity<List<ProductDTO>> getProductsByTenant(
-            @Valid @NotNull @RequestParam(required = true) String accountName)
+            @RequestParam(required = false) String accountName)
             throws Exception {
         if (log.isInfoEnabled()) {
             log.info("REST request to get Products info for the given Tenant.");

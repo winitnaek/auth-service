@@ -2,7 +2,6 @@ package com.bsi.sec.domain;
 
 import java.io.Serializable;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 import javax.persistence.Column;
@@ -14,6 +13,7 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.Objects;
 
 import org.apache.ignite.cache.query.annotations.QuerySqlField;
 import org.hibernate.annotations.NaturalId;
@@ -61,10 +61,18 @@ public class Tenant extends AbstractAuditingEntity implements Serializable {
     @Column(name = "enabled", nullable = false)
     @QuerySqlField(name = "enabled")
     private boolean enabled;
-    
+
     @Column(name = "imported", nullable = false)
     @QuerySqlField(name = "imported")
     private boolean imported;
+
+    @Column(name = "conf_id", nullable = true)
+    @QuerySqlField(name = "confId")
+    private Long confId;
+
+    @Column(name = "conf_id_dspl_name", nullable = true)
+    @QuerySqlField(name = "confIdDsplName")
+    private String confIdDsplName;
 
     @OneToMany(mappedBy = "tenant")
     private Set<Company> companies = new HashSet<>();
@@ -146,6 +154,22 @@ public class Tenant extends AbstractAuditingEntity implements Serializable {
 
     public void setDataset(String dataset) {
         this.dataset = dataset;
+    }
+
+    public Long getConfId() {
+        return confId;
+    }
+
+    public void setConfId(Long confId) {
+        this.confId = confId;
+    }
+
+    public String getConfIdDsplName() {
+        return confIdDsplName;
+    }
+
+    public void setConfIdDsplName(String confIdDsplName) {
+        this.confIdDsplName = confIdDsplName;
     }
 
     public boolean isEnabled() {
@@ -239,18 +263,20 @@ public class Tenant extends AbstractAuditingEntity implements Serializable {
 
     @Override
     public int hashCode() {
-        int hash = 5;
-        hash = 71 * hash + Objects.hashCode(this.id);
-        hash = 71 * hash + Objects.hashCode(this.acctId);
-        hash = 71 * hash + Objects.hashCode(this.acctName);
-        hash = 71 * hash + Objects.hashCode(this.prodId);
-        hash = 71 * hash + Objects.hashCode(this.prodName);
-        hash = 71 * hash + Objects.hashCode(this.dataset);
-        hash = 71 * hash + (this.enabled ? 1 : 0);
-        hash = 71 * hash + (this.imported ? 1 : 0);
-        hash = 71 * hash + Objects.hashCode(this.companies);
-        hash = 71 * hash + Objects.hashCode(this.ssoConfigs);
-        hash = 71 * hash + Objects.hashCode(this.tenantSSOConf);
+        int hash = 7;
+        hash = 73 * hash + Objects.hashCode(this.id);
+        hash = 73 * hash + Objects.hashCode(this.acctId);
+        hash = 73 * hash + Objects.hashCode(this.acctName);
+        hash = 73 * hash + Objects.hashCode(this.prodId);
+        hash = 73 * hash + Objects.hashCode(this.prodName);
+        hash = 73 * hash + Objects.hashCode(this.dataset);
+        hash = 73 * hash + (this.enabled ? 1 : 0);
+        hash = 73 * hash + (this.imported ? 1 : 0);
+        hash = 73 * hash + Objects.hashCode(this.confId);
+        hash = 73 * hash + Objects.hashCode(this.confIdDsplName);
+        hash = 73 * hash + Objects.hashCode(this.companies);
+        hash = 73 * hash + Objects.hashCode(this.ssoConfigs);
+        hash = 73 * hash + Objects.hashCode(this.tenantSSOConf);
         return hash;
     }
 
@@ -287,7 +313,13 @@ public class Tenant extends AbstractAuditingEntity implements Serializable {
         if (!Objects.equals(this.dataset, other.dataset)) {
             return false;
         }
+        if (!Objects.equals(this.confIdDsplName, other.confIdDsplName)) {
+            return false;
+        }
         if (!Objects.equals(this.id, other.id)) {
+            return false;
+        }
+        if (!Objects.equals(this.confId, other.confId)) {
             return false;
         }
         if (!Objects.equals(this.companies, other.companies)) {
@@ -304,7 +336,7 @@ public class Tenant extends AbstractAuditingEntity implements Serializable {
 
     @Override
     public String toString() {
-        return "Tenant{" + "id=" + id + ", acctId=" + acctId + ", acctName=" + acctName + ", prodId=" + prodId + ", prodName=" + prodName + ", dataset=" + dataset + ", enabled=" + enabled + ", imported=" + imported + ", companies=" + companies + ", ssoConfigs=" + ssoConfigs + ", tenantSSOConf=" + tenantSSOConf + '}';
+        return "Tenant{" + "id=" + id + ", acctId=" + acctId + ", acctName=" + acctName + ", prodId=" + prodId + ", prodName=" + prodName + ", dataset=" + dataset + ", enabled=" + enabled + ", imported=" + imported + ", confId=" + confId + ", confIdDsplName=" + confIdDsplName + ", companies=" + companies + ", ssoConfigs=" + ssoConfigs + ", tenantSSOConf=" + tenantSSOConf + '}';
     }
 
 }

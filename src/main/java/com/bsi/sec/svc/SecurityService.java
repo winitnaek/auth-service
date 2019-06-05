@@ -15,7 +15,6 @@ import com.bsi.sec.domain.AuditLog;
 import com.bsi.sec.domain.Company;
 import com.bsi.sec.domain.SSOConfiguration;
 import com.bsi.sec.dto.AuditLogDTO;
-import com.bsi.sec.dto.DatasetProductDTO;
 import com.bsi.sec.dto.ProductDTO;
 import com.bsi.sec.dto.SSOConfigDTO;
 import com.bsi.sec.dto.SyncInfoDTO;
@@ -36,13 +35,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.cache.Cache;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ignite.Ignite;
@@ -107,26 +103,6 @@ public class SecurityService {
     private SSOConfigurationDao ssoConfDao;
 
     /**
-     *
-     * @param dataset
-     * @return
-     * @throws Exception
-     */
-    public Set<DatasetProductDTO> getProductsByDataset(String dataset) throws Exception {
-        if (log.isDebugEnabled()) {
-            log.debug("SERVICE invoked to get all Products for the specfied Dataset.");
-        }
-
-        // TODO: This is a service stub!!! Provide actual implementation!!!
-        if (log.isDebugEnabled()) {
-            log.debug("This is a service stub!!! Provide actual implementation!!!");
-        }
-
-        Set<DatasetProductDTO> productsToRet = getTestProducts();
-        return productsToRet;
-    }
-
-    /**
      * Full Data Sync service
      *
      * @return
@@ -180,7 +156,8 @@ public class SecurityService {
                     AuditLogger.Ops.UPDATE);
 
             if (log.isInfoEnabled()) {
-                log.info(LogUtils.jsonize("Periodic Data Sync configuration was updated.",
+                log.info(LogUtils.jsonize(
+                        "msg", "Periodic Data Sync configuration was updated.",
                         "rec", updEnt.toString()));
             }
 
@@ -238,7 +215,7 @@ public class SecurityService {
 
         if (!tenEntOpt.isPresent()) {
             throw new RecordNotFoundException(
-                    LogUtils.jsonize("", "id", id));
+                    LogUtils.jsonize("id", id));
         }
 
         Tenant tenant = tenEntOpt.get();
@@ -276,8 +253,10 @@ public class SecurityService {
 
         if (targetSSOConf == null) {
             if (log.isErrorEnabled()) {
-                log.error(LogUtils.jsonize(null, "msg", "No SSO Configuration found!",
-                        "accountName", accountName, "ssoConfigId", ssoConfigId));
+                log.error(LogUtils.jsonize(
+                        "msg", "No SSO Configuration found!",
+                        "accountName", accountName,
+                        "ssoConfigId", ssoConfigId));
             }
 
             throw new RecordNotFoundException("No SSO Configuration found for"
@@ -288,6 +267,7 @@ public class SecurityService {
             ssoConfigurationRepository.save(c.getId(), c);
             auditLogger.logEntity(c, AuditLogger.Areas.SSO_CONF,
                     AuditLogger.Ops.UPDATE);
+            adjustTenantSSOConfiguration(c);
         });
         return ssoConfDao.prepareConfig(targetSSOConf);
     }
@@ -359,7 +339,7 @@ public class SecurityService {
      * @param includeImported
      * @return
      */
-    public List<TenantDTO> getTenants(boolean includeImported) throws Exception{
+    public List<TenantDTO> getTenants(boolean includeImported) throws Exception {
         List<TenantDTO> tenants = new ArrayList<>();
         IgniteCache<Long, Tenant> tenantCache = igniteInstance.cache(TENANT_CACHE);
         SqlQuery sqlQry = new SqlQuery(Tenant.class, "imported= ?");
@@ -373,15 +353,15 @@ public class SecurityService {
                 tenant.setProdName(tnt.getProdName());
                 tenant.setEnabled(tnt.isEnabled());
                 tenant.setImported(tnt.isImported());
-                List<SSOConfigDTO> ssoConf  = getSSOConfigsByTenant(tnt.getAcctName());
-                if(ssoConf !=null && ssoConf.size() >0){
-                    for (SSOConfigDTO sSOConfigDTO : ssoConf) {
-                        if(sSOConfigDTO.isLinked()){
-                                tenant.setSsoConfId(sSOConfigDTO.getId());
-                                tenant.setSsoConfDsplName(sSOConfigDTO.getDsplName());
-                            }
-                    }
-                }
+                tenant.setSsoConfId(tnt.getConfId());
+                tenant.setSsoConfDsplName(tnt.getConfIdDsplName());
+                //SSOConfigDTO configDTO = ssoConfDao.getLinkedSSOConfigsForTenant(tnt.getAcctName());
+                //log.info("configDTO : "+configDTO);
+                //List<SSOConfigDTO> ssoConf  = getSSOConfigsByTenant(tnt.getAcctName());
+                //if (configDTO != null) {
+//                    tenant.setSsoConfId(configDTO.getId());
+//                    tenant.setSsoConfDsplName(configDTO.getDsplName());
+//                }
                 tenants.add(tenant);
             }
         }
@@ -413,35 +393,72 @@ public class SecurityService {
      * @param accountName
      * @return
      */
-    public List<ProductDTO> getProductsByTenant(String accountName)
+    public List<ProductDTO> getProductsByTenant(String accountNameIn)
             throws RecordNotFoundException {
-        List<ProductDTO> products = tenantDao.getProductsByAcctname(accountName);
+        List<ProductDTO> products = tenantDao.getProductsByAcctname(accountNameIn);
+        String accountNameToUse = StringUtils.isNotBlank(accountNameIn)
+                ? accountNameIn : "ALL";
 
         if (CollectionUtils.isEmpty(products)) {
             if (log.isErrorEnabled()) {
-                log.error(LogUtils.jsonize(null, "msg", "No products found!",
-                        "accountName", accountName));
+                log.error(LogUtils.jsonize(
+                        "msg", "No products found!",
+                        "accountName", accountNameToUse));
             }
 
             throw new RecordNotFoundException("No products found for"
-                    + " Account: " + accountName);
+                    + " Account: " + accountNameToUse);
         }
 
         return products;
     }
 
     /**
-     * TODO: Test-only stub! Add implementation!
+     * Collects and returns product info for the specified dataset.
      *
-     * @param productsToRet
+     * @param accountName
+     * @return
      */
-    private Set<DatasetProductDTO> getTestProducts() throws Exception {
-        String[][] dsetsProds = new String[][]{
-            {"DSET1", "TPF", "ACCT1"},
-            {"DSET2", "TF", "ACCT2"},
-            {"DSET3", "CF", "ACCT3"}};
-        return Arrays.asList(dsetsProds).stream().map(dp
-                -> new DatasetProductDTO(1L, dp[2], dp[1], dp[0])).collect(Collectors.toSet());
+    public List<ProductDTO> getProductsByDataset(String dataset)
+            throws RecordNotFoundException {
+        if (log.isDebugEnabled()) {
+            log.debug("SERVICE invoked to get all Products for the specfied Dataset.");
+        }
+
+        List<ProductDTO> products = tenantDao.getProductsByDataset(dataset);
+
+        if (CollectionUtils.isEmpty(products)) {
+            if (log.isErrorEnabled()) {
+                log.error(LogUtils.jsonize(
+                        "msg", "No products found!",
+                        "dataset", dataset));
+            }
+
+            throw new RecordNotFoundException("No products found for"
+                    + " Dataset: " + dataset);
+        }
+
+        return products;
+    }
+
+    /**
+     *
+     * @param ssoConfig
+     * @return
+     */
+    public SSOConfigDTO createSSOConfig(SSOConfigDTO ssoConfig)
+            throws Exception {
+        return ssoConfDao.createSSOConfig(ssoConfig);
+    }
+
+    /**
+     *
+     * @param ssoConfig
+     * @return
+     */
+    public SSOConfigDTO updateSSOConfig(SSOConfigDTO ssoConfig)
+            throws Exception {
+        return ssoConfDao.updateSSOConfig(ssoConfig);
     }
 
     /**
@@ -513,21 +530,21 @@ public class SecurityService {
 
     /**
      *
-     * @param ssoConfig
-     * @return
+     * @param conf
      */
-    public SSOConfigDTO createSSOConfig(SSOConfigDTO ssoConfig)
-            throws Exception {
-        return ssoConfDao.createSSOConfig(ssoConfig);
-    }
+    private void adjustTenantSSOConfiguration(SSOConfiguration confEnt) {
+        String acctName = confEnt.getAcctName();
+        Tenant tenEnt = tenantDao.getTenantByName(acctName);
+        //
+        boolean isLinked = confEnt.isLinked();
+        tenEnt.setConfId(isLinked ? confEnt.getId() : null);
+        tenEnt.setConfIdDsplName(isLinked ? confEnt.getDsplName() : null);
+        //
+        Tenant updTenEnt = tenantRepo.save(tenEnt.getId(), tenEnt);
 
-    /**
-     *
-     * @param ssoConfig
-     * @return
-     */
-    public SSOConfigDTO updateSSOConfig(SSOConfigDTO ssoConfig)
-            throws Exception {
-        return ssoConfDao.updateSSOConfig(ssoConfig);
+        if (updTenEnt != null) {
+            auditLogger.logEntity(updTenEnt, AuditLogger.Areas.TENANT,
+                    AuditLogger.Ops.UPDATE);
+        }
     }
 }

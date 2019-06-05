@@ -17,6 +17,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseEntity.BodyBuilder;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -57,6 +58,13 @@ public class WSExceptionHandler {
         return new ErrorTo(UNAUTHORIZED.value(), exception.getMessage());
     }
 
+    @ExceptionHandler(BadCredentialsException.class)
+    @ResponseStatus(UNAUTHORIZED)
+    @ResponseBody
+    public ErrorTo handleBadCredentialsException(BadCredentialsException exception) {
+        return new ErrorTo(UNAUTHORIZED.value(), exception.getMessage());
+    }
+    
     @ExceptionHandler(MissingServletRequestParameterException.class)
     @ResponseBody
     @ResponseStatus(HttpStatus.BAD_REQUEST)

@@ -83,6 +83,27 @@ public class SSOConfigurationDao {
         }
         return configs;
     }
+    
+   /**
+    * getLinkedSSOConfigsForTenant
+    * @param accountName
+    * @return 
+    */
+    public SSOConfigDTO getLinkedSSOConfigsForTenant(String accountName) {
+        SqlFieldsQuery sql = new SqlFieldsQuery(JpaQueries.GET_LINKED_SSOCONFIGIDS_BY_ACCTNAME);
+        IgniteCache<Long, SSOConfiguration> cache = ignite.cache(SSO_CONFIGURATION_CACHE);
+        SSOConfigDTO configDTO = null;
+        try (QueryCursor<List<?>> cursor = cache.query(sql.setArgs(accountName))) {
+            for (List<?> row : cursor) {
+                Long confId   = (Long) row.get(0);
+                String dispName = (String) row.get(1);
+                configDTO= new SSOConfigDTO();
+                configDTO.setId(confId);
+                configDTO.setDsplName(dispName);;
+            }
+        }
+        return configDTO;
+    }
 
     /**
      * getSSOConfByIssuer
@@ -221,16 +242,6 @@ public class SSOConfigurationDao {
         sSOConfiguration.setValidateIdpIssuer(ssoConfig.getValidateIdpIssuer());
         sSOConfiguration.setValidateRespSignature(ssoConfig.getValidateRespSignature());
         
-        
-        Set<SSOConfiguration> sscfg =  tenant.getSsoConfigs();
-        
-        if(ssoConfig==null){
-            sscfg = new HashSet<>();
-        }
-        sscfg.add(sSOConfiguration);
-                
-        tenant.setSsoConfigs(sscfg);
-        tenantRepository.save(tenant.getId(),tenant);
         ssoConfigurationRepository.save(sSOConfiguration.getId(), sSOConfiguration);
         auditLogger.logEntity(sSOConfiguration, AuditLogger.Areas.SSO_CONF, AuditLogger.Ops.INSERT);
         return prepareConfig(sSOConfiguration);
@@ -244,6 +255,11 @@ public class SSOConfigurationDao {
      * @throws Exception
      */
     public SSOConfigDTO updateSSOConfig(SSOConfigDTO ssoConfig) throws Exception {
+        
+        IgniteCache<Long, SSOConfiguration> cache = ignite.cache(SSO_CONFIGURATION_CACHE);
+        
+        SSOConfiguration conf = cache.get(ssoConfig.getId());
+          
         SSOConfiguration sSOConfiguration = new SSOConfiguration();
         sSOConfiguration.setAllowLogout(ssoConfig.getAllowLogout());
         sSOConfiguration.setAppRedirectURL(ssoConfig.getAppRedirectURL());
@@ -266,18 +282,11 @@ public class SSOConfigurationDao {
         Tenant tenant = tenantDao.getTenantByName(ssoConfig.getAcctName());
         sSOConfiguration.setTenant(tenant);
         sSOConfiguration.setAcctName(ssoConfig.getAcctName());
-        
-        Set<SSOConfiguration> sscfg =  tenant.getSsoConfigs();
-        
-        if(ssoConfig==null){
-            sscfg = new HashSet<>();
+        if(conf.isLinked()){
+            sSOConfiguration.setLinked(true);
         }
-        sscfg.add(sSOConfiguration);
-
-        //sSOConfiguration.setTenantSSOConf(tenantSSOConf);
         sSOConfiguration.setValidateIdpIssuer(ssoConfig.getValidateIdpIssuer());
         sSOConfiguration.setValidateRespSignature(ssoConfig.getValidateRespSignature());
-        tenantRepository.save(tenant.getId(),tenant);
         ssoConfigurationRepository.save(sSOConfiguration.getId(), sSOConfiguration);
         auditLogger.logEntity(sSOConfiguration, AuditLogger.Areas.SSO_CONF, AuditLogger.Ops.UPDATE);
         return prepareConfig(sSOConfiguration);
@@ -306,8 +315,10 @@ public class SSOConfigurationDao {
                 SSOConfiguration conf = cache.get(confId);
 
                 if (log.isTraceEnabled()) {
-                    log.trace(LogUtils.jsonize(null, "acctName", acctName,
-                            "id", id), "conf", conf.toString());
+                    log.trace(LogUtils.jsonize(
+                            "acctName", acctName,
+                            "id", id,
+                            "conf", conf.toString()));
                 }
 
                 conf.setLinked(id == conf.getId() ? !toUnlink : false);

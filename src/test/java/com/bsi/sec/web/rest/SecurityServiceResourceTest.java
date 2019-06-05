@@ -200,7 +200,7 @@ public class SecurityServiceResourceTest extends BaseTest {
                         .param("accountName", acctname)
                         .param("ssoConfigId", String.valueOf(1L))
                         .param("toUnlink", String.valueOf(true)))
-                .andExpect(status().isOk())
+                .andExpect(status().isNotFound())
                 .andReturn()
                 .getResponse();
 
@@ -292,6 +292,20 @@ public class SecurityServiceResourceTest extends BaseTest {
                 response.getStatus(), response.getContentAsString(), response.getErrorMessage());
     }
 
+    @Test
+    public void getAllProductsTest() throws Exception {
+        MockHttpServletResponse response = mockmvc
+                .perform(get("/v1/SecurityService/getProductsByTenant")
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse();
+
+        log.info("Status -> {}, Response Content -> {}, Error Message -> {}",
+                response.getStatus(), response.getContentAsString(), response.getErrorMessage());
+    }
+    
     private SSOConfigDTO populateSSOConfig() {
         SSOConfigDTO ssoConfigIn = new SSOConfigDTO();
         ssoConfigIn.setAcctName(acctname);

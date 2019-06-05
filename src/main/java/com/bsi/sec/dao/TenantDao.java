@@ -14,6 +14,7 @@ import com.bsi.sec.util.LogUtils;
 import java.util.ArrayList;
 import java.util.List;
 import javax.cache.Cache;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ignite.Ignite;
 import org.apache.ignite.IgniteCache;
 import org.apache.ignite.cache.query.QueryCursor;
@@ -58,8 +59,11 @@ public class TenantDao {
                 tenId = (Long) row.get(0);
 
                 if (log.isTraceEnabled()) {
-                    log.trace(LogUtils.jsonize("getTenantByDsetProdAcct(...)", "dataset", dset,
-                            "prodname", prodName, "acctname", acctName, "tenantId", tenId));
+                    log.trace(LogUtils.jsonize(
+                            "dataset", dset,
+                            "prodname", prodName,
+                            "acctname", acctName,
+                            "tenantId", tenId));
                 }
 
                 break;
@@ -80,29 +84,66 @@ public class TenantDao {
      * @param acctName
      * @return
      */
-    public List<ProductDTO> getProductsByAcctname(String acctName) {
+    public List<ProductDTO> getProductsByAcctname(String acctNameIn) {
         SqlFieldsQuery sql = new SqlFieldsQuery(
-                JpaQueries.GET_PROD_NAME_BY_ACCT_NAME);
+                StringUtils.isNotBlank(acctNameIn)
+                ? JpaQueries.GET_PROD_NAME_BY_ACCT_NAME : JpaQueries.GET_PRODUCTS);
         IgniteCache<Long, Tenant> cache = ignite.cache(TENANT_CACHE);
         List<ProductDTO> products = new ArrayList<>(0);
 
-        try (QueryCursor<List<?>> cursor = cache.query(sql.setArgs(acctName))) {
+        try (QueryCursor<List<?>> cursor = StringUtils.isNotBlank(acctNameIn)
+                ? cache.query(sql.setArgs(acctNameIn)) : cache.query(sql)) {
+            String accountNameToUse = StringUtils.isNotBlank(acctNameIn)
+                    ? acctNameIn : "ALL";
+
             for (List<?> row : cursor) {
                 String prodName = (String) row.get(0);
 
                 if (log.isTraceEnabled()) {
-                    log.trace(LogUtils.jsonize("getProductsByAcctname(...)",
-                            "prodname", prodName, "acctname", acctName));
+                    log.trace(LogUtils.jsonize(
+                            "prodname", prodName,
+                            "acctname", accountNameToUse));
                 }
 
-                ProductDTO prod = new ProductDTO(idGen.generate(), acctName, prodName);
+                ProductDTO prod = new ProductDTO(idGen.generate(), accountNameToUse,
+                        prodName);
                 products.add(prod);
             }
         }
 
         return products;
     }
-    
+
+    /**
+     *
+     * @param dataset
+     * @return
+     */
+    public List<ProductDTO> getProductsByDataset(String dataset) {
+        SqlFieldsQuery sql = new SqlFieldsQuery(JpaQueries.GET_PROD_NAME_BY_DATASET);
+        IgniteCache<Long, Tenant> cache = ignite.cache(TENANT_CACHE);
+        List<ProductDTO> products = new ArrayList<>(0);
+
+        try (QueryCursor<List<?>> cursor = cache.query(sql.setArgs(dataset))) {
+            for (List<?> row : cursor) {
+                String prodName = (String) row.get(0);
+
+                if (log.isTraceEnabled()) {
+                    log.trace(LogUtils.jsonize(
+                            "prodname", prodName,
+                            "dataset", dataset));
+                }
+
+                ProductDTO prod = new ProductDTO(idGen.generate(), "",
+                        prodName);
+                prod.setDataset(dataset);
+                products.add(prod);
+            }
+        }
+
+        return products;
+    }
+
     /**
      * getTenantByName
      *

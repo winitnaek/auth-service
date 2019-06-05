@@ -16,7 +16,6 @@ import com.bsi.sec.util.LogUtils;
 import com.bsi.sec.util.SOQLQueries;
 import com.sforce.soap.enterprise.EnterpriseConnection;
 import com.sforce.soap.enterprise.GetUpdatedResult;
-import com.sforce.soap.enterprise.LoginResult;
 import com.sforce.soap.enterprise.QueryResult;
 import com.sforce.soap.enterprise.sobject.Entitlement;
 import com.sforce.soap.enterprise.sobject.SObject;
@@ -29,8 +28,11 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TimeZone;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,25 +97,38 @@ public class SFDataPuller implements DataPuller {
     public void refreshSessionCheck() throws Exception {
         try {
             if (connection != null) {
-                int secondsSessValid = connection.getUserInfo().getSessionSecondsValid();
+                int secondsSessValid = 0;
+
+                try {
+                    secondsSessValid = connection.getUserInfo().getSessionSecondsValid();
+                } catch (ConnectionException ex) {
+                    // Attempt logging in to SF!
+                    login();
+                    secondsSessValid = connection.getUserInfo().getSessionSecondsValid();
+                }
+
                 int secsBeforeSessExpire = 10 * 60; // 10 minutes
 
                 if (secondsSessValid <= secsBeforeSessExpire) {
-                    connection.logout();
-                    SF sf = props.getSf();
-                    LoginResult loginResult = connection.login(sf.getUsername(),
-                            sf.getPassword() + sf.getSecToken());
+                    if (log.isInfoEnabled()) {
+                        log.info(LogUtils.jsonize(
+                                "msg", "Session must be refreshed!",
+                                "secsBeforeSessExpireTresholdInSecs", secsBeforeSessExpire,
+                                "sessStillValidForInSecs", secondsSessValid,
+                                "url", connection.getConfig().getAuthEndpoint(),
+                                "sessionid", connection.getConfig().getSessionId(),
+                                "userid", connection.getUserInfo().getUserId()));
+                    }
 
-                    if (loginResult != null) {
-                        String serverUrl = loginResult.getServerUrl();
-                        String sessionId = loginResult.getSessionId();
-                        String userId = loginResult.getUserId();
+                    logout();
+                    login();
 
-                        if (log.isInfoEnabled()) {
-                            log.info(LogUtils.jsonize("Session has been refreshed!",
-                                    "url", serverUrl, "sessionid", sessionId, "userid",
-                                    userId));
-                        }
+                    if (log.isInfoEnabled()) {
+                        log.info(LogUtils.jsonize(
+                                "msg", "Session has been refreshed!",
+                                "url", connection.getConfig().getAuthEndpoint(),
+                                "sessionid", connection.getConfig().getSessionId(),
+                                "userid", connection.getUserInfo().getUserId()));
                     }
                 }
             }
@@ -162,12 +177,18 @@ public class SFDataPuller implements DataPuller {
             }
 
             List<Tenant> tenants = new ArrayList<>(qr.getSize());
+            Set<String> recKeys = new HashSet<String>(tenants.size());
 
             while (!done) {
                 SObject[] records = qr.getRecords();
 
                 for (SObject rec : records) {
                     Entitlement ent = (Entitlement) rec;
+
+                    if (dupTenantKeyFound(recKeys, ent)) {
+                        continue;
+                    }
+
                     Tenant tn = new Tenant();
                     tn.setAcctId(ent.getAccount_18_Digit_ID__c());
                     tn.setAcctName(ent.getAccount_Name__c());
@@ -178,6 +199,7 @@ public class SFDataPuller implements DataPuller {
                     tn.setProdName(ent.getProduct_Name__c());
                     tn.setId(idGenerator.generate());
                     tenants.add(tn);
+                    addTenantKey(recKeys, ent);
 
                     if (log.isTraceEnabled()) {
                         log.trace("Tenant: " + tn.toString());
@@ -243,8 +265,9 @@ public class SFDataPuller implements DataPuller {
 
                 if (qr.getSize() == 0) {
                     if (log.isDebugEnabled()) {
-                        log.debug(LogUtils.jsonize("Unrelated updated SF:Entitlement"
-                                + " record found!", "ID", id));
+                        log.debug(LogUtils.jsonize(
+                                "msg", "Unrelated updated SF:Entitlement" + " record found!",
+                                "ID", id));
                     }
 
                     continue;
@@ -360,6 +383,40 @@ public class SFDataPuller implements DataPuller {
                 .replace(":id", id)
                 .replace(":createddate", fromDateAsUTC);
         return queryToUse;
+    }
+
+    /**
+     * Adds given Entitlement <source>ent</scource> key to the sets of keys.
+     *
+     * @param recKeys
+     * @param ent
+     */
+    private void addTenantKey(Set<String> recKeys, Entitlement ent) {
+        recKeys.add(buildTenantKey(ent));
+    }
+
+    /**
+     * Builds key string.
+     *
+     * @param ent
+     * @return
+     */
+    private String buildTenantKey(Entitlement ent) {
+        return StringUtils.trimToEmpty(ent.getDataset_1__c())
+                + StringUtils.trimToEmpty(ent.getProduct_Name__c())
+                + StringUtils.trimToEmpty(ent.getAccount_Name__c());
+    }
+
+    /**
+     * Checks if incoming tenant's key already found in
+     * <source>recKeys</source>.
+     *
+     * @param recKeys
+     * @param ent
+     * @return
+     */
+    private boolean dupTenantKeyFound(Set<String> recKeys, Entitlement ent) {
+        return recKeys.contains(buildTenantKey(ent));
     }
 
 }

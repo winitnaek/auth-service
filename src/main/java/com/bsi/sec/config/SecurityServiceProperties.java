@@ -5,6 +5,7 @@
  */
 package com.bsi.sec.config;
 
+import com.bsi.sec.config.SecurityServiceProperties.Mgmtui.Ldap;
 import com.bsi.sec.util.CryptUtils;
 import javax.validation.Valid;
 import javax.validation.constraints.Max;
@@ -29,7 +30,7 @@ public class SecurityServiceProperties {
     private boolean debugMode = false;
 
     @Valid
-    private Ldap ldap = new Ldap();
+    private Mgmtui mgmtui = new Mgmtui();
 
     @Valid
     private Jpa jpa = new Jpa();
@@ -42,9 +43,6 @@ public class SecurityServiceProperties {
 
     @Valid
     private TpfDataSource tpfDataSource = new TpfDataSource();
-
-    @Valid
-    private IntUser user = new IntUser();
 
     @Valid
     private Paging paging = new Paging();
@@ -80,22 +78,6 @@ public class SecurityServiceProperties {
 
     public void setDebugMode(boolean debugMode) {
         this.debugMode = debugMode;
-    }
-
-    public Ldap getLdap() {
-        return ldap;
-    }
-
-    public void setLdap(Ldap ldap) {
-        this.ldap = ldap;
-    }
-
-    public IntUser getUser() {
-        return user;
-    }
-
-    public void setUser(IntUser user) {
-        this.user = user;
     }
 
     public Paging getPaging() {
@@ -152,6 +134,14 @@ public class SecurityServiceProperties {
 
     public void setTpfDataSource(TpfDataSource tpfDataSource) {
         this.tpfDataSource = tpfDataSource;
+    }
+
+    public Mgmtui getMgmtui() {
+        return mgmtui;
+    }
+
+    public void setMgmtui(Mgmtui mgmtui) {
+        this.mgmtui = mgmtui;
     }
 
     /**
@@ -323,147 +313,6 @@ public class SecurityServiceProperties {
         @Override
         public String toString() {
             return "Ajp{" + "protocol=" + protocol + ", scheme=" + scheme + ", port=" + port + ", secure=" + secure + ", enabled=" + enabled + ", remoteAuth=" + remoteAuth + ", traceEnabled=" + traceEnabled + '}';
-        }
-
-    }
-
-    /**
-     * @author igorv
-     *
-     */
-    public static class Ldap {
-
-        @NotNull
-        private boolean enabled;
-
-        @NotEmpty
-        private String url;
-
-        @NotEmpty
-        private String tld;
-
-        @NotEmpty
-        private String userDNSuffix;
-
-        @NotEmpty
-        private String groupCN;
-
-        @NotEmpty
-        private String groupSearchFilter;
-
-        public String getUserDNSuffix() {
-            return userDNSuffix;
-        }
-
-        public void setUserDNSuffix(String userDNSuffix) {
-            this.userDNSuffix = userDNSuffix;
-        }
-
-        public String getGroupCN() {
-            return groupCN;
-        }
-
-        public void setGroupCN(String groupCN) {
-            this.groupCN = groupCN;
-        }
-
-        public String getGroupSearchFilter() {
-            return groupSearchFilter;
-        }
-
-        public void setGroupSearchFilter(String groupSearchFilter) {
-            this.groupSearchFilter = groupSearchFilter;
-        }
-
-        public void setUrl(String url) {
-            this.url = url;
-        }
-
-        /**
-         * @return the url
-         */
-        public String getUrl() {
-            return url;
-        }
-
-        public String getTld() {
-            return tld;
-        }
-
-        public void setTld(String tld) {
-            this.tld = tld;
-        }
-
-        public boolean isEnabled() {
-            return enabled;
-        }
-
-        public void setEnabled(boolean enabled) {
-            this.enabled = enabled;
-        }
-
-        @Override
-        public String toString() {
-            return "Ldap{" + "enabled=" + enabled + ", url=" + url + ", tld=" + tld + ", userDNSuffix=" + userDNSuffix + ", groupCN=" + groupCN + ", groupSearchFilter=" + groupSearchFilter + '}';
-        }
-
-    }
-
-    /**
-     * Used for internal authentication needs.
-     *
-     * @author sudhir
-     */
-    public static class IntUser {
-
-        @NotNull
-        private boolean enabled;
-        @NotNull
-        private boolean encrypted;
-        @NotEmpty
-        private String name;
-        @NotEmpty
-        private String passwd;
-
-        public String getPasswd() {
-            if (!this.encrypted) {
-                return passwd != null ? passwd.trim() : passwd;
-            } else {
-                return CryptUtils.aesDecrypt(passwd.trim(), CryptUtils.TRANSFORMATION_AES_CBC_PKCS5);
-            }
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getName() {
-            return name != null ? name.trim() : name;
-        }
-
-        public void setPasswd(String passwd) {
-            this.passwd = passwd;
-        }
-
-        public boolean isEncrypted() {
-            return encrypted;
-        }
-
-        public void setEncrypted(boolean encrypted) {
-            this.encrypted = encrypted;
-        }
-
-        public boolean isEnabled() {
-            return enabled;
-        }
-
-        public void setEnabled(boolean enabled) {
-            this.enabled = enabled;
-        }
-
-        @Override
-        public String toString() {
-            return "IntUser{" + "enabled=" + enabled + ", encrypted=" + encrypted + ", name=" + name + ", passwd=" + passwd + '}';
         }
 
     }
@@ -852,7 +701,185 @@ public class SecurityServiceProperties {
 
     @Override
     public String toString() {
-        return "SecurityServiceProperties{" + "appName=" + appName + ", debugMode=" + debugMode + ", ldap=" + ldap + ", jpa=" + jpa + ", tpfjpa=" + tpfjpa + ", dataSource=" + dataSource + ", tpfDataSource=" + tpfDataSource + ", user=" + user + ", paging=" + paging + ", directories=" + directories + ", ajp=" + ajp + ", sf=" + sf + '}';
+        return "SecurityServiceProperties{" + "appName=" + appName + ", debugMode=" + debugMode + ", mgmtui=" + mgmtui + ", jpa=" + jpa + ", tpfjpa=" + tpfjpa + ", dataSource=" + dataSource + ", tpfDataSource=" + tpfDataSource + ", paging=" + paging + ", directories=" + directories + ", ajp=" + ajp + ", sf=" + sf + '}';
+    }
+
+    /**
+     * Internal Mgmt UI.
+     */
+    public static class Mgmtui {
+
+        @Valid
+        private IntUser user = new IntUser();
+
+        @Valid
+        private Ldap ldap = new Ldap();
+
+        public Mgmtui() {
+        }
+
+        public Ldap getLdap() {
+            return ldap;
+        }
+
+        public void setLdap(Ldap ldap) {
+            this.ldap = ldap;
+        }
+
+        public IntUser getUser() {
+            return user;
+        }
+
+        public void setUser(IntUser user) {
+            this.user = user;
+        }
+
+        @Override
+        public String toString() {
+            return "Mgmtui{" + "user=" + user + ", ldap=" + ldap + '}';
+        }
+
+        /**
+         * @author igorv
+         *
+         */
+        public static class Ldap {
+
+            @NotNull
+            private boolean enabled;
+
+            @NotEmpty
+            private String url;
+
+            @NotEmpty
+            private String tld;
+
+            @NotEmpty
+            private String userDNSuffix;
+
+            @NotEmpty
+            private String groupCN;
+
+            @NotEmpty
+            private String groupSearchFilter;
+
+            public String getUserDNSuffix() {
+                return userDNSuffix;
+            }
+
+            public void setUserDNSuffix(String userDNSuffix) {
+                this.userDNSuffix = userDNSuffix;
+            }
+
+            public String getGroupCN() {
+                return groupCN;
+            }
+
+            public void setGroupCN(String groupCN) {
+                this.groupCN = groupCN;
+            }
+
+            public String getGroupSearchFilter() {
+                return groupSearchFilter;
+            }
+
+            public void setGroupSearchFilter(String groupSearchFilter) {
+                this.groupSearchFilter = groupSearchFilter;
+            }
+
+            public void setUrl(String url) {
+                this.url = url;
+            }
+
+            /**
+             * @return the url
+             */
+            public String getUrl() {
+                return url;
+            }
+
+            public String getTld() {
+                return tld;
+            }
+
+            public void setTld(String tld) {
+                this.tld = tld;
+            }
+
+            public boolean isEnabled() {
+                return enabled;
+            }
+
+            public void setEnabled(boolean enabled) {
+                this.enabled = enabled;
+            }
+
+            @Override
+            public String toString() {
+                return "Ldap{" + "enabled=" + enabled + ", url=" + url + ", tld=" + tld + ", userDNSuffix=" + userDNSuffix + ", groupCN=" + groupCN + ", groupSearchFilter=" + groupSearchFilter + '}';
+            }
+
+        }
+
+        /**
+         * Used for internal authentication needs.
+         *
+         * @author sudhir
+         */
+        public static class IntUser {
+
+            @NotNull
+            private boolean enabled;
+            @NotNull
+            private boolean encrypted;
+            @NotEmpty
+            private String name;
+            @NotEmpty
+            private String passwd;
+
+            public String getPasswd() {
+                if (!this.encrypted) {
+                    return passwd != null ? passwd.trim() : passwd;
+                } else {
+                    return CryptUtils.aesDecrypt(passwd.trim(), CryptUtils.TRANSFORMATION_AES_CBC_PKCS5);
+                }
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public String getName() {
+                return name != null ? name.trim() : name;
+            }
+
+            public void setPasswd(String passwd) {
+                this.passwd = passwd;
+            }
+
+            public boolean isEncrypted() {
+                return encrypted;
+            }
+
+            public void setEncrypted(boolean encrypted) {
+                this.encrypted = encrypted;
+            }
+
+            public boolean isEnabled() {
+                return enabled;
+            }
+
+            public void setEnabled(boolean enabled) {
+                this.enabled = enabled;
+            }
+
+            @Override
+            public String toString() {
+                return "IntUser{" + "enabled=" + enabled + ", encrypted=" + encrypted + ", name=" + name + ", passwd=" + passwd + '}';
+            }
+
+        }
+
     }
 
 }

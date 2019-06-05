@@ -41,7 +41,9 @@ public class AdminMetadataDao {
         }
 
         if (log.isTraceEnabled() && admMeta != null) {
-            log.trace(LogUtils.jsonize("AdminMetadata record", "rec", admMeta.toString()));
+            log.trace(LogUtils.jsonize(
+                    "msg", "AdminMetadata record",
+                    "rec", admMeta.toString()));
         }
 
         return admMeta;

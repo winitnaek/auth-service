@@ -19,6 +19,10 @@ public class JpaQueries {
             + " where dataset = ? and prodName = ? and acctName = ? and imported = false";
     public static final String GET_PROD_NAME_BY_ACCT_NAME = "select prodName from Tenant"
             + " where acctName = ? group by prodName";
+    public static final String GET_PROD_NAME_BY_DATASET = "select prodName from Tenant"
+            + " where dataset = ? group by prodName";
+    public static final String GET_PRODUCTS = "select prodName from Tenant"
+            + " group by prodName";
     public static final String GET_COMP_ID_BY_DSET_COMPANYCID = "select id from Company"
             + " where dataset = ? and samlCid = ?";
     public static final String DELETE_COMP_ID_BY_DSET = "delete from Company"
@@ -27,4 +31,5 @@ public class JpaQueries {
             + " where c.acctName = ?";
     public static final String DELETE_SSO_CONFIG = "DELETE FROM SSOConfiguration WHERE id = ?";
     public static final String SELECT_CONFIGS = "select * FROM SSOConfiguration";
+    public static final String GET_LINKED_SSOCONFIGIDS_BY_ACCTNAME = "select id, dsplName from SSOConfiguration c where c.acctName = ? and c.linked=true";
 }

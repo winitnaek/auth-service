@@ -47,7 +47,8 @@ public class CompanyDao {
                 compId = (Long) row.get(0);
 
                 if (log.isTraceEnabled()) {
-                    log.trace(LogUtils.jsonize("getCompByDsetCompCID(...)", "dataset", dset,
+                    log.trace(LogUtils.jsonize(
+                            "dataset", dset,
                             "companyCID", companyCID));
                 }
 
@@ -79,8 +80,10 @@ public class CompanyDao {
 
             if (rows != null && rows.size() > 0) {
                 if (log.isDebugEnabled()) {
-                    log.debug(LogUtils.jsonize("Deleted Company record(s).",
-                            "norecs", rows.size(), "dset", dset));
+                    log.debug(LogUtils.jsonize(
+                            "msg", "Deleted Company record(s).",
+                            "norecs", rows.size(),
+                            "dset", dset));
                 }
 
                 result = true;
