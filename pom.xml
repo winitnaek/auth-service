@@ -19,10 +19,12 @@
         <ignite.scheduler.version>1.0.0</ignite.scheduler.version>
         <!-- Services -->
         <echo.service>EchoService</echo.service>
-        <!-- Tests -->
         <version.template.file>src/test/java/com/bsi/sec/base/BaseTest.java.template</version.template.file>
         <version.file>src/test/java/com/bsi/sec/base/BaseTest.java</version.file>
-        
+        <!-- auth.management ui build -->
+        <auth.management.ui.dist.dir>../auth-management/dist</auth.management.ui.dist.dir>
+        <auth.management.ui.dist.todir>${project.build.directory}/classes/static</auth.management.ui.dist.todir>
+         <!-- Tests -->
         <test.id>1L</test.id>
         <test.datasetname>TEST_DSET1</test.datasetname>
         <test.acctname>BSI</test.acctname>
@@ -315,6 +317,22 @@
             <artifactId>opensaml-security-impl</artifactId>
             <version>3.4.3</version>
         </dependency>
+        <dependency>
+            <groupId>ant-contrib</groupId>
+            <artifactId>ant-contrib</artifactId>
+            <version>1.0b3</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>ant</groupId>
+                    <artifactId>ant</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant-nodeps</artifactId>
+            <version>1.8.1</version>
+        </dependency>
     </dependencies>
     <profiles>
         <profile>
@@ -419,6 +437,37 @@
                     <version>1.0</version>
                     <packaging>jar</packaging>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <tasks>
+                               <taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="maven.dependency.classpath" />
+                               <if>
+                                <available file="${auth.management.ui.dist.dir}" type="dir"/>
+                                <then>
+                                    <echo>**********Copying auth-management UI files.**********</echo>
+                                    <copy todir="${project.build.directory}/classes/static">
+                                    <fileset dir="D:/W/sfdc/auth-management/dist"/>
+                                    </copy>
+                                </then>
+                                <else>
+                                    <echo>**********Please make auth-management UI files available for the build.**********</echo>
+                                    <fail message="**********Please make auth-management UI files available for the build.**********"/>
+                                </else>
+                                </if>
+                            </tasks>
+                            </configuration>
+                        </execution>
+                    </executions>
             </plugin>
             <plugin>
                 <groupId>com.google.code.maven-replacer-plugin</groupId>
