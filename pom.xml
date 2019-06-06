@@ -19,10 +19,14 @@
         <ignite.scheduler.version>1.0.0</ignite.scheduler.version>
         <!-- Services -->
         <echo.service>EchoService</echo.service>
-        <!-- Tests -->
         <version.template.file>src/test/java/com/bsi/sec/base/BaseTest.java.template</version.template.file>
         <version.file>src/test/java/com/bsi/sec/base/BaseTest.java</version.file>
-        
+        <!-- auth.management ui build -->
+        <auth.management.ui.dist.dir>../auth-management/dist</auth.management.ui.dist.dir>
+        <auth.management.ui.dist.todir>${project.build.directory}/classes/static</auth.management.ui.dist.todir>
+        <auth.management.ui.cpy.msg>**********Copying auth-management UI files.**********</auth.management.ui.cpy.msg>
+        <auth.management.ui.err.msg>**********Please make auth-management UI files available for the build.**********</auth.management.ui.err.msg>
+         <!-- Tests -->
         <test.id>1L</test.id>
         <test.datasetname>TEST_DSET1</test.datasetname>
         <test.acctname>BSI</test.acctname>
@@ -291,6 +295,46 @@
             <artifactId>sf-ent-soap-stubs</artifactId>
             <version>1.0</version>
         </dependency>
+         <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-core</artifactId>
+            <version>3.4.3</version>
+        </dependency>
+         <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-saml-api</artifactId>
+            <version>3.4.3</version>
+        </dependency> <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-saml-impl</artifactId>
+            <version>3.4.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-security-api</artifactId>
+            <version>3.4.3</version>
+        </dependency>
+         <dependency>
+            <groupId>org.opensaml</groupId>
+            <artifactId>opensaml-security-impl</artifactId>
+            <version>3.4.3</version>
+        </dependency>
+        <dependency>
+            <groupId>ant-contrib</groupId>
+            <artifactId>ant-contrib</artifactId>
+            <version>1.0b3</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>ant</groupId>
+                    <artifactId>ant</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant-nodeps</artifactId>
+            <version>1.8.1</version>
+        </dependency>
     </dependencies>
     <profiles>
         <profile>
@@ -397,6 +441,46 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <tasks>
+                               <taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="maven.dependency.classpath" />
+                               <if>
+                                <available file="${auth.management.ui.dist.dir}" type="dir"/>
+                                <then>
+                                    <if>
+                                        <available file="${auth.management.ui.dist.dir}/secAdminBundle.js"/>
+                                        <then>
+                                            <echo>${auth.management.ui.cpy.msg}</echo>
+                                            <copy todir="${project.build.directory}/classes/static">
+                                            <fileset dir="${auth.management.ui.dist.dir}"/>
+                                            </copy>
+                                        </then>
+                                        <else>
+                                            <echo>${auth.management.ui.err.msg}</echo>
+                                            <fail message="${auth.management.ui.err.msg}"/>
+                                        </else>
+                                    </if>
+                                </then>
+                                <else>
+                                    <echo>${auth.management.ui.err.msg}</echo>
+                                    <fail message="${auth.management.ui.err.msg}"/>
+                                </else>
+                                </if>
+                            </tasks>
+                            </configuration>
+                        </execution>
+                    </executions>
+            </plugin>
+            <plugin>
                 <groupId>com.google.code.maven-replacer-plugin</groupId>
                 <artifactId>maven-replacer-plugin</artifactId>
                 <version>1.4.1</version>
@@ -485,4 +569,10 @@
             </plugin>
         </plugins>
     </build>
+    	  <repositories>
+        <repository>
+            <id>open-saml-repo</id>
+            <url>https://build.shibboleth.net/nexus/content/repositories/releases/</url>
+        </repository>     
+  </repositories>
 </project>

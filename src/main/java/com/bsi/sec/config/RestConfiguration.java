@@ -26,8 +26,9 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import static com.bsi.sec.util.WSConstants.ENDPOINT_SECURITY_SERVICE;
 import static com.bsi.sec.util.WSConstants.DEPLOY_SECURITY_SERVICE;
-import static com.bsi.sec.util.WSConstants.REST_PREFIX;
-import static com.bsi.sec.util.WSConstants.SERVLET_NAME;
+import static com.bsi.sec.util.WSConstants.STATIC_RESOURCES_HNDL;
+import static com.bsi.sec.util.WSConstants.STATIC_RESOURCES_INDX;
+import static com.bsi.sec.util.WSConstants.STATIC_RESOURCES_PATH;
 import java.io.IOException;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -73,8 +74,8 @@ public class RestConfiguration implements WebMvcConfigurer {
     @SuppressWarnings("rawtypes")
     public ServletRegistrationBean securityServiceServletBean() {
         ServletRegistrationBean bean = new ServletRegistrationBean(
-                getDispatcherServlet(), REST_PREFIX + "/*");
-        bean.setName(SERVLET_NAME);
+                getDispatcherServlet(), "/r/*");
+        bean.setName("securityServiceServlet");
         bean.setLoadOnStartup(1);
         return bean;
     }
@@ -90,21 +91,20 @@ public class RestConfiguration implements WebMvcConfigurer {
     public Integer authEndpoint() throws Exception {
         return 0;
     }
-
+    
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/*/**")
-                .addResourceLocations("classpath:/static/")
-                .resourceChain(true)
-                .addResolver(new PathResourceResolver() {
-                    @Override
-                    protected Resource getResource(String resourcePath,
-                            Resource location) throws IOException {
-                        Resource requestedResource = location.createRelative(resourcePath);
-                        return requestedResource.exists() && requestedResource.isReadable() ? requestedResource
-                                : new ClassPathResource("/static/index.html");
-                    }
-                });
+      registry.addResourceHandler(STATIC_RESOURCES_HNDL)
+        .addResourceLocations(STATIC_RESOURCES_PATH)
+        .resourceChain(true)
+        .addResolver(new PathResourceResolver() {
+            @Override
+            protected Resource getResource(String resourcePath,
+                Resource location) throws IOException {
+                Resource requestedResource = location.createRelative(resourcePath);
+                return requestedResource.exists() && requestedResource.isReadable() ? requestedResource
+                : new ClassPathResource(STATIC_RESOURCES_INDX);
+            }
+        });
     }
-
 }

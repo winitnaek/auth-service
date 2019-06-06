@@ -75,7 +75,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatcher("/**")
                 .authorizeRequests().antMatchers("/", "/r", "/a/**").denyAll()
                 .and()
-                .authorizeRequests().antMatchers(MGMTUI_LOGIN_FORM_URL, "/error").permitAll()
+                .authorizeRequests().antMatchers(MGMTUI_LOGIN_FORM_URL, "/error", "/**/*.{js,html,css}").permitAll()
                 .and()
                 .authorizeRequests().antMatchers("/r" + SSO_SVCS_PREFIX + "/**").fullyAuthenticated()
                 .and()

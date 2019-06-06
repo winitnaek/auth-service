@@ -106,6 +106,24 @@ public class SSOConfigurationDao {
     }
 
     /**
+     * getSSOConfByIssuer
+     *
+     * @param id
+     * @return
+     */
+    public SSOConfiguration getSSOConfByIssuer(String issuer) {
+        IgniteCache<Long, SSOConfiguration> ssoConfCache = ignite.cache(SSO_CONFIGURATION_CACHE);
+        SqlQuery sqlQry = new SqlQuery(SSOConfiguration.class, "idp_issuer= ?");
+        SSOConfiguration ssoConf = null;
+        try (QueryCursor<Cache.Entry<Long, SSOConfiguration>> cursor = ssoConfCache.query(sqlQry.setArgs(issuer))) {
+            for (Cache.Entry<Long, SSOConfiguration> cnf : cursor) {
+                ssoConf = cnf.getValue();
+            }
+        }
+        return ssoConf;
+    }
+    
+    /**
      * getSSOConfById
      *
      * @param id

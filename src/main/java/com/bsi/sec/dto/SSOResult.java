@@ -13,7 +13,7 @@ import javax.validation.constraints.NotNull;
  * @author SudhirP
  */
 public class SSOResult {
-    @NotNull
+     @NotNull
      private SSOAction action;
      Map<String,String> attributes; 
 

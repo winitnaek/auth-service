@@ -7,6 +7,7 @@ package com.bsi.sec.startup;
 
 import com.bsi.sec.helper.SecurityServiceInitializer;
 import com.bsi.sec.config.SecurityServiceProperties;
+import com.bsi.sec.saml.client.SAMLResponseHandler;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
@@ -53,7 +54,7 @@ import org.springframework.web.context.WebApplicationContext;
             "com.bsi.sec.svc", 
             "com.bsi.sec.dao",
             "com.bsi.sec.web.rest", 
-            "com.bsi.sec.helper"
+            "com.bsi.sec.helper","com.bsi.sec.saml.client"
         })
 @PropertySource("classpath:/sws.properties")
 @EnableConfigurationProperties({SecurityServiceProperties.class})
@@ -180,6 +181,7 @@ public class ApplicationInitializer implements WebServerFactoryCustomizer<Tomcat
 
     private void initializeApplicationServices() throws Exception {
         initializer.initialize();
+        SAMLResponseHandler.initialize();
     }
 
 }
