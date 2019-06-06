@@ -24,6 +24,8 @@
         <!-- auth.management ui build -->
         <auth.management.ui.dist.dir>../auth-management/dist</auth.management.ui.dist.dir>
         <auth.management.ui.dist.todir>${project.build.directory}/classes/static</auth.management.ui.dist.todir>
+        <auth.management.ui.cpy.msg>**********Copying auth-management UI files.**********</auth.management.ui.cpy.msg>
+        <auth.management.ui.err.msg>**********Please make auth-management UI files available for the build.**********</auth.management.ui.err.msg>
          <!-- Tests -->
         <test.id>1L</test.id>
         <test.datasetname>TEST_DSET1</test.datasetname>
@@ -454,14 +456,23 @@
                                <if>
                                 <available file="${auth.management.ui.dist.dir}" type="dir"/>
                                 <then>
-                                    <echo>**********Copying auth-management UI files.**********</echo>
-                                    <copy todir="${project.build.directory}/classes/static">
-                                    <fileset dir="D:/W/sfdc/auth-management/dist"/>
-                                    </copy>
+                                    <if>
+                                        <available file="${auth.management.ui.dist.dir}/secAdminBundle.js"/>
+                                        <then>
+                                            <echo>${auth.management.ui.cpy.msg}</echo>
+                                            <copy todir="${project.build.directory}/classes/static">
+                                            <fileset dir="D:/W/sfdc/auth-management/dist"/>
+                                            </copy>
+                                        </then>
+                                        <else>
+                                            <echo>${auth.management.ui.err.msg}</echo>
+                                            <fail message="${auth.management.ui.err.msg}"/>
+                                        </else>
+                                    </if>
                                 </then>
                                 <else>
-                                    <echo>**********Please make auth-management UI files available for the build.**********</echo>
-                                    <fail message="**********Please make auth-management UI files available for the build.**********"/>
+                                    <echo>${auth.management.ui.err.msg}</echo>
+                                    <fail message="${auth.management.ui.err.msg}"/>
                                 </else>
                                 </if>
                             </tasks>
