@@ -75,13 +75,15 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatcher("/**")
                 .authorizeRequests().antMatchers("/", "/r", "/a/**").denyAll()
                 .and()
-                .authorizeRequests().antMatchers(MGMTUI_LOGIN_FORM_URL, "/error", "/**/*.{js,html,css}").permitAll()
+                .authorizeRequests().antMatchers(MGMTUI_LOGIN_FORM_URL, "/error",
+                        "/**/*.{js,html,css}").permitAll()
                 .and()
                 .authorizeRequests().antMatchers("/r" + SSO_SVCS_PREFIX + "/**").fullyAuthenticated()
                 .and()
                 .httpBasic()
                 .and()
-                .authorizeRequests().antMatchers("/r" + MGMT_UI_API_PREFIX + "/**").fullyAuthenticated()
+                .authorizeRequests().antMatchers("/r" + MGMT_UI_API_PREFIX + "/**",
+                        "/r/a/**").fullyAuthenticated()
                 .and()
                 .authorizeRequests().anyRequest().denyAll()
                 .and()
