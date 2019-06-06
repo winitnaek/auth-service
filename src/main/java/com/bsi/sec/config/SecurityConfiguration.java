@@ -6,9 +6,12 @@
 package com.bsi.sec.config;
 
 import com.bsi.sec.util.LogUtils;
-import static com.bsi.sec.util.WSConstants.MGMTUI_LOGIN_URL;
-import static com.bsi.sec.util.WSConstants.MGMTUI_LOGOUT_URL;
+import static com.bsi.sec.util.WSConstants.MGMTUI_LOGIN_FORM_URL;
+import static com.bsi.sec.util.WSConstants.MGMTUI_LOGIN_PROC_URL;
+import static com.bsi.sec.util.WSConstants.MGMTUI_LOGOUT_PROC_URL;
+import static com.bsi.sec.util.WSConstants.MGMT_UI_API_PREFIX;
 import static com.bsi.sec.util.WSConstants.SESS_COOKIE;
+import static com.bsi.sec.util.WSConstants.SSO_SVCS_PREFIX;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -26,13 +29,10 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -56,23 +56,12 @@ import org.springframework.security.web.session.InvalidSessionStrategy;
  */
 @Configuration
 @EnableWebSecurity
-@Order(1)
-public class MgmtUISecurityConfiguration extends WebSecurityConfigurerAdapter {
+public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    private final static Logger log = LoggerFactory.getLogger(MgmtUISecurityConfiguration.class);
-
-    @Value("${management.endpoints.web.base-path}")
-    private String mgmntEndpWebBsePath;
+    private final static Logger log = LoggerFactory.getLogger(SecurityConfiguration.class);
 
     @Autowired
-    private MgmtUIRestfulAuthProvider mgmtUIauthProvider;
-
-    @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder authMgrBldr) throws Exception {
-        ProviderManager authMgr = new ProviderManager(Arrays.asList(mgmtUIauthProvider));
-        authMgr.setEraseCredentialsAfterAuthentication(false);
-        authMgrBldr.parentAuthenticationManager(authMgr);
-    }
+    private RestfulAuthProvider authProvider;
 
     /**
      * * Configure Http Security
@@ -83,46 +72,43 @@ public class MgmtUISecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
+                .antMatcher("/**")
+                .authorizeRequests().antMatchers("/", "/r", "/a/**").denyAll()
+                .and()
+                .authorizeRequests().antMatchers(MGMTUI_LOGIN_FORM_URL, "/error").permitAll()
+                .and()
+                .authorizeRequests().antMatchers("/r" + SSO_SVCS_PREFIX + "/**").fullyAuthenticated()
+                .and()
+                .httpBasic()
+                .and()
+                .authorizeRequests().antMatchers("/r" + MGMT_UI_API_PREFIX + "/**").fullyAuthenticated()
+                .and()
+                .authorizeRequests().anyRequest().denyAll()
+                .and()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER)
+                .and()
                 .sessionManagement()
                 .maximumSessions(1)
                 .and()
                 .invalidSessionStrategy(invalidSessionStrategy())
                 .and()
-                .csrf().disable()
-                .cors().disable()
-                .exceptionHandling()
-                .authenticationEntryPoint(authFailureEntryPoint())
-                .and()
-                .authorizeRequests()
-                .anyRequest().permitAll()
-                .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .antMatchers(mgmntEndpWebBsePath + "/**").denyAll() // deny actuator access at root level!
-                .anyRequest().fullyAuthenticated()
-                .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER)
-                .and()
-                .formLogin().loginProcessingUrl(MGMTUI_LOGIN_URL)
+                .formLogin().loginProcessingUrl(MGMTUI_LOGIN_PROC_URL)
                 .failureHandler(authenticationFailureHandler())
                 .successHandler(authenticationSuccessHandler())
                 .and()
-                .logout().logoutUrl(MGMTUI_LOGOUT_URL).clearAuthentication(true)
+                .logout().logoutUrl(MGMTUI_LOGOUT_PROC_URL).clearAuthentication(true)
                 .deleteCookies(SESS_COOKIE).invalidateHttpSession(true)
-                .logoutSuccessHandler(logoutSuccessHandler());
+                .logoutSuccessHandler(logoutSuccessHandler())
+                .and()
+                .csrf().disable()
+                .cors().disable()
+                .exceptionHandling().authenticationEntryPoint(authFailureEntryPoint());
     }
 
     /**
-     * Configure Web Security
      *
-     * @param web
-     * @throws Exception
+     * @return
      */
-    @Override
-    public void configure(WebSecurity web) throws Exception {
-        web.ignoring()
-                // Allow server capabilities request from browser!
-                .antMatchers(HttpMethod.OPTIONS, "/**");
-    }
-
     @Bean
     public AuthenticationEntryPoint authFailureEntryPoint() {
         return new AuthenticationEntryPoint() {
@@ -140,6 +126,25 @@ public class MgmtUISecurityConfiguration extends WebSecurityConfigurerAdapter {
                 response.sendError(HttpStatus.UNAUTHORIZED.value(), "Invalid Credentials! Access is denied!");
             }
         };
+    }
+
+    /**
+     * Configure Web Security
+     *
+     * @param web
+     * @throws Exception
+     */
+    @Override
+    public void configure(WebSecurity web) throws Exception {
+        web.ignoring()
+                // Allow server capabilities request from browser!
+                .antMatchers(HttpMethod.OPTIONS, "/**");
+    }
+
+    @Override
+    public void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.authenticationProvider(authProvider);
+        auth.eraseCredentials(false);
     }
 
     /**
@@ -321,4 +326,5 @@ public class MgmtUISecurityConfiguration extends WebSecurityConfigurerAdapter {
             }
         };
     }
+
 }

@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
  * @author igorV
  */
 @Component
-public class MgmtUIRestfulAuthProvider implements AuthenticationProvider {
+public class RestfulAuthProvider implements AuthenticationProvider {
 
     @Autowired
     private SecurityServiceProperties props;

@@ -43,6 +43,7 @@ import org.apache.ignite.configuration.DataStorageConfiguration;
 import org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder;
 import org.apache.ignite.transactions.spring.SpringTransactionManager;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.annotation.EnableCaching;
@@ -65,6 +66,9 @@ public class StoreConfiguration implements WebMvcConfigurer, CachingConfigurer {
 
     private final static Logger log = LoggerFactory.getLogger(StoreConfiguration.class);
 
+    @Autowired
+    private SecurityServiceProperties props;
+    
     @Bean
     @Primary
     public Ignite igniteInstance() {
@@ -108,7 +112,7 @@ public class StoreConfiguration implements WebMvcConfigurer, CachingConfigurer {
         // Setting some custom name for the node.
         cfg.setIgniteInstanceName(SEC_SVC_DATA_NODE);
         // Enabling peer-class loading feature.
-        cfg.setPeerClassLoadingEnabled(true);
+        cfg.setPeerClassLoadingEnabled(props.isDebugMode());
 
         // Defining and creating a new cache to be used by Ignite Spring Data
         // repository.

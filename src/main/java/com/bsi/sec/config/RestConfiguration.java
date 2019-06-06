@@ -26,6 +26,13 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import static com.bsi.sec.util.WSConstants.ENDPOINT_SECURITY_SERVICE;
 import static com.bsi.sec.util.WSConstants.DEPLOY_SECURITY_SERVICE;
+import static com.bsi.sec.util.WSConstants.REST_PREFIX;
+import static com.bsi.sec.util.WSConstants.SERVLET_NAME;
+import java.io.IOException;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.resource.PathResourceResolver;
 
 /**
  *
@@ -66,8 +73,8 @@ public class RestConfiguration implements WebMvcConfigurer {
     @SuppressWarnings("rawtypes")
     public ServletRegistrationBean securityServiceServletBean() {
         ServletRegistrationBean bean = new ServletRegistrationBean(
-                getDispatcherServlet(), "/r/*");
-        bean.setName("securityServiceServlet");
+                getDispatcherServlet(), REST_PREFIX + "/*");
+        bean.setName(SERVLET_NAME);
         bean.setLoadOnStartup(1);
         return bean;
     }
@@ -82,6 +89,22 @@ public class RestConfiguration implements WebMvcConfigurer {
     @ConditionalOnProperty(name = DEPLOY_SECURITY_SERVICE, prefix = PROP_PREFIX)
     public Integer authEndpoint() throws Exception {
         return 0;
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/*/**")
+                .addResourceLocations("classpath:/static/")
+                .resourceChain(true)
+                .addResolver(new PathResourceResolver() {
+                    @Override
+                    protected Resource getResource(String resourcePath,
+                            Resource location) throws IOException {
+                        Resource requestedResource = location.createRelative(resourcePath);
+                        return requestedResource.exists() && requestedResource.isReadable() ? requestedResource
+                                : new ClassPathResource("/static/index.html");
+                    }
+                });
     }
 
 }
