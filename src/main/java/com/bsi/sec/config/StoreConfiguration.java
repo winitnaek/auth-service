@@ -68,7 +68,7 @@ public class StoreConfiguration implements WebMvcConfigurer, CachingConfigurer {
 
     @Autowired
     private SecurityServiceProperties props;
-    
+
     @Bean
     @Primary
     public Ignite igniteInstance() {
@@ -173,10 +173,12 @@ public class StoreConfiguration implements WebMvcConfigurer, CachingConfigurer {
             }
         }
 
-        // TODO: Testing only! Limit discovery to single process within same JVM.
-        TcpDiscoverySpi disco = new TcpDiscoverySpi()
-                .setIpFinder(new TcpDiscoveryVmIpFinder(true));
-        cfg.setDiscoverySpi(disco);
+        if (props.isDebugMode()) {
+            // Limit discovery to single process within same JVM!
+            TcpDiscoverySpi disco = new TcpDiscoverySpi()
+                    .setIpFinder(new TcpDiscoveryVmIpFinder(true));
+            cfg.setDiscoverySpi(disco);
+        }
 
         return cfg;
     }
