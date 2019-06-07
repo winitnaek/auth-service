@@ -36,23 +36,6 @@ public class SecurityServiceResource {
     private SecurityService securityService;
 
     /**
-     * Retrieves products associated with the given dataset.
-     *
-     * @param datasetName
-     * @return
-     */
-    @GetMapping("/getProductsByDataset")
-    public ResponseEntity<List<ProductDTO>> getProductsByDataset(
-            @Valid @NotNull @RequestParam(required = true) String datasetName) throws Exception {
-        if (log.isInfoEnabled()) {
-            log.info("REST request to get all Products for the specfied Dataset.");
-        }
-
-        List<ProductDTO> productsToRet = securityService.getProductsByDataset(datasetName);
-        return new ResponseEntity<>(productsToRet, HttpStatus.OK);
-    }
-
-    /**
      *
      * @return @throws Exception
      */

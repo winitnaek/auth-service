@@ -1,8 +1,11 @@
 package com.bsi.sec.web.rest;
 
+import com.bsi.sec.dto.ProductDTO;
 import com.bsi.sec.dto.SSOResult;
 import com.bsi.sec.saml.client.SAMLResponseHandler;
+import com.bsi.sec.svc.SecurityService;
 import static com.bsi.sec.util.WSConstants.SSO_SERVICE;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +20,7 @@ import org.springframework.validation.annotation.Validated;
 /**
  * REST controller for processing SSO/SAML.
  *
- * 
+ *
  *
  */
 @RestController
@@ -25,10 +28,14 @@ import org.springframework.validation.annotation.Validated;
 @RequestMapping(SSO_SERVICE)
 public class SSOResource {
 
-    private final static Logger log = LoggerFactory.getLogger(SSOResource.class);    
+    private final static Logger log = LoggerFactory.getLogger(SSOResource.class);
 
     @Autowired
     private SAMLResponseHandler responseHandler;
+
+    @Autowired
+    private SecurityService securityService;
+
     /**
      * Processes SAML and provides a result.
      *
@@ -43,5 +50,22 @@ public class SSOResource {
         }
         SSOResult result = responseHandler.processResponse(saml, relayState);
         return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    /**
+     * Retrieves products associated with the given dataset.
+     *
+     * @param datasetName
+     * @return
+     */
+    @GetMapping("/getProductsByDataset")
+    public ResponseEntity<List<ProductDTO>> getProductsByDataset(
+            @Valid @NotNull @RequestParam(required = true) String datasetName) throws Exception {
+        if (log.isInfoEnabled()) {
+            log.info("REST request to get all Products for the specfied Dataset.");
+        }
+
+        List<ProductDTO> productsToRet = securityService.getProductsByDataset(datasetName);
+        return new ResponseEntity<>(productsToRet, HttpStatus.OK);
     }
 }
