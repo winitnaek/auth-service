@@ -250,8 +250,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
                 if (!ArrayUtils.isEmpty(cookies)) {
                     Arrays.asList(cookies).forEach(c -> {
-                        c.setMaxAge(0);
-                        response.addCookie(c);
+                        Cookie nc = new Cookie(c.getName(), null);
+                        nc.setMaxAge(0);
+                        response.addCookie(nc);
                     });
                 }
 
