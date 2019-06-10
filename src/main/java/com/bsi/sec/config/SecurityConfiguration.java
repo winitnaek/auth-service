@@ -9,23 +9,19 @@ import com.bsi.sec.util.LogUtils;
 import static com.bsi.sec.util.WSConstants.MGMTUI_LOGIN_FORM_URL;
 import static com.bsi.sec.util.WSConstants.MGMTUI_LOGIN_PROC_URL;
 import static com.bsi.sec.util.WSConstants.MGMTUI_LOGOUT_PROC_URL;
-import static com.bsi.sec.util.WSConstants.MGMT_UI_API_PREFIX;
 import static com.bsi.sec.util.WSConstants.SESS_COOKIE;
 import static com.bsi.sec.util.WSConstants.SSO_SVCS_PREFIX;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,8 +42,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
-import org.springframework.security.web.session.InvalidSessionStrategy;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
  * Spring security configuration, applicable only to REST tier.
@@ -73,38 +68,38 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .antMatcher("/**")
-                .authorizeRequests().antMatchers("/", "/r", "/a/**").denyAll()
+                .authorizeRequests()
+                .antMatchers("/", "/r", "/a/**").denyAll()
+                .antMatchers("/error").permitAll()
+                .antMatchers("/r" + SSO_SVCS_PREFIX + "/**").fullyAuthenticated()
                 .and()
-                .authorizeRequests().antMatchers(MGMTUI_LOGIN_FORM_URL, "/error",
+                .httpBasic().authenticationEntryPoint(authFailureEntryPoint())
+                .and()
+                .authorizeRequests()
+                .antMatchers(MGMTUI_LOGIN_FORM_URL,
                         "/**/*.{js,html,css}").permitAll()
-                .and()
-                .authorizeRequests().antMatchers("/r" + SSO_SVCS_PREFIX + "/**").fullyAuthenticated()
-                .and()
-                .httpBasic()
-                .and()
-                .authorizeRequests().antMatchers("/r" + MGMT_UI_API_PREFIX + "/**",
-                        "/r/a/**").fullyAuthenticated()
-                .and()
-                .authorizeRequests().anyRequest().denyAll()
-                .and()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER)
+                .anyRequest().fullyAuthenticated()
                 .and()
                 .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.NEVER)
                 .maximumSessions(1)
                 .and()
-                .invalidSessionStrategy(invalidSessionStrategy())
+                .invalidSessionUrl(MGMTUI_LOGIN_FORM_URL)
                 .and()
-                .formLogin().loginProcessingUrl(MGMTUI_LOGIN_PROC_URL)
+                .formLogin()
+                .loginPage(MGMTUI_LOGIN_FORM_URL)
+                .loginProcessingUrl(MGMTUI_LOGIN_PROC_URL)
                 .failureHandler(authenticationFailureHandler())
                 .successHandler(authenticationSuccessHandler())
                 .and()
-                .logout().logoutUrl(MGMTUI_LOGOUT_PROC_URL).clearAuthentication(true)
-                .deleteCookies(SESS_COOKIE).invalidateHttpSession(true)
-                .logoutSuccessHandler(logoutSuccessHandler())
+                .logout()
+                .invalidateHttpSession(true)
+                .deleteCookies(SESS_COOKIE)
+                .logoutRequestMatcher(
+                        new AntPathRequestMatcher(MGMTUI_LOGOUT_PROC_URL))
                 .and()
                 .csrf().disable()
-                .cors().disable()
-                .exceptionHandling().authenticationEntryPoint(authFailureEntryPoint());
+                .cors().disable();
     }
 
     /**
@@ -172,23 +167,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
      * @return
      */
     private AuthenticationFailureHandler authenticationFailureHandler() {
-        return new AuthenticationFailureHandler() {
-            /**
-             *
-             * @param request
-             * @param response
-             * @param exception
-             * @throws IOException
-             * @throws ServletException
-             */
-            @Override
-            public void onAuthenticationFailure(HttpServletRequest request,
-                    HttpServletResponse response,
-                    AuthenticationException exception)
-                    throws IOException, ServletException {
-                prepareResponse(response, null, HttpStatus.UNAUTHORIZED,
-                        exception);
-            }
+        return (HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) -> {
+            prepareResponse(response, null, HttpStatus.UNAUTHORIZED,
+                    exception);
         };
     }
 
@@ -203,61 +184,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
      * @return
      */
     private AuthenticationSuccessHandler authenticationSuccessHandler() {
-        return new AuthenticationSuccessHandler() {
-            /**
-             *
-             * @param hsr
-             * @param hsr1
-             * @param a
-             * @throws IOException
-             * @throws ServletException
-             */
-            @Override
-            public void onAuthenticationSuccess(HttpServletRequest request,
-                    HttpServletResponse response,
-                    Authentication auth) throws IOException, ServletException {
-                prepareResponse(response, auth, HttpStatus.OK, null);
-            }
-        };
-    }
-
-    /**
-     * <ul>
-     * <li>
-     * Prepare response with OK (i.e. 200) status for proper http status code
-     * mapping handling.
-     * </li>
-     * </ul>
-     *
-     * @return
-     */
-    private LogoutSuccessHandler logoutSuccessHandler() {
-        return new LogoutSuccessHandler() {
-            /**
-             *
-             * @param request
-             * @param response
-             * @param auth
-             * @throws IOException
-             * @throws ServletException
-             */
-            @Override
-            public void onLogoutSuccess(HttpServletRequest request,
-                    HttpServletResponse response, Authentication auth)
-                    throws IOException, ServletException {
-                // Delete all cookies (if exist).
-                Cookie[] cookies = request.getCookies();
-
-                if (!ArrayUtils.isEmpty(cookies)) {
-                    Arrays.asList(cookies).forEach(c -> {
-                        Cookie nc = new Cookie(c.getName(), null);
-                        nc.setMaxAge(0);
-                        response.addCookie(nc);
-                    });
-                }
-
-                prepareResponse(response, auth, HttpStatus.OK, null);
-            }
+        return (HttpServletRequest request, HttpServletResponse response, Authentication auth) -> {
+            prepareResponse(response, auth, HttpStatus.OK, null);
         };
     }
 
@@ -307,27 +235,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 IOUtils.closeQuietly(respOut);
             }
         }
-    }
-
-    /**
-     *
-     * @return
-     */
-    private InvalidSessionStrategy invalidSessionStrategy() {
-        return new InvalidSessionStrategy() {
-            /**
-             *
-             * @param request
-             * @param response
-             * @throws IOException
-             * @throws ServletException
-             */
-            @Override
-            public void onInvalidSessionDetected(HttpServletRequest request,
-                    HttpServletResponse response) throws IOException, ServletException {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-            }
-        };
     }
 
 }
