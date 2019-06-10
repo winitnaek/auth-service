@@ -16,6 +16,7 @@ import com.bsi.sec.saml.exception.InvalidIssuerException;
 import com.bsi.sec.saml.exception.InvalidResponseException;
 import com.bsi.sec.saml.exception.InvalidSignatureException;
 import com.bsi.sec.saml.exception.SamlDecodeException;
+import com.bsi.sec.svc.AuditLogger;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.security.cert.Certificate;
@@ -37,7 +38,6 @@ import org.springframework.stereotype.Service;
  *
  * @author SudhirP
  */
-
 @Service
 public class SAMLResponseHandler {
 
@@ -45,6 +45,10 @@ public class SAMLResponseHandler {
 
     @Autowired
     private SSOConfigurationDao ssoConfDao;
+
+    @Autowired
+    private AuditLogger auditLogger;
+
     /**
      * Initialize.
      *
@@ -66,45 +70,47 @@ public class SAMLResponseHandler {
         StatusResponseType response = (StatusResponseType) SAMLHelper.decodeResponse(saml);
         String issuer = SAMLHelper.getResponseIssuer(response);
         //
-        if (log.isDebugEnabled()) 
-            log.debug("Response: " + SAMLHelper.xmlObjectToString(response));         
-        if(StringUtils.isEmpty(issuer))
+        if (log.isDebugEnabled()) {
+            log.debug("Response: " + SAMLHelper.xmlObjectToString(response));
+        }
+        if (StringUtils.isEmpty(issuer)) {
             throw new InvalidIssuerException("Unknown Issuer: " + issuer + " Issuer cannot be empty!");
+        }
         if (log.isInfoEnabled()) {
             log.info("Handling response from issuer" + issuer);
             log.info("Validating issuer: " + issuer + " against configured idp issuer...");
-        }       
-        SSOConfiguration ssoConfig = ssoConfDao.getSSOConfByIssuer(issuer);  
+        }
+        SSOConfiguration ssoConfig = ssoConfDao.getSSOConfByIssuer(issuer);
         if (ssoConfig == null || !StringUtils.equalsIgnoreCase(StringUtils.trimToEmpty(issuer), StringUtils.trimToEmpty(ssoConfig.getIdpIssuer()))) {
             throw new InvalidIssuerException("Unknow Issuer: " + issuer);
         }
-        Certificate configuredCert=null;
-        if(ssoConfig.isValidateRespSignature())        
+        Certificate configuredCert = null;
+        if (ssoConfig.isValidateRespSignature()) {
             configuredCert = getCertificate(ssoConfig.getCertText());
+        }
         //
-        if(response instanceof Response){
-            Map<String,String> attributes = ResponseFactory.getResponse(ssoConfig.isValidateRespSignature(), configuredCert).processAuthenticationResponse((Response) response);
+        if (response instanceof Response) {
+            Map<String, String> attributes = ResponseFactory.getResponse(ssoConfig.isValidateRespSignature(), configuredCert).processAuthenticationResponse((Response) response);
             result.setAttributes(attributes);
-        }
-        else if(response instanceof LogoutResponse)
-        {            
-            result.setAction(SSOAction.LOGOUT);            
-        }
-        else
+        } else if (response instanceof LogoutResponse) {
+            result.setAction(SSOAction.LOGOUT);
+        } else {
             throw new InvalidUserException("Invalid SAML Response!");
+        }
         //
+        auditLogger.logAccess(null,
+                AuditLogger.Areas.SSO,
+                (SSOAction.LOGIN.equals(result.getAction())
+                ? AuditLogger.Ops.LOGIN : AuditLogger.Ops.LOGOUT),
+                result.getAttributes());
         return result;
     }
 
-    
-
     private Certificate getCertificate(String certText) throws CertificateException {
         CertificateFactory fact = CertificateFactory.getInstance("X.509");
-        InputStream is = new ByteArrayInputStream( certText.getBytes() );
+        InputStream is = new ByteArrayInputStream(certText.getBytes());
         X509Certificate cer = (X509Certificate) fact.generateCertificate(is);
         return cer;
     }
-    
-    
-   
+
 }

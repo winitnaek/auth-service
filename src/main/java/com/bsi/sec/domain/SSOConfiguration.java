@@ -43,6 +43,7 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
 
     @NotNull
     @Column(name = "idp_issuer", nullable = false)
+    @QuerySqlField(name = "idp_issuer")
     private String idpIssuer;
 
     @NotNull

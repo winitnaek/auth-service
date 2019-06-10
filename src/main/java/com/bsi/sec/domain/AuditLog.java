@@ -1,10 +1,13 @@
 package com.bsi.sec.domain;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.persistence.*;
 import javax.validation.constraints.*;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Objects;
 import org.apache.ignite.cache.query.annotations.QuerySqlField;
 import org.hibernate.envers.Audited;
@@ -61,7 +64,9 @@ public class AuditLog implements Serializable {
     @Column(name = "created_date")
     @QuerySqlField(name = "createdDate")
     private LocalDateTime createdDate;
-    
+
+    private Map<String, String> attributes;
+
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
         return id;
@@ -194,6 +199,24 @@ public class AuditLog implements Serializable {
 
     public void setCreatedDate(LocalDateTime createdDate) {
         this.createdDate = createdDate;
+    }
+
+    public Map<String, String> getAttributes() {
+        return attributes;
+    }
+
+    public void setAttributes(Map<String, String> attributes) {
+        this.attributes = attributes;
+    }
+
+    public String getAttributesAsJson() {
+        ObjectMapper mapper = new ObjectMapper();
+
+        try {
+            return mapper.writeValueAsString(attributes);
+        } catch (JsonProcessingException ex) {
+            return ex.getMessage();
+        }
     }
 
     @Override

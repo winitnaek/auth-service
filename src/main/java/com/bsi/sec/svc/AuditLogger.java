@@ -14,6 +14,7 @@ import com.bsi.sec.domain.Tenant;
 import com.bsi.sec.dto.AuditLogDTO;
 import com.bsi.sec.repository.AuditLogRepository;
 import java.time.LocalDateTime;
+import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.slf4j.Logger;
@@ -30,25 +31,25 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @Transactional
 public class AuditLogger implements UserProvider {
-
+    
     private final static Logger log = LoggerFactory.getLogger(AuditLogger.class);
-
+    
     private final static String ALL_RECS = "ALL";
-
+    
     public enum Areas {
-        TENANT, COMPANY, SSO_CONF, TENANT_SSO_CONF, ADMIN_META_DATA, MGMT_UI
+        TENANT, COMPANY, SSO_CONF, TENANT_SSO_CONF, ADMIN_META_DATA, MGMT_UI, SSO
     }
-
+    
     public enum Ops {
         INSERT, UPDATE, UPSERT, DELETE, LOGIN, LOGOUT
     }
-
+    
     @Autowired
     private AuditLogRepository auditLogRepo;
-
+    
     @Autowired
     private EntityIDGenerator idGen;
-
+    
     @Autowired
     private IgniteConfiguration ignConf;
 
@@ -57,44 +58,26 @@ public class AuditLogger implements UserProvider {
      * @return
      */
     @Transactional
-    public boolean logUserLoggedIn(String username) {
+    public boolean logAccess(String username, Areas area, Ops op,
+            Map<String, String> attributes) {
         AuditLogDTO logInput = new AuditLogDTO();
         logInput.setAccount("");
-        logInput.setArea(Areas.MGMT_UI);
+        logInput.setArea(area);
         logInput.setDataset("");
-        logInput.setOperation(Ops.LOGIN);
+        logInput.setOperation(op);
         logInput.setProduct("");
         logInput.setServerHost(ignConf.getLocalHost());
         logInput.setId(idGen.generate());
-        logInput.setUser(StringUtils.isNotBlank(username) ? username : SERVICE_USER);
-
+        logInput.setUser(StringUtils.isNotBlank(username) ? username : getUser());
+        
+        if (attributes != null) {
+            logInput.setAttributes(attributes);
+        }
+        
         if (log.isDebugEnabled()) {
             log.debug("Candidate to be logged {}.", logInput.toString());
         }
-
-        return log(logInput);
-    }
-
-    /**
-     *
-     * @return
-     */
-    @Transactional
-    public boolean logUserLoggedOut(String username) {
-        AuditLogDTO logInput = new AuditLogDTO();
-        logInput.setAccount("");
-        logInput.setArea(Areas.MGMT_UI);
-        logInput.setDataset("");
-        logInput.setOperation(Ops.LOGOUT);
-        logInput.setProduct("");
-        logInput.setServerHost(ignConf.getLocalHost());
-        logInput.setId(idGen.generate());
-        logInput.setUser(StringUtils.isNotBlank(username) ? username : SERVICE_USER);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Candidate to be logged {}.", logInput.toString());
-        }
-
+        
         return log(logInput);
     }
 
@@ -115,11 +98,11 @@ public class AuditLogger implements UserProvider {
         logInput.setServerHost(ignConf.getLocalHost());
         logInput.setId(idGen.generate());
         logInput.setUser(getUser());
-
+        
         if (log.isDebugEnabled()) {
             log.debug("Candidate to be logged {}.", logInput.toString());
         }
-
+        
         return log(logInput);
     }
 
@@ -138,11 +121,11 @@ public class AuditLogger implements UserProvider {
         logInput.setServerHost(ignConf.getLocalHost());
         logInput.setId(idGen.generate());
         logInput.setUser(getUser());
-
+        
         if (log.isDebugEnabled()) {
             log.debug("Candidate to be logged {}.", logInput.toString());
         }
-
+        
         return log(logInput);
     }
 
@@ -161,11 +144,11 @@ public class AuditLogger implements UserProvider {
         logInput.setServerHost(ignConf.getLocalHost());
         logInput.setId(idGen.generate());
         logInput.setUser(getUser());
-
+        
         if (log.isDebugEnabled()) {
             log.debug("Candidate to be logged {}.", logInput.toString());
         }
-
+        
         return log(logInput);
     }
 
@@ -187,11 +170,11 @@ public class AuditLogger implements UserProvider {
         logInput.setServerHost(ignConf.getLocalHost());
         logInput.setId(idGen.generate());
         logInput.setUser(getUser());
-
+        
         if (log.isDebugEnabled()) {
             log.debug("Candidate to be logged {}.", logInput.toString());
         }
-
+        
         return log(logInput);
     }
 
@@ -213,11 +196,11 @@ public class AuditLogger implements UserProvider {
         logInput.setServerHost(ignConf.getLocalHost());
         logInput.setId(idGen.generate());
         logInput.setUser(getUser());
-
+        
         if (log.isDebugEnabled()) {
             log.debug("Candidate to be logged {}.", logInput.toString());
         }
-
+        
         return log(logInput);
     }
 
@@ -228,8 +211,10 @@ public class AuditLogger implements UserProvider {
      */
     private String buildMessage(AuditLog input) {
         try {
-            return "User [" + input.getUser() + "]"
-                    + " Area [" + input.getArea() + "]:"
+            return "Area [" + input.getArea() + "],"
+                    + (input.getAttributes() != null
+                    ? " Attributes [" + input.getAttributesAsJson() + "]," : "")
+                    + " User [" + input.getUser() + "]:"
                     + " Ran operation["
                     + input.getOperation() + "] at "
                     + input.getCreatedDate();
@@ -237,7 +222,7 @@ public class AuditLogger implements UserProvider {
             if (log.isErrorEnabled()) {
                 log.error("Failed to build message.", e);
             }
-
+            
             return "Failed to populate the message.";
         }
     }
@@ -256,23 +241,25 @@ public class AuditLogger implements UserProvider {
         ent.setProductName(input.getProduct());
         ent.setServerHost(input.getServerHost());
         ent.setUser(input.getUser());
+        ent.setAttributes(input.getAttributes());
+        
         long id = input.getId();
         ent.setId(id);
-
+        
         LocalDateTime instant = ent.getCreatedDate();
-
+        
         if (instant == null) {
             instant = LocalDateTime.now();
             ent.setCreatedDate(instant);
         }
-
+        
         ent.setMessage(buildMessage(ent));
         AuditLog entUpd = auditLogRepo.save(id, ent);
-
+        
         if (log.isDebugEnabled()) {
             log.debug("Logged {} to AuditLog.", entUpd.toString());
         }
-
+        
         return entUpd != null;
     }
 
@@ -290,11 +277,13 @@ public class AuditLogger implements UserProvider {
             return "ADMIN_META_DATA";
         } else if (Areas.TENANT.equals(area)) {
             return "TENANT";
-        } else {
+        } else if (Areas.MGMT_UI.equals(area)) {
             return "MGMT_UI";
+        } else {
+            return "SSO";
         }
     }
-
+    
     private String getOp(Ops op) {
         if (Ops.DELETE.equals(op)) {
             return "DELETE";
@@ -310,5 +299,5 @@ public class AuditLogger implements UserProvider {
             return "LOGOUT";
         }
     }
-
+    
 }

@@ -8,6 +8,7 @@ package com.bsi.sec.dto;
 import com.bsi.sec.svc.AuditLogger;
 import javax.validation.constraints.Min;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  *
@@ -37,6 +38,8 @@ public final class AuditLogDTO {
     private AuditLogger.Areas area;
 
     private String message;
+
+    private Map<String, String> attributes;
 
     public AuditLogDTO() {
     }
@@ -158,8 +161,17 @@ public final class AuditLogDTO {
         this.message = message;
     }
 
+    public Map<String, String> getAttributes() {
+        return attributes;
+    }
+
+    public void setAttributes(Map<String, String> attributes) {
+        this.attributes = attributes;
+    }
+
     @Override
     public String toString() {
-        return "AuditLogDTO{" + "id=" + id + ", createdDate=" + createdDate + ", serverHost=" + serverHost + ", user=" + user + ", clientHost=" + clientHost + ", operation=" + operation + ", account=" + account + ", product=" + product + ", dataset=" + dataset + ", area=" + area + ", message=" + message + '}';
+        return "AuditLogDTO{" + "id=" + id + ", createdDate=" + createdDate + ", serverHost=" + serverHost + ", user=" + user + ", clientHost=" + clientHost + ", operation=" + operation + ", account=" + account + ", product=" + product + ", dataset=" + dataset + ", area=" + area + ", message=" + message + ", attributes=" + attributes + '}';
     }
+
 }

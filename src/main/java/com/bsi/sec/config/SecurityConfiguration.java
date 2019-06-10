@@ -191,7 +191,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
      */
     private AuthenticationSuccessHandler authenticationSuccessHandler() {
         return (HttpServletRequest request, HttpServletResponse response, Authentication auth) -> {
-            auditLogger.logUserLoggedIn((String) auth.getPrincipal());
+            auditLogger.logAccess((String) auth.getPrincipal(),
+                    AuditLogger.Areas.MGMT_UI,
+                    AuditLogger.Ops.LOGIN, null);
             prepareResponse(response, auth, HttpStatus.OK, null);
         };
     }
@@ -251,7 +253,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     private LogoutSuccessHandler logoutSuccessHandler() {
         return (HttpServletRequest request, HttpServletResponse response,
                 Authentication auth) -> {
-            auditLogger.logUserLoggedOut((String) auth.getPrincipal());
+            auditLogger.logAccess((String) auth.getPrincipal(),
+                    AuditLogger.Areas.MGMT_UI,
+                    AuditLogger.Ops.LOGOUT, null);
         };
     }
 

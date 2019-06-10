@@ -42,7 +42,7 @@ public class SSOResource {
      * @param datasetName
      * @return
      */
-    @GetMapping("/processSAML ")
+    @GetMapping("/processSAML")
     public ResponseEntity<SSOResult> processSAML(
             @Valid @NotNull @RequestParam(required = true) String saml, @RequestParam String relayState) throws Exception {
         if (log.isInfoEnabled()) {
