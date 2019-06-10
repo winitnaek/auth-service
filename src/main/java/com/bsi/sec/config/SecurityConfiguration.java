@@ -5,6 +5,7 @@
  */
 package com.bsi.sec.config;
 
+import com.bsi.sec.svc.AuditLogger;
 import com.bsi.sec.util.LogUtils;
 import static com.bsi.sec.util.WSConstants.MGMTUI_LOGIN_FORM_URL;
 import static com.bsi.sec.util.WSConstants.MGMTUI_LOGIN_PROC_URL;
@@ -42,6 +43,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
@@ -57,6 +59,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private RestfulAuthProvider authProvider;
+
+    @Autowired
+    private AuditLogger auditLogger;
 
     /**
      * * Configure Http Security
@@ -97,6 +102,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .deleteCookies(SESS_COOKIE)
                 .logoutRequestMatcher(
                         new AntPathRequestMatcher(MGMTUI_LOGOUT_PROC_URL))
+                .logoutSuccessHandler(logoutSuccessHandler())
                 .and()
                 .csrf().disable()
                 .cors().disable();
@@ -185,6 +191,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
      */
     private AuthenticationSuccessHandler authenticationSuccessHandler() {
         return (HttpServletRequest request, HttpServletResponse response, Authentication auth) -> {
+            auditLogger.logUserLoggedIn((String) auth.getPrincipal());
             prepareResponse(response, auth, HttpStatus.OK, null);
         };
     }
@@ -235,6 +242,17 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 IOUtils.closeQuietly(respOut);
             }
         }
+    }
+
+    /**
+     *
+     * @return
+     */
+    private LogoutSuccessHandler logoutSuccessHandler() {
+        return (HttpServletRequest request, HttpServletResponse response,
+                Authentication auth) -> {
+            auditLogger.logUserLoggedOut((String) auth.getPrincipal());
+        };
     }
 
 }
