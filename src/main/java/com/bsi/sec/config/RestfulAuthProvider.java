@@ -6,6 +6,7 @@
 package com.bsi.sec.config;
 
 import com.bsi.sec.config.SecurityServiceProperties.Mgmtui.IntUser;
+import com.bsi.sec.config.SecurityServiceProperties.SSOUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -40,10 +41,15 @@ public class RestfulAuthProvider implements AuthenticationProvider {
             String name = authentication.getName();
             String password = authentication.getCredentials().toString();
 
+            SSOUser ssoUserCfg = props.getUser();
             //Internal user 
             IntUser userCfg = props.getMgmtui().getUser();
 
-            if (userCfg.isEnabled() && name.equals(userCfg.getName()) && password.equals(userCfg.getPasswd())) {
+            if (isSSOUser(authentication) && name.equals(ssoUserCfg.getName())
+                    && password.equals(ssoUserCfg.getPasswd())) {
+                return new UsernamePasswordAuthenticationToken(
+                        name, password);
+            } else if (userCfg.isEnabled() && name.equals(userCfg.getName()) && password.equals(userCfg.getPasswd())) {
                 return new UsernamePasswordAuthenticationToken(
                         name, password);
             } else if (props.getMgmtui().getLdap().isEnabled() && ldapAuthMgr.isValidUser(name, password)) {
@@ -66,6 +72,14 @@ public class RestfulAuthProvider implements AuthenticationProvider {
     @Override
     public boolean supports(Class<?> authentication) {
         return authentication.equals(UsernamePasswordAuthenticationToken.class);
+    }
+
+    /**
+     *
+     * @return
+     */
+    private boolean isSSOUser(Authentication authentication) {
+        return authentication.getDetails() instanceof SSOAuthenticationDetails;
     }
 
 }

@@ -33,6 +33,9 @@ public class SecurityServiceProperties {
     private Mgmtui mgmtui = new Mgmtui();
 
     @Valid
+    private SSOUser ssoUser = new SSOUser();
+
+    @Valid
     private Jpa jpa = new Jpa();
 
     @Valid
@@ -55,6 +58,14 @@ public class SecurityServiceProperties {
 
     @Valid
     private SF sf = new SF();
+
+    public SSOUser getUser() {
+        return ssoUser;
+    }
+
+    public void setUser(SSOUser ssoUser) {
+        this.ssoUser = ssoUser;
+    }
 
     public SF getSf() {
         return sf;
@@ -142,6 +153,11 @@ public class SecurityServiceProperties {
 
     public void setMgmtui(Mgmtui mgmtui) {
         this.mgmtui = mgmtui;
+    }
+
+    @Override
+    public String toString() {
+        return "SecurityServiceProperties{" + "appName=" + appName + ", debugMode=" + debugMode + ", mgmtui=" + mgmtui + ", ssoUser=" + ssoUser + ", jpa=" + jpa + ", tpfjpa=" + tpfjpa + ", dataSource=" + dataSource + ", tpfDataSource=" + tpfDataSource + ", paging=" + paging + ", directories=" + directories + ", ajp=" + ajp + ", sf=" + sf + '}';
     }
 
     /**
@@ -699,11 +715,6 @@ public class SecurityServiceProperties {
 
     }
 
-    @Override
-    public String toString() {
-        return "SecurityServiceProperties{" + "appName=" + appName + ", debugMode=" + debugMode + ", mgmtui=" + mgmtui + ", jpa=" + jpa + ", tpfjpa=" + tpfjpa + ", dataSource=" + dataSource + ", tpfDataSource=" + tpfDataSource + ", paging=" + paging + ", directories=" + directories + ", ajp=" + ajp + ", sf=" + sf + '}';
-    }
-
     /**
      * Internal Mgmt UI.
      */
@@ -878,6 +889,42 @@ public class SecurityServiceProperties {
                 return "IntUser{" + "enabled=" + enabled + ", encrypted=" + encrypted + ", name=" + name + ", passwd=" + passwd + '}';
             }
 
+        }
+
+    }
+
+    /**
+     *
+     */
+    public static class SSOUser {
+
+        @NotEmpty
+        private String name;
+        @NotEmpty
+        private String passwd;
+
+        public SSOUser() {
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getPasswd() {
+            return passwd;
+        }
+
+        public void setPasswd(String passwd) {
+            this.passwd = passwd;
+        }
+
+        @Override
+        public String toString() {
+            return "SSOUser{" + "name=" + name + ", passwd=" + passwd + '}';
         }
 
     }

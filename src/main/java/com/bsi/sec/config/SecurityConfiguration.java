@@ -30,12 +30,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -78,18 +78,19 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/error").permitAll()
                 .antMatchers("/r" + SSO_SVCS_PREFIX + "/**").fullyAuthenticated()
                 .and()
-                .httpBasic().authenticationEntryPoint(authFailureEntryPoint())
+                .httpBasic()
+                .authenticationEntryPoint(authFailureEntryPoint())
+                .authenticationDetailsSource(authenticationDetailsSource())
+                .and()
+                .sessionManagement()
+                .maximumSessions(1)
+                .and()
+                .invalidSessionUrl(MGMTUI_LOGIN_FORM_URL)
                 .and()
                 .authorizeRequests()
                 .antMatchers(MGMTUI_LOGIN_FORM_URL,
                         "/**/*.{js,html,css}").permitAll()
                 .anyRequest().fullyAuthenticated()
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.NEVER)
-                .maximumSessions(1)
-                .and()
-                .invalidSessionUrl(MGMTUI_LOGIN_FORM_URL)
                 .and()
                 .formLogin()
                 .loginPage(MGMTUI_LOGIN_FORM_URL)
@@ -157,6 +158,14 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Bean
     public PasswordEncoder encoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    /**
+     *
+     * @return
+     */
+    private AuthenticationDetailsSource<HttpServletRequest, SSOAuthenticationDetails> authenticationDetailsSource() {
+        return (HttpServletRequest request) -> new SSOAuthenticationDetails();
     }
 
     /**
