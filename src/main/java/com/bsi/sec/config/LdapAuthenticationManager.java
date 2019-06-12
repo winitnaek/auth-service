@@ -52,9 +52,9 @@ public class LdapAuthenticationManager {
     public boolean isValidUser(String userName, String password) throws Exception {
         DirContext ctx = null;
         try {
-            String url = props.getMgmtui().getLdap().getUrl();
-            String dnSuffix = props.getMgmtui().getLdap().getUserDNSuffix();
-            String roleCN = props.getMgmtui().getLdap().getGroupCN();
+            String url = props.getLdap().getUrl();
+            String dnSuffix = props.getLdap().getUserDNSuffix();
+            String roleCN = props.getLdap().getGroupCN();
             ctx = getContext(url, dnSuffix, userName, password);
             return hasRole(ctx, roleCN, userName);
         } catch (Exception e) {
@@ -99,7 +99,7 @@ public class LdapAuthenticationManager {
     }
 
     private boolean hasRole(DirContext ctx, final String roleCn, final String userName) throws NamingException {
-        String searchFilter = props.getMgmtui().getLdap().getGroupSearchFilter();
+        String searchFilter = props.getLdap().getGroupSearchFilter();
         //
         NamingEnumeration<SearchResult> ne = ctx.search(roleCn, searchFilter, new Object[]{userName}, searchCtls);
 

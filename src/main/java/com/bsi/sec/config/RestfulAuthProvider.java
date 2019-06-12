@@ -5,8 +5,7 @@
  */
 package com.bsi.sec.config;
 
-import com.bsi.sec.config.SecurityServiceProperties.Mgmtui.IntUser;
-import com.bsi.sec.config.SecurityServiceProperties.SSOUser;
+import com.bsi.sec.config.SecurityServiceProperties.IntUser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -41,23 +40,29 @@ public class RestfulAuthProvider implements AuthenticationProvider {
             String name = authentication.getName();
             String password = authentication.getCredentials().toString();
 
-            SSOUser ssoUserCfg = props.getUser();
-            //Internal user 
-            IntUser userCfg = props.getMgmtui().getUser();
+            IntUser intUserCfg = props.getUser();
 
-            if (isSSOUser(authentication) && name.equals(ssoUserCfg.getName())
-                    && password.equals(ssoUserCfg.getPasswd())) {
-                return new UsernamePasswordAuthenticationToken(
-                        name, password);
-            } else if (userCfg.isEnabled() && name.equals(userCfg.getName()) && password.equals(userCfg.getPasswd())) {
-                return new UsernamePasswordAuthenticationToken(
-                        name, password);
-            } else if (props.getMgmtui().getLdap().isEnabled() && ldapAuthMgr.isValidUser(name, password)) {
-                return new UsernamePasswordAuthenticationToken(
-                        name, password);
+            if (isSSOUser(authentication)) {
+                // SSO User!
+                if (intUserCfg.isEnabled() && name.equals(intUserCfg.getName())
+                        && password.equals(intUserCfg.getPasswd())) {
+                    return new UsernamePasswordAuthenticationToken(
+                            name, password);
+                } else if (props.getLdap().isEnabled()
+                        && ldapAuthMgr.isValidUser(name, password)) {
+                    return new UsernamePasswordAuthenticationToken(
+                            name, password);
+                }
             } else {
-                return null;
+                // Mgmt UI User! ==> Always validate against LDAP!
+                if (props.getLdap().isEnabled()
+                        && ldapAuthMgr.isValidUser(name, password)) {
+                    return new UsernamePasswordAuthenticationToken(
+                            name, password);
+                }
             }
+
+            return null; // Invalid user!!
         } catch (Exception ex) {
             throw new BadCredentialsException(ex.getMessage(), ex);
         }
