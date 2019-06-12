@@ -36,6 +36,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -82,11 +83,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .authenticationEntryPoint(authFailureEntryPoint())
                 .authenticationDetailsSource(authenticationDetailsSource())
                 .and()
-                .sessionManagement()
-                .maximumSessions(1)
-                .and()
-                .invalidSessionUrl(MGMTUI_LOGIN_FORM_URL)
-                .and()
                 .authorizeRequests()
                 .antMatchers(MGMTUI_LOGIN_FORM_URL,
                         "/**/*.{js,html,css}").permitAll()
@@ -97,6 +93,12 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .loginProcessingUrl(MGMTUI_LOGIN_PROC_URL)
                 .failureHandler(authenticationFailureHandler())
                 .successHandler(authenticationSuccessHandler())
+                .and()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.NEVER)
+                .maximumSessions(1)
+                .and()
+                .invalidSessionUrl(MGMTUI_LOGIN_FORM_URL)
                 .and()
                 .logout()
                 .invalidateHttpSession(true)

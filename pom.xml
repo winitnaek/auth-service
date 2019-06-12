@@ -433,7 +433,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <file>${basedir}/src/main/resources/sf-ent-soap-stubs.jar</file>
+                    <file>${basedir}/src/test/resources/sf-ent-soap-stubs.jar</file>
                     <groupId>sf-ent-soap-stubs</groupId>
                     <artifactId>sf-ent-soap-stubs</artifactId>
                     <version>1.0</version>
