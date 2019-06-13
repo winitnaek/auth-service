@@ -11,6 +11,7 @@ import com.bsi.sec.domain.Tenant;
 import com.bsi.sec.exception.ConfigurationException;
 import com.bsi.sec.exception.ProcessingException;
 import com.bsi.sec.exception.RecordNotFoundException;
+import com.bsi.sec.util.CryptUtils;
 import com.bsi.sec.util.DateUtils;
 import com.bsi.sec.util.LogUtils;
 import com.bsi.sec.util.SOQLQueries;
@@ -111,24 +112,19 @@ public class SFDataPuller implements DataPuller {
 
                 if (secondsSessValid <= secsBeforeSessExpire) {
                     if (log.isInfoEnabled()) {
-                        log.info(LogUtils.jsonize(
-                                "msg", "Session must be refreshed!",
-                                "secsBeforeSessExpireTresholdInSecs", secsBeforeSessExpire,
-                                "sessStillValidForInSecs", secondsSessValid,
-                                "url", connection.getConfig().getAuthEndpoint(),
-                                "sessionid", connection.getConfig().getSessionId(),
-                                "userid", connection.getUserInfo().getUserId()));
+                        log.info(LogUtils.jsonize("msg", "Session must be refreshed!",
+                                "secsBeforeSessExpireTresholdInSecs", secsBeforeSessExpire, "sessStillValidForInSecs",
+                                secondsSessValid, "url", connection.getConfig().getAuthEndpoint(), "sessionid",
+                                connection.getConfig().getSessionId(), "userid", connection.getUserInfo().getUserId()));
                     }
 
                     logout();
                     login();
 
                     if (log.isInfoEnabled()) {
-                        log.info(LogUtils.jsonize(
-                                "msg", "Session has been refreshed!",
-                                "url", connection.getConfig().getAuthEndpoint(),
-                                "sessionid", connection.getConfig().getSessionId(),
-                                "userid", connection.getUserInfo().getUserId()));
+                        log.info(LogUtils.jsonize("msg", "Session has been refreshed!", "url",
+                                connection.getConfig().getAuthEndpoint(), "sessionid",
+                                connection.getConfig().getSessionId(), "userid", connection.getUserInfo().getUserId()));
                     }
                 }
             }
@@ -143,8 +139,7 @@ public class SFDataPuller implements DataPuller {
      * @param fromDtTm
      * @return
      */
-    private List<Tenant> getAllActiveEntitlements(LocalDateTime fromDtTm)
-            throws Exception {
+    private List<Tenant> getAllActiveEntitlements(LocalDateTime fromDtTm) throws Exception {
         if (connection == null) {
             String errMsg = "Salesforce connection must be established!";
 
@@ -161,8 +156,7 @@ public class SFDataPuller implements DataPuller {
             boolean done = false;
 
             if (qr.getSize() == 0) {
-                String errMsg = "No entitlements found from Query: "
-                        + SOQLQueries.GET_ACTIVE_ENTITLEMENTS;
+                String errMsg = "No entitlements found from Query: " + SOQLQueries.GET_ACTIVE_ENTITLEMENTS;
 
                 if (log.isErrorEnabled()) {
                     log.error(errMsg);
@@ -228,8 +222,7 @@ public class SFDataPuller implements DataPuller {
      * @param fromDtTm
      * @return
      */
-    private List<Tenant> getUpdatedEntitlements(LocalDateTime fromDtTm)
-            throws Exception {
+    private List<Tenant> getUpdatedEntitlements(LocalDateTime fromDtTm) throws Exception {
         if (connection == null) {
             String errMsg = "Salesforce connection must be established!";
 
@@ -253,8 +246,7 @@ public class SFDataPuller implements DataPuller {
                 log.debug("There are {} updated Entitlement records returned"
                         + " by SF connection.getUpdated(...) API. Not that"
                         + " these records (all or some or none) may not be"
-                        + " related to qualified SaaS enabled Tenants!",
-                        updIDs.length);
+                        + " related to qualified SaaS enabled Tenants!", updIDs.length);
             }
 
             List<Tenant> tenants = new ArrayList<>(updIDs.length);
@@ -265,9 +257,8 @@ public class SFDataPuller implements DataPuller {
 
                 if (qr.getSize() == 0) {
                     if (log.isDebugEnabled()) {
-                        log.debug(LogUtils.jsonize(
-                                "msg", "Unrelated updated SF:Entitlement" + " record found!",
-                                "ID", id));
+                        log.debug(LogUtils.jsonize("msg", "Unrelated updated SF:Entitlement" + " record found!", "ID",
+                                id));
                     }
 
                     continue;
@@ -295,8 +286,7 @@ public class SFDataPuller implements DataPuller {
             }
 
             if (log.isInfoEnabled()) {
-                log.info("There are {} updated Qualifying Tenant records found!",
-                        tenants.size());
+                log.info("There are {} updated Qualifying Tenant records found!", tenants.size());
             }
 
             return tenants;
@@ -315,8 +305,23 @@ public class SFDataPuller implements DataPuller {
     private void login() throws ConfigurationException {
         ConnectorConfig config = new ConnectorConfig();
         SF sf = props.getSf();
-        config.setUsername(sf.getUsername());
-        config.setPassword(sf.getPassword() + sf.getSecToken());
+
+        String username;
+        String password;
+        String secToken;
+
+        if (props.isDebugMode()) {
+            username = sf.getUsername();
+            password = sf.getPassword();
+            secToken = sf.getSecToken();
+        } else {
+            username = CryptUtils.aesDecrypt(sf.getUsername(), CryptUtils.TRANSFORMATION_AES_CBC_PKCS5);
+            password = CryptUtils.aesDecrypt(sf.getPassword(), CryptUtils.TRANSFORMATION_AES_CBC_PKCS5);
+            secToken = CryptUtils.aesDecrypt(sf.getSecToken(), CryptUtils.TRANSFORMATION_AES_CBC_PKCS5);
+        }
+
+        config.setUsername(username);
+        config.setPassword(password + secToken);
 
         config.setAuthEndpoint(sf.getAuthEndpoint());
 
@@ -327,8 +332,7 @@ public class SFDataPuller implements DataPuller {
                 log.info("Salesforce successful login for {}", sf.toString());
             }
         } catch (ConnectionException ex) {
-            throw new ConfigurationException("Failed to connect to Salesforce auth endpoint! "
-                    + sf.toString(), ex);
+            throw new ConfigurationException("Failed to connect to Salesforce auth endpoint! " + sf.toString(), ex);
         }
     }
 
@@ -343,13 +347,11 @@ public class SFDataPuller implements DataPuller {
                 connection.logout();
 
                 if (log.isInfoEnabled()) {
-                    log.info("Salesforce successful logout for {}",
-                            props.getSf().toString());
+                    log.info("Salesforce successful logout for {}", props.getSf().toString());
                 }
             }
         } catch (ConnectionException ce) {
-            throw new ConfigurationException("Salesforce logout failed! "
-                    + "props.getSf().toString()", ce);
+            throw new ConfigurationException("Salesforce logout failed! " + "props.getSf().toString()", ce);
         }
     }
 
@@ -359,12 +361,9 @@ public class SFDataPuller implements DataPuller {
      * @return
      */
     private String getActiveEntitlmentsQuery(LocalDateTime fromDtTm) {
-        LocalDateTime fromDateTimeToUse = fromDtTm != null ? fromDtTm
-                : DateUtils.defaultFromSyncTime();
-        String fromDateAsUTC = DateTimeFormatter.ISO_INSTANT
-                .format(fromDateTimeToUse.toInstant(ZoneOffset.UTC));
-        String queryToUse = SOQLQueries.GET_ACTIVE_ENTITLEMENTS
-                .replace(":createddate", fromDateAsUTC);
+        LocalDateTime fromDateTimeToUse = fromDtTm != null ? fromDtTm : DateUtils.defaultFromSyncTime();
+        String fromDateAsUTC = DateTimeFormatter.ISO_INSTANT.format(fromDateTimeToUse.toInstant(ZoneOffset.UTC));
+        String queryToUse = SOQLQueries.GET_ACTIVE_ENTITLEMENTS.replace(":createddate", fromDateAsUTC);
         return queryToUse;
     }
 
@@ -375,13 +374,10 @@ public class SFDataPuller implements DataPuller {
      * @return
      */
     private String getActiveEntitlmentByIdQuery(String id, LocalDateTime fromDtTm) {
-        LocalDateTime fromDateTimeToUse = fromDtTm != null ? fromDtTm
-                : DateUtils.defaultFromSyncTime();
-        String fromDateAsUTC = DateTimeFormatter.ISO_INSTANT
-                .format(fromDateTimeToUse.toInstant(ZoneOffset.UTC));
-        String queryToUse = SOQLQueries.GET_ENTITLEMENTS_BY_ID
-                .replace(":id", id)
-                .replace(":createddate", fromDateAsUTC);
+        LocalDateTime fromDateTimeToUse = fromDtTm != null ? fromDtTm : DateUtils.defaultFromSyncTime();
+        String fromDateAsUTC = DateTimeFormatter.ISO_INSTANT.format(fromDateTimeToUse.toInstant(ZoneOffset.UTC));
+        String queryToUse = SOQLQueries.GET_ENTITLEMENTS_BY_ID.replace(":id", id).replace(":createddate",
+                fromDateAsUTC);
         return queryToUse;
     }
 
@@ -402,14 +398,12 @@ public class SFDataPuller implements DataPuller {
      * @return
      */
     private String buildTenantKey(Entitlement ent) {
-        return StringUtils.trimToEmpty(ent.getDataset_1__c())
-                + StringUtils.trimToEmpty(ent.getProduct_Name__c())
+        return StringUtils.trimToEmpty(ent.getDataset_1__c()) + StringUtils.trimToEmpty(ent.getProduct_Name__c())
                 + StringUtils.trimToEmpty(ent.getAccount_Name__c());
     }
 
     /**
-     * Checks if incoming tenant's key already found in
-     * <source>recKeys</source>.
+     * Checks if incoming tenant's key already found in <source>recKeys</source>.
      *
      * @param recKeys
      * @param ent

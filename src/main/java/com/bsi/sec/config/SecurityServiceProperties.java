@@ -10,6 +10,9 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+
+import com.bsi.sec.util.CryptUtils;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
@@ -837,7 +840,11 @@ public class SecurityServiceProperties {
         }
 
         public String getPasswd() {
-            return passwd;
+            if (!this.encrypted) {
+                return passwd != null ? passwd.trim() : passwd;
+            } else {
+                return CryptUtils.aesDecrypt(passwd.trim(), CryptUtils.TRANSFORMATION_AES_CBC_PKCS5);
+            }
         }
 
         public void setPasswd(String passwd) {
