@@ -196,8 +196,8 @@ final public class SAMLHelper
 			}
 			//create credential 
 			BasicX509Credential publicCredential = new BasicX509Credential(certificate);
-			publicCredential.setEntityCertificate(certificate);
-			publicCredential.setPublicKey(publicKey);
+//			publicCredential.setEntityCertificate(certificate);
+//			publicCredential.setPublicKey(publicKey);
 			return publicCredential;
 			
 		}		

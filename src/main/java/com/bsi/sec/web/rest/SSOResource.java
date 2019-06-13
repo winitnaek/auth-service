@@ -44,7 +44,7 @@ public class SSOResource {
      */
     @GetMapping("/processSAML")
     public ResponseEntity<SSOResult> processSAML(
-            @Valid @NotNull @RequestParam(required = true) String saml, @RequestParam String relayState) throws Exception {
+            @RequestParam(required = true) String saml, @RequestParam(required=false) String relayState) throws Exception {
         if (log.isInfoEnabled()) {
             log.info("REST request to process saml sso");
         }

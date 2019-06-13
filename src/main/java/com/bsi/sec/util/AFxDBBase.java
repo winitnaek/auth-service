@@ -1,13 +1,14 @@
 package com.bsi.sec.util;
 
+import com.bsi.sec.svc.AsyncInitialDataSyncJob;
 import java.io.FileInputStream;
 import java.sql.SQLException;
 import java.util.Properties;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public abstract class AFxDBBase {
-    private static final Logger log = LogManager.getLogger(AFxDBBase.class);
+      private final static org.slf4j.Logger log = LoggerFactory.getLogger(AsyncInitialDataSyncJob.class);
 	
     static private String  dbmsName    = null;
     static private String  dbmsVersion = null;
