@@ -218,28 +218,28 @@ public class SSOConfigurationDao {
         SSOConfiguration sSOConfiguration = new SSOConfiguration();
 
         sSOConfiguration.setAllowLogout(ssoConfig.getAllowLogout());
-        sSOConfiguration.setAppRedirectURL(ssoConfig.getAppRedirectURL());
-        sSOConfiguration.setAttribIndex(ssoConfig.getAttribIndex());
+        //sSOConfiguration.setAppRedirectURL(ssoConfig.getAppRedirectURL());
+        //sSOConfiguration.setAttribIndex(ssoConfig.getAttribIndex());
         sSOConfiguration.setCertAlias(ssoConfig.getCertAlias());
-        sSOConfiguration.setCertPassword(ssoConfig.getCertPassword());
+        //sSOConfiguration.setCertPassword(ssoConfig.getCertPassword());
         sSOConfiguration.setCertText(ssoConfig.getCertText());
         sSOConfiguration.setDsplName(ssoConfig.getDsplName());
         sSOConfiguration.setEnabled(ssoConfig.getEnabled());
         sSOConfiguration.setExpireRequestSecs(ssoConfig.getExpireRequestSecs());
         sSOConfiguration.setId(idGen.generate());
         sSOConfiguration.setIdpIssuer(ssoConfig.getIdpIssuer());
-        sSOConfiguration.setIdpReqURL(ssoConfig.getIdpReqURL());
-        sSOConfiguration.setNonSamlLogoutURL(ssoConfig.getNonSamlLogoutURL());
-        sSOConfiguration.setRedirectToApplication(ssoConfig.getRedirectToApplication());
-        sSOConfiguration.setSpConsumerURL(ssoConfig.getSpConsumerURL());
-        sSOConfiguration.setSpIssuer(ssoConfig.getSpIssuer());
+        //sSOConfiguration.setIdpReqURL(ssoConfig.getIdpReqURL());
+        //sSOConfiguration.setNonSamlLogoutURL(ssoConfig.getNonSamlLogoutURL());
+        //sSOConfiguration.setRedirectToApplication(ssoConfig.getRedirectToApplication());
+        //sSOConfiguration.setSpConsumerURL(ssoConfig.getSpConsumerURL());
+        //sSOConfiguration.setSpIssuer(ssoConfig.getSpIssuer());
 
         Tenant tenant = tenantDao.getTenantByName(ssoConfig.getAcctName());
         sSOConfiguration.setTenant(tenant);
         sSOConfiguration.setAcctName(ssoConfig.getAcctName());
 
         //sSOConfiguration.setTenantSSOConf(tenantSSOConf);
-        sSOConfiguration.setValidateIdpIssuer(ssoConfig.getValidateIdpIssuer());
+        //sSOConfiguration.setValidateIdpIssuer(ssoConfig.getValidateIdpIssuer());
         sSOConfiguration.setValidateRespSignature(ssoConfig.getValidateRespSignature());
         
         ssoConfigurationRepository.save(sSOConfiguration.getId(), sSOConfiguration);
@@ -262,22 +262,22 @@ public class SSOConfigurationDao {
           
         SSOConfiguration sSOConfiguration = new SSOConfiguration();
         sSOConfiguration.setAllowLogout(ssoConfig.getAllowLogout());
-        sSOConfiguration.setAppRedirectURL(ssoConfig.getAppRedirectURL());
-        sSOConfiguration.setAttribIndex(ssoConfig.getAttribIndex());
+        //sSOConfiguration.setAppRedirectURL(ssoConfig.getAppRedirectURL());
+        //sSOConfiguration.setAttribIndex(ssoConfig.getAttribIndex());
         sSOConfiguration.setCertAlias(ssoConfig.getCertAlias());
-        sSOConfiguration.setCertPassword(ssoConfig.getCertPassword());
+        //sSOConfiguration.setCertPassword(ssoConfig.getCertPassword());
         sSOConfiguration.setCertText(ssoConfig.getCertText());
         sSOConfiguration.setDsplName(ssoConfig.getDsplName());
         sSOConfiguration.setEnabled(ssoConfig.getEnabled());
         sSOConfiguration.setExpireRequestSecs(ssoConfig.getExpireRequestSecs());
         sSOConfiguration.setId(ssoConfig.getId());
         sSOConfiguration.setIdpIssuer(ssoConfig.getIdpIssuer());
-        sSOConfiguration.setIdpReqURL(ssoConfig.getIdpReqURL());
-        sSOConfiguration.setNonSamlLogoutURL(ssoConfig.getNonSamlLogoutURL());
-        sSOConfiguration.setRedirectToApplication(ssoConfig.getRedirectToApplication());
+        //sSOConfiguration.setIdpReqURL(ssoConfig.getIdpReqURL());
+        //sSOConfiguration.setNonSamlLogoutURL(ssoConfig.getNonSamlLogoutURL());
+        //sSOConfiguration.setRedirectToApplication(ssoConfig.getRedirectToApplication());
 
-        sSOConfiguration.setSpConsumerURL(ssoConfig.getSpConsumerURL());
-        sSOConfiguration.setSpIssuer(ssoConfig.getSpIssuer());
+        //sSOConfiguration.setSpConsumerURL(ssoConfig.getSpConsumerURL());
+        //sSOConfiguration.setSpIssuer(ssoConfig.getSpIssuer());
 
         Tenant tenant = tenantDao.getTenantByName(ssoConfig.getAcctName());
         sSOConfiguration.setTenant(tenant);
@@ -285,7 +285,7 @@ public class SSOConfigurationDao {
         if(conf.isLinked()){
             sSOConfiguration.setLinked(true);
         }
-        sSOConfiguration.setValidateIdpIssuer(ssoConfig.getValidateIdpIssuer());
+        //sSOConfiguration.setValidateIdpIssuer(ssoConfig.getValidateIdpIssuer());
         sSOConfiguration.setValidateRespSignature(ssoConfig.getValidateRespSignature());
         ssoConfigurationRepository.save(sSOConfiguration.getId(), sSOConfiguration);
         auditLogger.logEntity(sSOConfiguration, AuditLogger.Areas.SSO_CONF, AuditLogger.Ops.UPDATE);

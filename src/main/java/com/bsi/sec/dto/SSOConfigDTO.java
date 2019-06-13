@@ -24,22 +24,17 @@ public final class SSOConfigDTO {
     @NotNull
     private String idpIssuer;
 
-    @NotNull
     private String idpReqURL;
 
     private String spConsumerURL;
 
-    @NotNull
     private String spIssuer;
 
-    @NotNull
-    @Min(value = 1)
     private Integer attribIndex;
 
     @NotNull
     private Boolean validateRespSignature;
 
-    @NotNull
     private Boolean validateIdpIssuer;
 
     @NotNull
@@ -47,16 +42,13 @@ public final class SSOConfigDTO {
 
     private String nonSamlLogoutURL;
 
-    @NotNull
     private Boolean redirectToApplication;
 
-    @NotNull
     private String appRedirectURL;
 
     @NotNull
     private String certAlias;
 
-    @NotNull
     private String certPassword;
 
     @NotNull
