@@ -46,18 +46,15 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
     @QuerySqlField(name = "idp_issuer")
     private String idpIssuer;
 
-    @NotNull
     @Column(name = "idp_req_url", nullable = false)
     private String idpReqURL;
 
     @Column(name = "sp_consumer_url", nullable = false)
     private String spConsumerURL;
 
-    @NotNull
     @Column(name = "sp_issuer", nullable = false)
     private String spIssuer;
 
-    @NotNull
     @Min(value = 1)
     @Column(name = "attrib_index", nullable = false)
     private Integer attribIndex;
@@ -66,7 +63,6 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
     @Column(name = "validate_resp_signature", nullable = false)
     private Boolean validateRespSignature;
 
-    @NotNull
     @Column(name = "validate_idp_issuer", nullable = false)
     private Boolean validateIdpIssuer;
 
@@ -77,23 +73,18 @@ public class SSOConfiguration extends AbstractAuditingEntity implements Serializ
     @Column(name = "non_saml_logout_url", nullable = false)
     private String nonSamlLogoutURL;
 
-    @NotNull
     @Column(name = "redirect_to_application", nullable = false)
     private Boolean redirectToApplication;
 
-    @NotNull
     @Column(name = "app_redirect_url", nullable = false)
     private String appRedirectURL;
 
-    @NotNull
     @Column(name = "cert_alias", nullable = false)
     private String certAlias;
 
-    @NotNull
     @Column(name = "cert_password", nullable = false)
     private String certPassword;
 
-    @NotNull
     @Column(name = "cert_text", nullable = false)
     private String certText;
 
