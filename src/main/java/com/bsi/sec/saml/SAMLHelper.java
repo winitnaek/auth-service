@@ -381,12 +381,12 @@ final public class SAMLHelper
 				DocumentBuilder docBuilder = documentBuilderFactory.newDocumentBuilder();									
 				byte[] respBytes = null;
 				try {
-					respBytes = Base64.getDecoder().decode(response);
+					respBytes = Base64.getDecoder().decode(response.trim());
 				} catch (Exception e) {
 					log.debug("Response was not B64 encoded." , e);
 				}
 				if(respBytes == null) //not Base64 encoded.
-					respBytes = response.getBytes();	
+					respBytes = response.trim().getBytes();	
 				ByteArrayInputStream is = new ByteArrayInputStream(respBytes);		
 				Document document = docBuilder.parse(is);
 				Element element = document.getDocumentElement();

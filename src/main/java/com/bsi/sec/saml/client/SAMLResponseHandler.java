@@ -6,6 +6,7 @@
 package com.bsi.sec.saml.client;
 
 import com.bsi.sec.dao.SSOConfigurationDao;
+import com.bsi.sec.dao.TenantDao;
 import com.bsi.sec.domain.SSOConfiguration;
 import com.bsi.sec.dto.SSOAction;
 import com.bsi.sec.dto.SSOResult;
@@ -24,6 +25,9 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.util.Map;
 import java.security.cert.X509Certificate;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.opensaml.core.config.InitializationException;
 import org.opensaml.saml.saml2.core.LogoutResponse;
@@ -45,6 +49,7 @@ public class SAMLResponseHandler {
 
     @Autowired
     private SSOConfigurationDao ssoConfDao;
+    
 
     @Autowired
     private AuditLogger auditLogger;
@@ -80,17 +85,38 @@ public class SAMLResponseHandler {
             log.info("Handling response from issuer" + issuer);
             log.info("Validating issuer: " + issuer + " against configured idp issuer...");
         }
-        SSOConfiguration ssoConfig = ssoConfDao.getSSOConfByIssuer(issuer);
-        if (ssoConfig == null || !StringUtils.equalsIgnoreCase(StringUtils.trimToEmpty(issuer), StringUtils.trimToEmpty(ssoConfig.getIdpIssuer()))) {
-            throw new InvalidIssuerException("Unknow Issuer: " + issuer);
-        }
-        Certificate configuredCert = null;
-        if (ssoConfig.isValidateRespSignature()) {
-            configuredCert = getCertificate(ssoConfig.getCertText());
-        }
+        List<SSOConfiguration> ssoConfigs = ssoConfDao.getSSOConfByIssuer(issuer);
+        if (ssoConfigs == null || ssoConfigs.size()==0) {
+            throw new InvalidIssuerException("No valid configuration. Unknown Issuer: " + issuer);
+        }        
         //
         if (response instanceof Response) {
-            Map<String, String> attributes = ResponseFactory.getResponse(ssoConfig.isValidateRespSignature(), configuredCert).processAuthenticationResponse((Response) response);
+            //Map<String, String> attributes = ResponseFactory.getResponse(ssoConfig.isValidateRespSignature(), configuredCert).processAuthenticationResponse((Response) response);
+            Map<String, String> attributes = ResponseFactory.getResponse(false, null).processAuthenticationResponse((Response) response);
+            //
+            String uuid = getUUID(attributes);
+            if(StringUtils.isEmpty(uuid))
+                throw new InvalidUserException("Invalid SAML Response, No UUID!");
+            //
+            SSOConfiguration applicableConf = null;
+            for(SSOConfiguration conf : ssoConfigs)
+            {
+                if(conf.getTenant().getDataset().equalsIgnoreCase(uuid))
+                {
+                    applicableConf = conf;
+                    break;
+                }
+            }
+            if(applicableConf == null)
+                 throw new InvalidUserException("Invalid User, dataset/tenant not configured for SSO!");
+            //
+            Certificate configuredCert = null;
+            if (applicableConf.isValidateRespSignature()) {
+                configuredCert = getCertificate(applicableConf.getCertText());
+                if(!SAMLHelper.hasValidResponseSignature(response, configuredCert))
+                    throw new InvalidSignatureException("Invalid Signature In Authentication Response! \n" + SAMLHelper.xmlObjectToString(response));
+            }
+            //
             result.setAttributes(attributes);
         } else if (response instanceof LogoutResponse) {
             result.setAction(SSOAction.LOGOUT);
@@ -111,6 +137,17 @@ public class SAMLResponseHandler {
         InputStream is = new ByteArrayInputStream(certText.getBytes());
         X509Certificate cer = (X509Certificate) fact.generateCertificate(is);
         return cer;
+    }
+    
+    private String getUUID(Map<String, String> attrs)
+    {
+        Set<Map.Entry<String, String>> entries = attrs.entrySet();
+        for(Entry<String,String> e : entries)
+        {
+           if(e.getKey().equalsIgnoreCase("companyuuid"))
+               return e.getValue();
+        }
+        return null;
     }
 
 }

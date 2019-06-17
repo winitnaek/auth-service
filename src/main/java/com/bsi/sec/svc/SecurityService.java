@@ -28,6 +28,7 @@ import com.bsi.sec.repository.TenantRepository;
 import static com.bsi.sec.util.CacheConstants.TENANT_CACHE;
 import static com.bsi.sec.util.CacheConstants.AUDIT_LOG_CACHE;
 import com.bsi.sec.util.DateUtils;
+import com.bsi.sec.util.JpaQueries;
 import com.bsi.sec.util.LogUtils;
 import java.time.Clock;
 import java.time.Instant;
@@ -335,34 +336,49 @@ public class SecurityService {
     }
 
     /**
-     *
+     * All = true - imported and manually created
+     * all = false - manually created only
      * @param includeImported
      * @return
      */
-    public List<TenantDTO> getTenants(boolean includeImported) throws Exception {
+    public List<TenantDTO> getTenants(boolean all) throws Exception {
         List<TenantDTO> tenants = new ArrayList<>();
         IgniteCache<Long, Tenant> tenantCache = igniteInstance.cache(TENANT_CACHE);
-        SqlQuery sqlQry = new SqlQuery(Tenant.class, "imported= ?");
-        try (QueryCursor<Cache.Entry<Long, Tenant>> cursor = tenantCache.query(sqlQry.setArgs(includeImported))) {
-            for (Cache.Entry<Long, Tenant> tn : cursor) {
-                TenantDTO tenant = new TenantDTO();
-                Tenant tnt = tn.getValue();
-                tenant.setId(tnt.getId());
-                tenant.setAcctName(tnt.getAcctName());
-                tenant.setDataset(tnt.getDataset());
-                tenant.setProdName(tnt.getProdName());
-                tenant.setEnabled(tnt.isEnabled());
-                tenant.setImported(tnt.isImported());
-                tenant.setSsoConfId(tnt.getConfId());
-                tenant.setSsoConfDsplName(tnt.getConfIdDsplName());
-                //SSOConfigDTO configDTO = ssoConfDao.getLinkedSSOConfigsForTenant(tnt.getAcctName());
-                //log.info("configDTO : "+configDTO);
-                //List<SSOConfigDTO> ssoConf  = getSSOConfigsByTenant(tnt.getAcctName());
-                //if (configDTO != null) {
-//                    tenant.setSsoConfId(configDTO.getId());
-//                    tenant.setSsoConfDsplName(configDTO.getDsplName());
-//                }
-                tenants.add(tenant);
+        SqlQuery sqlQry = null;
+        if(all){
+            sqlQry = new SqlQuery(Tenant.class, JpaQueries.SELECT_ALL_TENANTS);
+            try (QueryCursor<Cache.Entry<Long, Tenant>> cursor = tenantCache.query(sqlQry)) {
+                for (Cache.Entry<Long, Tenant> tn : cursor) {
+                    TenantDTO tenant = new TenantDTO();
+                    Tenant tnt = tn.getValue();
+                    tenant.setId(tnt.getId());
+                    tenant.setAcctName(tnt.getAcctName());
+                    tenant.setDataset(tnt.getDataset());
+                    tenant.setProdName(tnt.getProdName());
+                    tenant.setEnabled(tnt.isEnabled());
+                    tenant.setImported(tnt.isImported());
+                    tenant.setSsoConfId(tnt.getConfId());
+                    tenant.setSsoConfDsplName(tnt.getConfIdDsplName());
+                    tenants.add(tenant);
+                }
+            }
+        }
+        else {
+            sqlQry = new SqlQuery(Tenant.class, "imported= ?");
+            try (QueryCursor<Cache.Entry<Long, Tenant>> cursor = tenantCache.query(sqlQry.setArgs(all))) {
+                            for (Cache.Entry<Long, Tenant> tn : cursor) {
+                    TenantDTO tenant = new TenantDTO();
+                    Tenant tnt = tn.getValue();
+                    tenant.setId(tnt.getId());
+                    tenant.setAcctName(tnt.getAcctName());
+                    tenant.setDataset(tnt.getDataset());
+                    tenant.setProdName(tnt.getProdName());
+                    tenant.setEnabled(tnt.isEnabled());
+                    tenant.setImported(tnt.isImported());
+                    tenant.setSsoConfId(tnt.getConfId());
+                    tenant.setSsoConfDsplName(tnt.getConfIdDsplName());
+                    tenants.add(tenant);
+                }
             }
         }
         return tenants;

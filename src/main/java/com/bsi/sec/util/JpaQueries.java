@@ -32,4 +32,6 @@ public class JpaQueries {
     public static final String DELETE_SSO_CONFIG = "DELETE FROM SSOConfiguration WHERE id = ?";
     public static final String SELECT_CONFIGS = "select * FROM SSOConfiguration";
     public static final String GET_LINKED_SSOCONFIGIDS_BY_ACCTNAME = "select id, dsplName from SSOConfiguration c where c.acctName = ? and c.linked=true";
+    
+    public static final String SELECT_ALL_TENANTS = "select * FROM Tenant";
 }
