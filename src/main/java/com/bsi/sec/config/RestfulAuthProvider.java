@@ -42,7 +42,7 @@ public class RestfulAuthProvider implements AuthenticationProvider {
 
             IntUser intUserCfg = props.getUser();
 
-            if (isSSOUser(authentication)) {
+            if (isSSOUser(authentication, props)) {
                 // SSO User!
                 if (intUserCfg.isEnabled() && name.equals(intUserCfg.getName())
                         && password.equals(intUserCfg.getPasswd())) {
@@ -83,8 +83,9 @@ public class RestfulAuthProvider implements AuthenticationProvider {
      *
      * @return
      */
-    private boolean isSSOUser(Authentication authentication) {
-        return authentication.getDetails() instanceof SSOAuthenticationDetails;
+    private boolean isSSOUser(Authentication authentication, SecurityServiceProperties props) {
+        return authentication.getDetails() instanceof SSOAuthenticationDetails
+                || props.isDebugMode() && !props.getLdap().isEnabled();
     }
 
 }

@@ -7,6 +7,7 @@ package com.bsi.sec.config;
 
 import com.bsi.sec.svc.AuditLogger;
 import com.bsi.sec.util.LogUtils;
+import static com.bsi.sec.util.WSConstants.MGMTUI_DEBUG_LOGIN_FORM_URL;
 import static com.bsi.sec.util.WSConstants.MGMTUI_LOGIN_FORM_URL;
 import static com.bsi.sec.util.WSConstants.MGMTUI_LOGIN_PROC_URL;
 import static com.bsi.sec.util.WSConstants.MGMTUI_LOGOUT_PROC_URL;
@@ -23,6 +24,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +65,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Autowired
     private AuditLogger auditLogger;
 
+    @Autowired
+    private SecurityServiceProperties props;
+
     /**
      * * Configure Http Security
      *
@@ -76,7 +81,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/", "/r", "/a/**").denyAll()
                 .antMatchers("/error").permitAll()
-                .antMatchers("/r" + SSO_SVCS_PREFIX + "/**").fullyAuthenticated()
+                .antMatchers(getPatternsToMatch()).fullyAuthenticated()
                 .and()
                 .httpBasic()
                 .authenticationEntryPoint(authFailureEntryPoint())
@@ -264,6 +269,18 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                     AuditLogger.Areas.MGMT_UI,
                     AuditLogger.Ops.LOGOUT, null);
         };
+    }
+
+    /**
+     *
+     * @return
+     */
+    private String[] getPatternsToMatch() {
+        String ssoReq = "/r" + SSO_SVCS_PREFIX + "/**";
+        String debugWebapiReq = MGMTUI_DEBUG_LOGIN_FORM_URL + "/**";
+        return props.isDebugMode() && !props.getLdap().isEnabled()
+                ? ArrayUtils.toArray(ssoReq, debugWebapiReq)
+                : ArrayUtils.toArray(ssoReq);
     }
 
 }
