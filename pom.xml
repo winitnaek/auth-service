@@ -15,7 +15,7 @@
         <spring.version>5.1.5.RELEASE</spring.version>
         <spring.security.version>5.1.4.RELEASE</spring.security.version>
         <hibernate.version>5.3.7.Final</hibernate.version>
-        <ignite.version>2.7.0</ignite.version>
+        <ignite.version>2.8.1</ignite.version>
         <ignite.scheduler.version>1.0.0</ignite.scheduler.version>
         <!-- Services -->
         <echo.service>EchoService</echo.service>
